@@ -1,12 +1,83 @@
 ---
 title: Spacing
-description: Vertical and horizontal spacing patterns using spacer cells with mso-line-height-rule for pixel-perfect Outlook rendering.
+description: How to add vertical and horizontal space in HTML email without relying on margin or padding — the spacer row, the spacer div, and the inline-block trick.
 ---
 
 import { Aside } from '@astrojs/starlight/components';
 
-<Aside type="note" title="Porting in progress">
-This page is being ported from the [original email-docx](https://osamahassouna.github.io/email-docx/). The source content exists, it just hasn't been polished for the new playbook yet.
+Margin and padding don't survive every email client. Outlook for Windows ignores margin on block elements entirely; Yahoo strips it from some selectors; Gmail's mobile app sometimes collapses padding when it shrinks the email to fit. The reliable way to space content in HTML email is with explicit spacer rows and spacer cells.
+
+## Vertical spacing
+
+### Option 1 — Spacer `<td>` row (preferred)
+
+The default. A `<tr>` with a single full-width `<td>`, an explicit `line-height` and `height` (always paired), and `mso-line-height-rule:exactly` for Outlook for Windows.
+
+```html
+<tr>
+  <td colspan="99" style="line-height:10px; height:10px; mso-line-height-rule:exactly;">&nbsp;</td>
+</tr>
+```
+
+<Aside type="caution" title="line-height and height must match">
+Outlook for Windows uses whichever value is smaller. Set them both to the same number. Without `mso-line-height-rule:exactly` it adds extra leading.
 </Aside>
 
-Covers vertical spacer rows (with `mso-line-height-rule: exactly`), horizontal spacer cells, the `&nbsp;` requirement, and when to use each.
+### Option 2 — Spacer `<div>` inside a `<td>`
+
+Useful when you're inside a content cell and don't want to break out into a fresh row. The padding-zeroed `<td>` wraps a `<div>` with the same line-height/height pairing:
+
+```html
+<td style="padding:0;">
+  <div style="line-height:10px; height:10px; mso-line-height-rule:exactly;">&nbsp;</div>
+</td>
+```
+
+### Option 3 — Inline-block paragraph (fallback)
+
+When you can't use either of the above (e.g. the platform you're sending through strips empty `<td>` cells), use an inline-block `<p>` with explicit height:
+
+```html
+<td colspan="99" style="height:20px;">
+  <p style="display:inline-block; width:100%; height:20px; line-height:1px;">&nbsp;</p>
+</td>
+```
+
+This is the last resort. Some email clients still ignore the `<p>` height when it has no real content; test before relying on it.
+
+## Horizontal spacing
+
+For gaps between side-by-side cells (e.g. two columns with a 30px gutter), drop an inline-block `<p>` inside a `<td>`. Force `font-size:0; padding:0; line-height:0;` so the cell takes only the width you specify:
+
+```html
+<td colspan="99">
+  <p style="display:inline-block; width:30px; font-size:0; padding:0; line-height:0;">&nbsp;</p>
+</td>
+```
+
+For full row-level gutters (column-1 / gutter / column-2), use a spacer `<td>` directly between the two content cells:
+
+```html
+<tr>
+  <td>Column 1 content</td>
+  <td style="width:24px; min-width:24px; font-size:0; line-height:0;">&nbsp;</td>
+  <td>Column 2 content</td>
+</tr>
+```
+
+## Spacing rhythm
+
+Pick consistent values and reuse them. A four-step scale covers most emails:
+
+| Use | Value |
+|---|---|
+| Tight stack (caption under image, sub-heading) | 8-12px |
+| Between related content blocks | 16-24px |
+| Between unrelated sections | 40-60px |
+| Top/bottom of body, around hero | 80px |
+
+Sticking to a scale keeps the rhythm consistent and prevents the "every section is a different height" problem that creeps into emails built ad-hoc.
+
+## What's next
+
+[Images](/email-playbook/components/images/) cover the inline image pattern. [Buttons](/email-playbook/components/buttons/) covers the bulletproof button (VML + CSS hybrid).

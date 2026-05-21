@@ -1,12 +1,159 @@
 ---
 title: Outlook & MSO
-description: The mso conditional comments, the VML namespace, and the version-specific quirks of Outlook 2007 through Outlook 365.
+description: A working reference for Microsoft Outlook's quirks — the MSO conditional comments, VML, the Word rendering engine, and the patterns that survive Outlook 2007 through Outlook 365.
 ---
 
 import { Aside } from '@astrojs/starlight/components';
 
-<Aside type="note" title="Porting in progress">
-This page is being ported from the [original email-docx](https://osamahassouna.github.io/email-docx/). The source content exists, it just hasn't been polished for the new playbook yet.
+Outlook is the reason HTML email feels like it's stuck in 2005. From 2007 onward, Outlook for Windows renders email using Microsoft Word's HTML engine, not a real browser. That engine ignores most modern CSS, breaks float and flexbox, and has its own non-standard properties for the things it does support.
+
+This page catalogs the workarounds.
+
+## Which Outlook are we talking about?
+
+Outlook is not one product. There are at least four distinct renderers under the same name, and each has its own quirks:
+
+| Client | Renderer | Quirks |
+|---|---|---|
+| Outlook 2007-2019 (Windows desktop) | Word HTML engine | Most restrictive. No CSS3, no media queries, no flex/grid, breaks images and backgrounds without VML hacks. |
+| Outlook 365 (Windows desktop, M365 subscription) | Word HTML engine | Same as 2019 — Microsoft has not modernized it. |
+| Outlook.com / Outlook for Web (OWA) | Webkit-based | Behaves like a modern browser. Supports most CSS, media queries work. |
+| New Outlook for Windows (2024+, the React rewrite) | Webkit-based | Modern. Effectively Outlook.com in a desktop wrapper. |
+| Outlook for Mac | Webkit-based | Modern. Apple-side of the Outlook family. |
+| Outlook mobile (iOS/Android) | Webkit-based | Modern. |
+
+When this playbook says "Outlook" without qualification, it means the **Windows desktop client running the Word renderer** — that's the one that drives every painful decision.
+
+## MSO conditional comments
+
+Outlook's Word renderer reads HTML comments that match the pattern `<!--[if mso]>...<![endif]-->`. Every other client treats them as plain comments and ignores them. This is the foundation of every Outlook workaround.
+
+### Target ALL MSO versions
+
+```html
+<!--[if mso]>
+  <p>Only Outlook sees this.</p>
+<![endif]-->
+```
+
+### Target specific MSO versions
+
+`mso 9` is Outlook 2000. `mso 12` is Outlook 2007. Most VML and styling hacks target `gte mso 9` (Outlook 2000 or later), which covers every version of the Word renderer:
+
+```html
+<!--[if gte mso 9]>
+  <p>Outlook 2000 and later see this.</p>
+<![endif]-->
+```
+
+### Target NON-MSO clients
+
+`[if !mso]` runs everywhere except Outlook desktop:
+
+```html
+<!--[if !mso]><!-->
+  <p>Every client except Outlook desktop sees this.</p>
+<!--<![endif]-->
+```
+
+The `<!-->` and `<!--` opening/closing pattern is intentional — it makes the block readable as a comment by browsers (which would otherwise read the inner HTML as fully-comment-wrapped).
+
+## VML: Outlook's vector format
+
+VML (Vector Markup Language) is Microsoft's pre-SVG vector spec. Outlook's Word renderer is the only place it still ships. Two patterns appear constantly:
+
+### `<v:rect>` for background images and colored regions
+
+```html
+<!--[if gte mso 9]>
+  <v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false"
+          style="mso-width-percent:1000; height:200px;">
+    <v:fill type="tile" src="image.jpg" color="#FALLBACK" />
+    <v:textbox inset="0,0,0,0">
+<![endif]-->
+
+  <!-- Real content for everyone else -->
+
+<!--[if gte mso 9]>
+    </v:textbox>
+  </v:rect>
+<![endif]-->
+```
+
+See [Background Images](/email-playbook/components/background-images/) for the full breakdown.
+
+### `<v:roundrect>` for buttons
+
+```html
+<!--[if mso]>
+<v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" href="https://example.com"
+             style="v-text-anchor:middle; width:200px; height:40px;"
+             arcsize="10%" stroke="f" fillcolor="#222222">
+  <w:anchorlock/>
+  <center>
+<![endif]-->
+
+  <a href="..." style="...">Button Text</a>
+
+<!--[if mso]>
+  </center>
+</v:roundrect>
+<![endif]-->
+```
+
+See [Buttons](/email-playbook/components/buttons/) and [Bulletproof Buttons](/email-playbook/production/bulletproof-buttons/) for variations.
+
+## Outlook-specific CSS properties
+
+Outlook adds proprietary properties prefixed with `mso-`. These work nowhere else and don't break anywhere else — they're safe to inline:
+
+| Property | Use |
+|---|---|
+| `mso-line-height-rule:exactly` | Forces `line-height` to be pixel-perfect on spacer rows. Without it, Outlook adds extra leading. |
+| `mso-hide:all` | Hides an element in Outlook only. Useful for showing fallback images. |
+| `mso-padding-alt` | Outlook-only padding. The "alt" version works on cells where regular `padding` doesn't. |
+| `mso-margin-top-alt`, `mso-margin-bottom-alt` | Outlook-only margins. Same workaround pattern. |
+| `mso-border-alt` | Borders on table cells that Outlook would otherwise drop. |
+| `mso-width-percent` | Width as a fraction of parent. `1000` = 100%, `500` = 50%. Used inside `<v:rect>`. |
+| `mso-fit-shape-to-text` | Makes a VML shape size to content. Used when background height is dynamic. |
+
+## Things Outlook breaks even with workarounds
+
+- **`border-radius`** on table cells and `<td>` backgrounds — silently ignored. Use VML `<v:roundrect>` for rounded buttons.
+- **CSS gradients** (`linear-gradient`, `radial-gradient`) — fall back to solid `bgcolor`. VML supports gradients via `<v:fill type="gradient">` but it's brittle; usually not worth it.
+- **`float`, `flex`, `grid`** — Outlook's Word renderer doesn't speak modern layout. Use nested tables instead.
+- **`@font-face`, `@import`, `<link>` font loads** — fonts via these methods get stripped. Use OS-safe stacks (see [Text](/email-playbook/components/text/)).
+- **`position:absolute` / `position:fixed`** — silently ignored.
+- **`transform`, `transition`, `animation`** — all silently ignored.
+- **`background-image` in CSS** — see [Background Images](/email-playbook/components/background-images/) for the VML workaround.
+- **`max-width` on images** — ignored. Use the `width=""` HTML attribute.
+- **Three-letter hex colors** (`#fff`) — sometimes silently ignored. Always use six-digit hex.
+
+## The version-comment pattern
+
+For multi-version targeting (rare, but useful when Outlook 365 differs from 2019):
+
+```html
+<!--[if mso 16]>      Outlook 2019/365 only          <![endif]-->
+<!--[if mso 15]>      Outlook 2013                    <![endif]-->
+<!--[if mso 14]>      Outlook 2010                    <![endif]-->
+<!--[if mso 12]>      Outlook 2007                    <![endif]-->
+<!--[if gte mso 12]>  Outlook 2007 and later          <![endif]-->
+<!--[if lte mso 11]>  Outlook 2003 and earlier        <![endif]-->
+```
+
+In practice, `gte mso 9` covers everything you need to worry about.
+
+## Test with the real client
+
+Outlook quirks are unpredictable. **Always send a test to a real Outlook 2019 or 365 desktop client** before shipping a campaign. Litmus, Email on Acid, and Mailtrap all render Outlook accurately if you don't have a Windows machine handy.
+
+<Aside type="caution" title="The new Outlook is not the old Outlook">
+Microsoft is in the middle of replacing the Word-renderer Outlook with a webkit-based React rewrite ("New Outlook"). Both ship today and which one your recipient sees depends on their org's IT settings. Until the legacy client is fully retired, design for the Word renderer — it's the failure mode that matters.
 </Aside>
 
-Covers `<!--[if mso]>` conditional comments, MSO version checks (`if gte mso 9`), the differences between Outlook desktop (Word rendering engine) vs Outlook 365 / Outlook.com (web rendering), and the workarounds for each.
+## Related
+
+- [Background Images](/email-playbook/components/background-images/) — VML rect pattern
+- [Buttons](/email-playbook/components/buttons/) and [Bulletproof Buttons](/email-playbook/production/bulletproof-buttons/) — VML roundrect pattern
+- [Head](/email-playbook/structure/head/) — boilerplate that opens the MSO XML namespaces (`xmlns:v` and `xmlns:o`)

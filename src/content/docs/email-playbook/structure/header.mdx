@@ -1,12 +1,137 @@
 ---
-title: Header Structure
-description: The header row of the email, including logo placement, vertical spacing, and the nested table pattern.
+title: Email Header
+description: The header row — a presentation table inside a row, with height, background, and a three-column content layout for logo + nav + actions.
 ---
 
 import { Aside } from '@astrojs/starlight/components';
 
-<Aside type="note" title="Porting in progress">
-This page is being ported from the [original email-docx](https://osamahassouna.github.io/email-docx/). The source content exists, it just hasn't been polished for the new playbook yet.
+The header is the first row inside the main table. It's a self-contained `<table>` with its own height, background, and an internal three-column layout for whatever brand elements you want — logo, nav, language toggle, account links.
+
+## The header row
+
+```html title="email-header.html"
+<!-- Header Content -->
+<tr>
+  <td colspan="99" style="padding:0;" valign="top">
+
+    <!-- Header | Design -->
+    <table width="100%" height="100" border="0" cellpadding="0" cellspacing="0">
+      <tr>
+        <td bgcolor="#ffffff" valign="top" dir="ltr">
+
+          <!-- structure -->
+          <table cellpadding="0" cellspacing="0" border="0" width="100%">
+            <!-- V Spacing -->
+            <tr>
+              <td style="line-height:25px; height:25px; mso-line-height-rule:exactly;">&nbsp;</td>
+            </tr>
+            <!-- content -->
+            <tr>
+              <td align="left">  <!-- left slot --></td>
+              <td align="center"><!-- center slot --></td>
+              <td align="right"> <!-- right slot --></td>
+            </tr>
+            <!-- V Spacing -->
+            <tr>
+              <td style="line-height:25px; height:25px; mso-line-height-rule:exactly;">&nbsp;</td>
+            </tr>
+          </table>
+
+        </td>
+      </tr>
+    </table>
+
+  </td>
+</tr>
+```
+
+The outer `<tr>` uses `colspan="99"` so the header always spans every column of the main table, regardless of how many columns the body splits into.
+
+## Header options
+
+### Height
+
+Set a fixed `height=""` on the header table. Different email engines round CSS heights inconsistently; the HTML attribute is the one they all respect.
+
+```html ins="height=\"100\""
+<table width="100%" height="100" border="0" cellpadding="0" cellspacing="0">
+```
+
+### Background color
+
+Set `bgcolor=""` on the cell that holds the structure. Keep it as a six-digit hex value — three-letter shortcuts (`#fff`) fail in older Outlook.
+
+```html ins="bgcolor=\"#ffffff\""
+<td bgcolor="#ffffff" valign="top" dir="ltr">
+```
+
+### Background image
+
+Background images in Outlook need VML wrapping. The HTML `background=""` attribute covers every modern client; the VML block inside `[if gte mso 9]` covers Outlook 2007 through 2019:
+
+```html title="header-with-bg-image.html"
+<!-- Header | Design -->
+<table width="100%" height="200" border="0" cellpadding="0" cellspacing="0">
+  <tr>
+    <td background="https://example.com/header.jpg" bgcolor="#1A1A1A"
+        style="background-size: cover;" valign="top" dir="ltr">
+
+      <!--[if gte mso 9]>
+        <v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false"
+                style="mso-width-percent:1000; height:200px;">
+          <v:fill type="tile" src="https://example.com/header.jpg" color="#1A1A1A" />
+          <v:textbox inset="0,0,0,0">
+      <![endif]-->
+
+      <!-- structure -->
+      <table cellpadding="0" cellspacing="0" border="0" width="100%">
+        <!-- content rows -->
+      </table>
+
+      <!--[if gte mso 9]>
+          </v:textbox>
+        </v:rect>
+      <![endif]-->
+
+    </td>
+  </tr>
+</table>
+```
+
+<Aside type="caution" title="VML height must match header height">
+The `height:200px;` inside the `<v:rect style>` must match the outer table's `height="200"`. If they drift, Outlook shows a clipped or duplicated background.
 </Aside>
 
-Covers the header `<tr>` and `<td colspan="99">` pattern, the inner table structure, vertical spacing rows, and the alignment cells (left / center / right).
+See [Background Images](/email-playbook/components/background-images/) for the full pattern.
+
+### Vertical spacing
+
+The first and last rows inside the structure table are spacer rows. They give the header content a fixed top/bottom breathing margin that survives Outlook for Windows:
+
+```html
+<!-- V Spacing -->
+<tr>
+  <td style="line-height:25px; height:25px; mso-line-height-rule:exactly;">&nbsp;</td>
+</tr>
+```
+
+Increase the `line-height` + `height` together to grow the gap. Don't touch one without the other — Outlook follows whichever is smaller.
+
+### Three-column content
+
+The content row is divided into three cells with `align` attributes. Drop logos, links, or buttons into whichever you need; empty cells render fine as long as they exist:
+
+```html
+<!-- content -->
+<tr>
+  <td align="left">   <!-- logo, brand mark --></td>
+  <td align="center"> <!-- centered tagline, breadcrumb --></td>
+  <td align="right">  <!-- nav links, language toggle --></td>
+</tr>
+```
+
+For a one-column header (centered logo only), keep all three cells and leave two empty — that's more robust than collapsing the layout, since some clients render single-cell rows narrower than the table.
+
+## Next
+
+The header is now a complete row. The next row is the [Body](/email-playbook/structure/body/) — the bulk of the email — followed by the [Footer](/email-playbook/structure/footer/).

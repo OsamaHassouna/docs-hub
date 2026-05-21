@@ -1,12 +1,81 @@
 ---
 title: Images
-description: Embedding images with proper alt text, dimensions, and the attributes that prevent Outlook from breaking them.
+description: Inline image markup that survives every major email client — explicit dimensions, alt text, block display, and the rules around hosting.
 ---
 
 import { Aside } from '@astrojs/starlight/components';
 
-<Aside type="note" title="Porting in progress">
-This page is being ported from the [original email-docx](https://osamahassouna.github.io/email-docx/). The source content exists, it just hasn't been polished for the new playbook yet.
-</Aside>
+Images in HTML email need explicit dimensions, hard-coded styling, alt text, and external hosting. The standard reset is short but every attribute matters.
 
-Covers the `<img>` tag attributes, explicit width/height, alt text, the `display: block` trick to prevent gaps, and the `-ms-interpolation-mode: bicubic` rule for Outlook image resizing.
+## The pattern
+
+```html
+<td colspan="99" align="center" style="padding:0;">
+  <img src="https://i.example.com/hero.png"
+       width="600"
+       height="auto"
+       alt="Spring sale — 30% off everything"
+       border="0"
+       style="height:auto; display:block; max-width:100%;">
+</td>
+```
+
+### Why every attribute is there
+
+- **`width=""` attribute (not just CSS)** — Outlook for Windows ignores CSS width on `<img>`. Set it as an HTML attribute.
+- **`height="auto"`** — Lets the image scale proportionally. Combine with the inline `style="height:auto;"` for Gmail.
+- **`alt=""`** — Required for accessibility AND for the case when the recipient's client blocks images by default (Outlook, Gmail's "images off" mode). Write alt text that conveys the content's purpose, not just "image".
+- **`border="0"`** — Older Outlook adds a 1-2px border on linked images otherwise.
+- **`display:block`** — Gmail's web client adds inline-block default behavior, which leaves a 3-4px gap under the image (the descender space of the inline baseline). `display:block` removes it.
+- **`max-width:100%`** — Mobile clients can shrink the viewport below the image's native width; this lets the image scale down gracefully instead of forcing horizontal scroll.
+
+## Linked images
+
+Wrap the `<img>` in an `<a>` with the same `style="display:block;"` on the anchor:
+
+```html
+<td colspan="99" align="center" style="padding:0;">
+  <a href="https://example.com/sale" target="_blank" style="display:block; text-decoration:none;">
+    <img src="https://i.example.com/hero.png"
+         width="600"
+         height="auto"
+         alt="Spring sale — 30% off everything"
+         border="0"
+         style="height:auto; display:block; max-width:100%;">
+  </a>
+</td>
+```
+
+The `target="_blank"` is optional but conventional — most recipients expect email links to open in a new tab. `text-decoration:none` on the anchor prevents an underline from appearing in clients that wrap the image with an inline-block fallback.
+
+## Hosting rules
+
+- **Always host externally.** Embedded images via `cid:` references work in some clients but get stripped by Gmail's web client and most webmail. External `https://` URLs are the reliable choice.
+- **HTTPS only.** Modern clients block mixed content. An `http://` image on an HTTPS-rendered email shows as broken.
+- **CDN or stable storage.** Don't host email images on a server that might go down. Use a CDN, S3 bucket, or image-hosting service like ImgBB. The original docs used `i.ibb.co`.
+- **Compress aggressively.** Email images should be optimized for mobile data. PNG-8 for graphics, JPEG q80 for photos, WebP only if you also serve a fallback (Outlook 2007-2019 doesn't render WebP).
+- **Don't exceed 1200px wide.** Native widths above this don't help — most email clients cap rendering at 600px desktop / 320px mobile. A 1200px image is wasted bytes that contribute to [Gmail clipping](/email-playbook/production/gmail-clipping/).
+
+## When images are blocked
+
+About 40% of email recipients view emails with images turned off by default. Design for both cases:
+
+1. **Alt text styling** — Add styles to the `<img>` tag itself so blocked-image placeholder text is on-brand:
+
+```html
+<img src="..." alt="Spring sale — 30% off everything"
+     style="color:#1A1A1A; font-family:Arial, sans-serif; font-size:14px; font-weight:600;
+            display:block; max-width:100%;">
+```
+
+2. **Background-color fallback** — Set a `bgcolor` on the parent `<td>` so the area doesn't render as a blank white box when the image fails:
+
+```html
+<td colspan="99" align="center" bgcolor="#F5F5F5" style="padding:0;">
+```
+
+3. **Never put critical info in images alone.** Pricing, CTAs, headlines — all of these should be live HTML text so they render regardless of image-blocking state.
+
+## What's next
+
+[Background Images](/email-playbook/components/background-images/) covers the VML hack for Outlook. [Buttons](/email-playbook/components/buttons/) covers bulletproof CTAs.

@@ -1,12 +1,104 @@
 ---
 title: Buttons
-description: CTA buttons styled with inline CSS for modern clients.
+description: A short overview of the email button pattern. For the full bulletproof CTA with Outlook VML fallback, see the Bulletproof Buttons production note.
 ---
 
 import { Aside } from '@astrojs/starlight/components';
 
-<Aside type="note" title="Porting in progress">
-This page is being ported from the [original email-docx](https://osamahassouna.github.io/email-docx/). The source content exists, it just hasn't been polished for the new playbook yet.
+Buttons in email are not real `<button>` elements. They are styled `<a>` anchors with explicit dimensions, inline background color, and — for Outlook — a parallel VML `<v:roundrect>` that renders behind the anchor for the rare clients that ignore CSS backgrounds.
+
+## The pattern
+
+```html title="button.html"
+<td>
+  <!--[if mso]>
+  <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml"
+               xmlns:w="urn:schemas-microsoft-com:office:word"
+               href="https://example.com/sale"
+               style="v-text-anchor:middle; width:200px; height:40px;"
+               arcsize="10%"
+               stroke="f"
+               fillcolor="#222222">
+    <w:anchorlock/>
+    <center>
+  <![endif]-->
+
+  <a href="https://example.com/sale" target="_blank"
+     style="-webkit-text-size-adjust:none;
+            display:inline-block;
+            text-decoration:none;
+            background-color:#222222;
+            border-radius:4px;
+            color:#ffffff;
+            font-family:sans-serif;
+            font-size:13px;
+            font-weight:bold;
+            line-height:40px;
+            text-align:center;
+            width:200px;">
+    Button Text
+  </a>
+
+  <!--[if mso]>
+    </center>
+  </v:roundrect>
+  <![endif]-->
+</td>
+```
+
+### Two render paths, one button
+
+- **Outlook (Windows)** reads the `<v:roundrect>` inside `[if mso]` and ignores the `<a>`. The `<w:anchorlock/>` makes the entire rect clickable to the `href`.
+- **Every other client** ignores the `<v:roundrect>` (it's inside a comment they treat as plain HTML comments) and renders the `<a>` with inline styling.
+
+## Required attributes
+
+- **`href=""` on both the `<v:roundrect>` and the `<a>`** — same URL in both places. Don't forget the rect; an Outlook-rendered button without a link is just a colored bar.
+- **`target="_blank"`** — conventional for email CTAs, opens the link in a new browser tab.
+- **`width=""` on the rect AND `width:200px` in the anchor style** — they must match. Outlook uses the rect; everyone else uses the anchor.
+- **`line-height` = button height** — `line-height:40px` makes the text vertically centered inside a 40px-tall button. This is the visual height; combine with the `<v:roundrect height>`.
+- **`text-decoration:none`** — removes the default link underline.
+
+## Border radius
+
+To change the rounded-corner radius:
+
+- **`<a>` anchor**: set `border-radius:4px` (or whatever value you want) in the inline style.
+- **`<v:roundrect>`**: use `arcsize=""` as a percentage of the button height. The formula is `(border-radius / height) * 100%`.
+
+For a 40px-tall button with 4px radius: `arcsize="10%"` (4 / 40 = 10%).
+For a 40px-tall button with 20px radius (pill button): `arcsize="50%"`.
+
+<Aside type="caution" title="Anchor border-radius vs VML arcsize">
+Outlook reads `arcsize` and ignores `border-radius`. Every other client reads `border-radius` and ignores `arcsize`. Setting only one means Outlook renders sharp corners while everyone else renders rounded — or vice versa. Always set both.
 </Aside>
 
-Covers the basic `<a>` button pattern with inline styles. For the Outlook-safe version with VML, see [Bulletproof Buttons](/email-playbook/production/bulletproof-buttons/).
+## Color variables to swap
+
+When you customize the button for your brand:
+
+- `fillcolor="#222222"` (VML) and `background-color:#222222` (anchor) — the button background.
+- `color:#ffffff` — the button text color.
+- `font-family`, `font-size`, `font-weight` — text styling. Use a web-safe stack like `Arial, sans-serif` for max compatibility; webfonts work in some clients but never in Outlook.
+- `width` and `height` (and `line-height` to match height) — button dimensions.
+
+## Hover states
+
+Hover behavior in email is supported only on web-based clients (Apple Mail, Outlook.com, Gmail web). Most users won't see it. If you want to add a hover state:
+
+```html
+<style>
+  /* Hover styles only apply in clients that read <style> tags */
+  .button-primary:hover {
+    background-color:#000000 !important;
+  }
+</style>
+
+<a href="..." class="button-primary" style="...">Button Text</a>
+```
+
+Treat hover as enhancement, never essential. The button must read correctly without it.
+
+## What's next
+
+See [Bulletproof Buttons](/email-playbook/production/bulletproof-buttons/) for the production-grade version with brand color overrides, accessibility audit, and dark-mode considerations. [Text](/email-playbook/components/text/) covers headings and paragraphs.

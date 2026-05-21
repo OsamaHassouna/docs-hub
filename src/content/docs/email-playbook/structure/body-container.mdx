@@ -1,12 +1,79 @@
 ---
 title: Body Container
-description: The body tag setup and the outermost wrapping table that holds the entire email.
+description: The body tag reset, the wrapping div, and the outermost presentation table that holds the entire email.
 ---
 
 import { Aside } from '@astrojs/starlight/components';
 
-<Aside type="note" title="Porting in progress">
-This page is being ported from the [original email-docx](https://osamahassouna.github.io/email-docx/). The source content exists, it just hasn't been polished for the new playbook yet.
+Once the [head boilerplate](/email-playbook/structure/head/) is in place, the body wraps everything you can see: a `<body>` reset, an outer `<div>` for direction control, and a single outermost `<table role="presentation">` that hosts every row of the email.
+
+## The shell
+
+Paste this directly under the closing `</head>` tag.
+
+```html title="body-container.html"
+<body style="padding:0 !important; margin:0 !important; display:block !important; min-width:100% !important; width:100% !important; background:#ffffff; -webkit-text-size-adjust:none;">
+
+  <div style="display:block !important; min-width:100% !important; width:100% !important; background:#ffffff; -webkit-text-size-adjust:none; direction: ltr !important;">
+
+    <!-- Main -->
+    <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#ffffff"
+      style="border-spacing:0; border-collapse:collapse; direction: ltr;">
+
+      <!-- Header / Body / Footer rows go here -->
+
+    </table>
+  </div>
+</body>
+```
+
+Switch `direction: ltr` to `direction: rtl` on both the wrapper `<div>` and the main `<table>` for right-to-left layouts. See [RTL Support](/email-playbook/compatibility/rtl/) for the full reversal pattern.
+
+## Why every detail matters
+
+<Aside type="note" title="role='presentation'">
+Every layout table gets `role="presentation"`. It tells screen readers the table is for visual layout, not tabular data — without it, assistive tech announces every cell as a column, which mangles the reading order for accessibility users.
 </Aside>
 
-Covers the `<body>` reset, the wrapping `<div>` and outermost `<table role="presentation">`, and the `direction` attribute for LTR/RTL.
+<Aside type="caution" title="align is deprecated, use it anyway">
+HTML's `align` attribute is deprecated everywhere modern. Outlook for Windows does not honor `margin: 0 auto` in CSS, so to center anything inside a fixed-width table you still need `align="center"` on the cell. Treat it as a quirk you live with, not a mistake.
+</Aside>
+
+## Padding rules you can't skip
+
+Outlook adds its own padding to every `<td>` if you don't explicitly zero it out. Set it inline on every cell, even ones that have no padding:
+
+```html
+<td style="padding:0;">…</td>
+```
+
+When you DO want padding, override it on that cell only:
+
+```html
+<td style="padding: 24px 16px;">…</td>
+```
+
+## Spacer rows
+
+For vertical breathing room between sections, use spacer `<tr>` rows with `mso-line-height-rule:exactly` so Outlook for Windows renders the height pixel-perfect:
+
+```html
+<!-- 24px vertical spacer -->
+<tr>
+  <td style="line-height:24px; height:24px; mso-line-height-rule:exactly;">
+    &nbsp;
+  </td>
+</tr>
+```
+
+For horizontal spacers (inside a row of side-by-side cells), use a spacer `<td>` with width + font-size:
+
+```html
+<td style="width:16px; min-width:16px; font-size:0; line-height:0;">&nbsp;</td>
+```
+
+The `&nbsp;` is required — empty cells collapse in some clients.
+
+## What goes next
+
+The main table now needs three rows: [Header](/email-playbook/structure/header/), [Body](/email-playbook/structure/body/), [Footer](/email-playbook/structure/footer/). Each is a self-contained `<tr>` that nests its own table.

@@ -1,12 +1,216 @@
 ---
 title: Responsive
-description: Mobile-first patterns using media queries in the head, the hybrid coding approach, and ghost tables for Outlook on Windows.
+description: Mobile-first email patterns — the @media query, the hybrid approach for Outlook (which ignores media queries), and the ghost-table column collapse.
 ---
 
 import { Aside } from '@astrojs/starlight/components';
 
-<Aside type="note" title="Porting in progress">
-This page is being ported from the [original email-docx](https://osamahassouna.github.io/email-docx/). The source content exists, it just hasn't been polished for the new playbook yet.
+About 60-70% of email opens happen on mobile. The web-style "responsive" approach — media queries that swap layouts at breakpoints — works in modern clients, but Outlook for Windows ignores media queries entirely. The reliable pattern is **hybrid responsive**: build a layout that works at any width by default, and use media queries only as enhancement.
+
+## The two strategies
+
+### Strategy 1 — Media queries (modern clients)
+
+`<style>` blocks in the `<head>` work in Apple Mail, Gmail web, Outlook.com, mobile clients. They do NOT work in Outlook desktop (Windows). For any client that supports them, this is the cleanest pattern:
+
+```html
+<style>
+  @media only screen and (max-width: 600px) {
+    .email-container { width:100% !important; }
+    .stack-column { display:block !important; width:100% !important; }
+    .stack-column img { width:100% !important; height:auto !important; }
+    .mobile-hidden { display:none !important; }
+    .mobile-only { display:block !important; }
+    .mobile-padding { padding:16px !important; }
+  }
+</style>
+```
+
+Then mark each element you want to behave responsively with a class:
+
+```html
+<table class="email-container" width="600">
+  <tr>
+    <td class="stack-column" width="50%">Column 1</td>
+    <td class="stack-column" width="50%">Column 2</td>
+  </tr>
+</table>
+```
+
+### Strategy 2 — Hybrid (works in Outlook desktop too)
+
+The hybrid approach builds a fluid layout using `max-width` + ghost tables. Even without media queries, the email collapses cleanly when the viewport is narrow:
+
+```html title="hybrid-responsive-row.html"
+<!--[if mso]>
+<table role="presentation" width="600" align="center" border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="300" valign="top">
+<![endif]-->
+
+<div style="display:inline-block; width:100%; max-width:300px; vertical-align:top;">
+  <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td>Column 1 content</td>
+    </tr>
+  </table>
+</div>
+
+<!--[if mso]>
+</td>
+<td width="300" valign="top">
+<![endif]-->
+
+<div style="display:inline-block; width:100%; max-width:300px; vertical-align:top;">
+  <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td>Column 2 content</td>
+    </tr>
+  </table>
+</div>
+
+<!--[if mso]>
+</td>
+</tr>
+</table>
+<![endif]-->
+```
+
+This produces:
+
+- **Outlook desktop**: sees the MSO ghost table → renders two 300px columns side-by-side.
+- **Every other client**: sees the inline-block `<div>`s → they sit side-by-side when the viewport is ≥600px, stack vertically when narrower (because `max-width:300px` lets them shrink to 100% wrapping).
+
+The hybrid approach works without ANY media query.
+
+## The 600px breakpoint
+
+Email is conventionally designed at 600px wide because:
+
+- Outlook desktop reading panes default to ~575-625px.
+- Most webmail apps cap the rendered email at 600-700px even on wide screens.
+- Mobile phones in portrait are 320-440px — narrow enough that 600px content needs to scale or stack.
+
+Some templates use 640px or 680px; this is fine as long as you're consistent. Going wider than 700px usually means horizontal scroll on the reading pane.
+
+## Single-column collapse
+
+The most common responsive change: two side-by-side columns become two stacked rows on mobile.
+
+### Via media query (modern clients only)
+
+```html
+<style>
+  @media only screen and (max-width: 480px) {
+    .stack { display:block !important; width:100% !important; }
+  }
+</style>
+
+<table width="600">
+  <tr>
+    <td class="stack" width="300">Column 1</td>
+    <td class="stack" width="300">Column 2</td>
+  </tr>
+</table>
+```
+
+### Via hybrid pattern (Outlook-safe)
+
+Use the inline-block `<div>` approach from above. The columns naturally stack when they can no longer sit side-by-side without overflowing.
+
+## Mobile-specific styles
+
+When you want to apply styles ONLY on mobile, use a media query targeting your breakpoint:
+
+```html
+<style>
+  @media only screen and (max-width: 480px) {
+    /* Bigger touch targets for buttons */
+    .mobile-button {
+      width:100% !important;
+      max-width:none !important;
+      font-size:16px !important;
+      padding:14px 20px !important;
+    }
+
+    /* Larger body text */
+    .mobile-text {
+      font-size:18px !important;
+      line-height:28px !important;
+    }
+
+    /* Tighter spacing */
+    .mobile-pad-sm {
+      padding:16px !important;
+    }
+  }
+</style>
+```
+
+The `!important` is required in all of these — without it, inline styles win over `<style>` block rules.
+
+## Hide on mobile / show on mobile
+
+```html
+<style>
+  @media only screen and (max-width: 480px) {
+    .mobile-hidden { display:none !important; }
+    .mobile-only {
+      display:block !important;
+      width:100% !important;
+      height:auto !important;
+      max-height:none !important;
+      visibility:visible !important;
+      overflow:visible !important;
+    }
+  }
+</style>
+
+<!-- Hidden on mobile -->
+<table class="mobile-hidden">
+  <tr><td>Desktop-only content</td></tr>
+</table>
+
+<!-- Shown only on mobile -->
+<table class="mobile-only" style="display:none; max-height:0; overflow:hidden;">
+  <tr><td>Mobile-only content</td></tr>
+</table>
+```
+
+The mobile-only block must start with `display:none; max-height:0; overflow:hidden;` inline — this is the "deep hide" pattern that works across Gmail and Outlook web.
+
+<Aside type="caution" title="Don't rely on hide/show alone">
+The mobile-hidden / mobile-only pattern breaks in Outlook desktop (no media queries). If the content is critical, use the hybrid approach instead so both versions can be visible to different layout modes.
 </Aside>
 
-Covers the `@media` queries that survive in email clients, the breakpoint at 480px / 600px, single-column collapse patterns, and the "ghost table" technique for Outlook on Windows (which ignores media queries).
+## Image scaling
+
+Images on responsive emails need `max-width:100%` in their inline style:
+
+```html
+<img src="https://i.example.com/hero.png"
+     width="600" height="auto" alt="..."
+     style="height:auto; display:block; max-width:100%;">
+```
+
+The `width="600"` attribute is what desktop clients use; `max-width:100%` lets mobile clients shrink it down without overflowing.
+
+For Retina-quality (sharp on high-DPI screens), serve images at 2× the displayed size. A 600px-wide hero should be a 1200px-wide source image, displayed at width 600.
+
+## Test matrix
+
+Before sending a responsive email, test on at least:
+
+- **Mobile**: iPhone Mail (iOS), Gmail iOS, Gmail Android, Outlook iOS
+- **Desktop webmail**: Gmail web (Chrome), Outlook.com (web)
+- **Desktop apps**: Outlook 2019 or 365 (Windows), Apple Mail (Mac)
+- **Dark mode**: Apple Mail dark, Outlook dark, Gmail dark — see [Dark Mode](/email-playbook/production/dark-mode/) for the dark-specific patterns
+
+Litmus and Email on Acid render across this matrix automatically.
+
+## Related
+
+- [Outlook & MSO](/email-playbook/compatibility/outlook/) — the conditional comment pattern that powers hybrid responsive
+- [Images](/email-playbook/components/images/) — `max-width:100%` and scaling
+- [Buttons](/email-playbook/components/buttons/) — touch-target sizing for mobile
+- [Dark Mode](/email-playbook/production/dark-mode/) — `prefers-color-scheme` works inside `@media` blocks

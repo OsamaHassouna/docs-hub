@@ -1,12 +1,134 @@
 ---
 title: Text
-description: Headings, paragraphs, and inline text styling with font fallbacks for clients without web font support.
+description: Paragraphs, headings, and the inline styling every text element needs to render consistently across clients. No web fonts, no external stylesheets, no global resets.
 ---
 
 import { Aside } from '@astrojs/starlight/components';
 
-<Aside type="note" title="Porting in progress">
-This page is being ported from the [original email-docx](https://osamahassouna.github.io/email-docx/). The source content exists, it just hasn't been polished for the new playbook yet.
+Email clients have aggressive default styles. They override your typography unless you specify color, font, size, weight, line-height, and direction inline on every text element. Treat each `<p>`, `<h1>`, `<h2>` as a fully-styled standalone unit.
+
+## The paragraph pattern
+
+```html
+<tr>
+  <td colspan="99" align="center">
+    <p style="color:#364253;
+              font-family:Arial, sans-serif;
+              font-size:16px;
+              line-height:24px;
+              font-weight:400;
+              margin:0;
+              direction:ltr;">
+      Your paragraph text here.
+    </p>
+  </td>
+</tr>
+```
+
+### Required inline properties
+
+- **`color`** — Outlook applies a slightly grayed-out default if missing.
+- **`font-family`** — without it, Outlook falls back to Times New Roman.
+- **`font-size`** — Apple Mail iOS bumps small text up; an explicit size prevents the override.
+- **`line-height`** — set as pixels, not unitless. Pixels render consistently; unitless multipliers behave inconsistently.
+- **`font-weight`** — even when you want regular weight (400), declare it explicitly.
+- **`margin:0`** — paragraphs come with browser default margin. Set to 0 and use spacer rows to control spacing instead.
+- **`direction`** — `ltr` or `rtl` depending on the language.
+
+## Headings
+
+Same rules, different sizes. Email headings are usually built from styled `<p>` elements rather than `<h1>`/`<h2>` because heading tags inherit unpredictable client defaults:
+
+```html
+<tr>
+  <td colspan="99" align="center">
+    <p style="color:#14110F;
+              font-family:Arial, sans-serif;
+              font-size:28px;
+              line-height:36px;
+              font-weight:700;
+              margin:0;
+              direction:ltr;
+              letter-spacing:-0.01em;">
+      Big Heading
+    </p>
+  </td>
+</tr>
+```
+
+If you do use `<h1>` through `<h6>` for semantics (good for accessibility), still apply the full inline style — clients won't honor a stylesheet.
+
+## Font stacks
+
+No web fonts. Outlook, Gmail's mobile app, and most webmail clients strip `<link>` and `@import` font loads. Use a stack of safe fonts that ship with every OS:
+
+| Stack | When |
+|---|---|
+| `Arial, Helvetica, sans-serif` | Default body — works everywhere. |
+| `Georgia, 'Times New Roman', serif` | Editorial / formal templates. |
+| `'Courier New', Courier, monospace` | Code blocks, technical content. |
+| `'Segoe UI', Tahoma, Geneva, sans-serif` | Windows-leaning audience. |
+| `'Helvetica Neue', Helvetica, Arial, sans-serif` | Apple-leaning audience. |
+
+For a webfont attempt (knowing Outlook will skip it):
+
+```html
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+</style>
+
+<p style="font-family:'Inter', Arial, sans-serif; ...">
+  Inter loads in Apple Mail, falls back to Arial in Outlook.
+</p>
+```
+
+Treat the webfont as an enhancement; design the email so the Arial fallback still reads clean.
+
+## Inline text styling
+
+Inside a paragraph, you can use `<strong>`, `<em>`, `<u>`, `<a>` — all of them need inline styles to render consistently:
+
+```html
+<p style="color:#14110F; font-family:Arial; font-size:16px; line-height:24px; margin:0;">
+  This paragraph contains a
+  <a href="https://example.com" style="color:#B8651B; text-decoration:underline;">styled link</a>
+  and some
+  <strong style="font-weight:700; color:#14110F;">bold text</strong>
+  that needs explicit color.
+</p>
+```
+
+<Aside type="caution" title="Inline <strong> needs color too">
+Outlook for Windows sometimes renders bold text in the wrong color if the parent `<p>` color isn't inherited. Set `color` explicitly on `<strong>`, `<em>`, and `<u>` inside paragraphs.
 </Aside>
 
-Covers font-family stacks with web font + fallback, line-height patterns, and the inline style requirement for every text element.
+## Line lengths and readability
+
+Email reads best at 50-60 characters per line. With `font-size:16px` and `line-height:24px`, that's roughly:
+
+- **One-column 600px-wide email**: comfortable line length, no max-width needed.
+- **Two-column layout**: each column ~280px, paragraph max-width should be the column width minus padding.
+
+Anything wider than 80 characters per line gets harder to read and starts looking like a wall of text on desktop.
+
+## RTL text
+
+For right-to-left languages (Arabic, Hebrew, Persian, Urdu), set `direction:rtl` on the `<p>` AND `text-align:right`:
+
+```html
+<p style="color:#14110F;
+          font-family:Arial, sans-serif;
+          font-size:16px;
+          line-height:24px;
+          margin:0;
+          direction:rtl;
+          text-align:right;">
+  النص العربي هنا.
+</p>
+```
+
+See [RTL Support](/email-playbook/compatibility/rtl/) for the full reversal pattern (layout, images, buttons, the whole email).
+
+## What's next
+
+That covers the components. Production work continues in [Outlook & MSO](/email-playbook/compatibility/outlook/), [Responsive](/email-playbook/compatibility/responsive/), and the four production notes ([Gmail Clipping](/email-playbook/production/gmail-clipping/), [Dark Mode](/email-playbook/production/dark-mode/), [Preheader](/email-playbook/production/preheader/), [Bulletproof Buttons](/email-playbook/production/bulletproof-buttons/)).

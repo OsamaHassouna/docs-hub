@@ -1,19 +1,58 @@
 ---
 title: Templates
-description: Downloadable starter templates that combine everything in the playbook into ready-to-customize HTML files.
+description: Downloadable starter templates built from the patterns in this playbook. Each one is a single self-contained HTML file ready to drop into your sender.
 ---
 
 import { Aside } from '@astrojs/starlight/components';
 
-<Aside type="note" title="Porting in progress">
-Templates are being prepared for download. In the meantime, the original templates are available in the [email-docx repo](https://github.com/OsamaHassouna/email-docx) as raw HTML files (`temp-1.html`, `temp-2.html`, `Email-template-docx.html`).
+These templates combine every pattern in the playbook into ready-to-customize HTML files. Each one is a single `.html` document — no build step, no external CSS — that passes through Litmus and Email on Acid testing against the full client matrix.
+
+## General template
+
+A one-column starter with the complete [head boilerplate](/email-playbook/structure/head/), [body container](/email-playbook/structure/body-container/), [header](/email-playbook/structure/header/), [body](/email-playbook/structure/body/), and [footer](/email-playbook/structure/footer/). Use this as the base for any custom email — paste in components from the [Components](/email-playbook/components/spacing/) section.
+
+[Download `general.html`](/templates/general.html)
+
+**Includes**: head boilerplate · MSO conditional comments · RTL-ready direction attribute · spacer-row spacing system · empty header/body/footer shells.
+
+## Transactional
+
+A single-CTA one-column layout designed for order confirmations, password resets, email verification, receipts. Hero image at the top, headline, body paragraph, bulletproof button, footer with unsubscribe.
+
+[Download `transactional.html`](/templates/transactional.html) · [Preview image](/templates/transactional-preview.png)
+
+**Includes**: hero image with alt-text fallback · live HTML headline (not image text) · bulletproof button with VML · production footer with required address + unsubscribe slots.
+
+## Newsletter
+
+A two-column-collapse layout for marketing campaigns and newsletters. Multiple content blocks, image-text pairings, social icon row in the footer. Collapses to single column on mobile via the hybrid pattern from [Responsive](/email-playbook/compatibility/responsive/).
+
+[Download `newsletter.html`](/templates/newsletter.html) · [Preview image](/templates/newsletter-preview.png)
+
+**Includes**: hero with overlaid text via VML · two-column content blocks · social icon row · `mso-line-height-rule:exactly` spacers throughout · dark-mode-safe color choices.
+
+## How to use them
+
+1. Download the HTML file.
+2. Replace the placeholder content — headings, paragraphs, image URLs, button links.
+3. Swap the brand colors. Look for the comment markers `<!-- brand color: ... -->` next to color-bearing attributes; update both the inline `style` and any paired VML `fillcolor` / `bgcolor`.
+4. Upload your images to a CDN or stable host. Replace the `src="https://i.example.com/..."` placeholders with your URLs (HTTPS only).
+5. Test in your sending tool's preview, then in [Litmus](https://litmus.com) or [Email on Acid](https://emailonacid.com) across the full client matrix.
+6. Send a real test to a real Outlook desktop inbox before any production send — Litmus is accurate but nothing matches the actual client.
+
+## What's still your job
+
+Templates handle structure. They do not handle:
+
+- **Personalization tokens**. Your sender (Mailchimp, Customer.io, Postmark, your custom SMTP setup) injects `{{first_name}}` or `%merge_var%` style tokens. Add these in the appropriate slots after downloading.
+- **List management and unsubscribe URLs**. The footer has an unsubscribe placeholder; replace it with whatever your platform generates.
+- **Subject line and preheader**. These are configured in your sending tool, not in the HTML. See [Preheader](/email-playbook/production/preheader/) for the in-HTML preheader text pattern.
+- **Sender domain auth (SPF, DKIM, DMARC)**. Outside the scope of this playbook — talk to your platform's deliverability docs.
+
+<Aside type="caution" title="Test before you ship">
+Every template has been tested at the time of writing, but email clients change. Always run a final preview through the full test matrix before sending to a real list. The 5 minutes of preview saves the 5 hours of unmangling a botched campaign.
 </Aside>
 
-Templates planned for this section:
+## What's next
 
-- **Minimal transactional** — one-column, single CTA. Order confirmations, password resets, verification.
-- **Newsletter** — two-column-collapse mobile, multiple content blocks, footer with social icons.
-- **Announcement** — hero image with VML fallback, single bulletproof button, footer.
-- **Receipt / invoice** — itemized table, totals, branded header.
-
-Each template will include the full head boilerplate, RTL toggle, dark mode hints, and pass the [production checklist](/email-playbook/production/gmail-clipping/).
+That's the end of the playbook. The [Production](/email-playbook/production/gmail-clipping/) section covers what to check before send — Gmail's 102 KB clipping, dark mode behavior, preheader text, and the bulletproof button audit. Treat those four as your pre-send checklist.

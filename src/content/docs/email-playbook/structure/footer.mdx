@@ -1,12 +1,140 @@
 ---
-title: Footer Structure
-description: The footer row of the email, including unsubscribe links, legal text, and social icons.
+title: Email Footer
+description: The footer row — structurally a mirror of the header, with an optional top border and slots for unsubscribe links, legal text, and social icons.
 ---
 
 import { Aside } from '@astrojs/starlight/components';
 
-<Aside type="note" title="Porting in progress">
-This page is being ported from the [original email-docx](https://osamahassouna.github.io/email-docx/). The source content exists, it just hasn't been polished for the new playbook yet.
-</Aside>
+The footer is the last row of the main table. Structurally it mirrors the [header](/email-playbook/structure/header/): a self-contained table with its own height, background, three-column content area, and spacer rows above and below.
 
-Structurally identical to the [header](/email-playbook/structure/header/). Covers the unsubscribe link, mandatory legal text patterns, and social icon rows.
+## The footer row
+
+```html title="email-footer.html"
+<!-- Footer Content -->
+<tr>
+  <td colspan="99" style="padding:0px;">
+
+    <!-- Footer | design -->
+    <table width="100%" height="100" border="0" cellspacing="0" cellpadding="0">
+
+      <!-- Top Border -->
+      <tr>
+        <td colspan="99"
+            style="line-height:5px; height:5px; mso-line-height-rule:exactly; background-color:#E6E6E6;">
+          &nbsp;
+        </td>
+      </tr>
+
+      <!-- structure -->
+      <tr>
+        <td colspan="99" valign="top" bgcolor="#ffffff">
+
+          <table cellpadding="0" cellspacing="0" border="0" width="100%">
+
+            <!-- V Spacing -->
+            <tr>
+              <td style="line-height:30px; height:30px; mso-line-height-rule:exactly;">&nbsp;</td>
+            </tr>
+
+            <!-- content -->
+            <tr>
+              <td align="left">  <!-- left slot --></td>
+              <td align="center"><!-- center slot --></td>
+              <td align="right"> <!-- right slot --></td>
+            </tr>
+
+            <!-- V Spacing -->
+            <tr>
+              <td style="line-height:30px; height:30px; mso-line-height-rule:exactly;">&nbsp;</td>
+            </tr>
+
+          </table>
+
+        </td>
+      </tr>
+    </table>
+
+  </td>
+</tr>
+```
+
+The "Top Border" row is the only structural difference from the header. It's a 5px-tall row with a light gray background that visually separates the footer from the body — drop it if you don't want the rule, or change the background color to your brand divider.
+
+## Footer options
+
+### Height
+
+Unlike the body, the footer **does** need an explicit `height`. Email clients vary on how they compute footer height when content is short — pinning the value keeps the design consistent.
+
+```html ins="height=\"100\""
+<table width="100%" height="100" border="0" cellspacing="0" cellpadding="0">
+```
+
+### Background color
+
+Set `bgcolor=""` on the structure cell. Footers often use a darker shade than the body (e.g. `#F5F5F5` on a white email, or `#0F0F0F` on a dark template):
+
+```html ins="bgcolor=\"#F5F5F5\""
+<td colspan="99" valign="top" bgcolor="#F5F5F5">
+```
+
+### Background image
+
+Same VML pattern as the [header background image](/email-playbook/structure/header/#background-image). Wrap the structure cell with a `<v:rect>` block inside `[if gte mso 9]` so Outlook 2007-2019 renders the image:
+
+```html title="footer-with-bg-image.html"
+<!-- Footer | Design -->
+<table width="100%" height="120" border="0" cellpadding="0" cellspacing="0">
+  <tr>
+    <td background="https://example.com/footer.jpg" bgcolor="#0F0F0F"
+        style="background-size: cover;" valign="top" dir="ltr">
+
+      <!--[if gte mso 9]>
+        <v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false"
+                style="mso-width-percent:1000; height:120px;">
+          <v:fill type="tile" src="https://example.com/footer.jpg" color="#0F0F0F" />
+          <v:textbox inset="0,0,0,0">
+      <![endif]-->
+
+      <!-- structure -->
+      <table cellpadding="0" cellspacing="0" border="0" width="100%">
+        <!-- content rows -->
+      </table>
+
+      <!--[if gte mso 9]>
+          </v:textbox>
+        </v:rect>
+      <![endif]-->
+
+    </td>
+  </tr>
+</table>
+```
+
+### Vertical spacing
+
+Same pattern as the header — first and last rows are spacer rows with `mso-line-height-rule:exactly`. 30px is a sensible default; bump it to 40-50px on emails with denser footers (multiple legal lines, social icon row, unsubscribe).
+
+### Three-column content
+
+Same as the header: three cells with `align="left"`, `align="center"`, `align="right"`. Typical footer layouts:
+
+| Layout | Left | Center | Right |
+|---|---|---|---|
+| Standard | Brand mark / address | Social icons | Unsubscribe link |
+| Centered | (empty) | Brand mark + social icons + unsubscribe stacked | (empty) |
+| Compliance-heavy | Address + company info | (empty) | Unsubscribe + preferences |
+
+## Required content for production
+
+Every transactional or marketing footer needs at least three things to clear major mailbox provider filters:
+
+1. **Physical mailing address** — CAN-SPAM (US) and similar laws in EU/UK/CA all require a real postal address for commercial mail.
+2. **Unsubscribe link** — must be functional and one-click in newer Gmail / Yahoo bulk-sender rules. Hashed or unique-per-recipient URLs are fine.
+3. **Sender identification** — company name + reason recipient is receiving the email (e.g. "You're receiving this because you signed up at example.com on Mar 12, 2026.").
+
+For transactional emails (receipts, password resets), unsubscribe isn't strictly required but is still a deliverability win.
+
+## What's next
+
+The structure is now complete: a body container with a header row, body row, and footer row. From here, the email is filled with [Components](/email-playbook/components/spacing/) — spacing, images, buttons, and text — that drop into the body's content `<td>` cells. The production layer ([Gmail Clipping](/email-playbook/production/gmail-clipping/), [Dark Mode](/email-playbook/production/dark-mode/), [Preheader](/email-playbook/production/preheader/), [Bulletproof Buttons](/email-playbook/production/bulletproof-buttons/)) covers what to check before send.

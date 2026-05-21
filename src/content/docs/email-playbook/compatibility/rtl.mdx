@@ -1,12 +1,135 @@
 ---
 title: RTL Support
-description: Right-to-left layout for Arabic, Hebrew, Farsi, and other RTL languages. Direction attributes, mirrored padding, and font choices.
+description: Building emails for Arabic, Hebrew, Farsi, and Urdu — the dir attribute, mirrored layout, image flipping, and font stacks.
 ---
 
 import { Aside } from '@astrojs/starlight/components';
 
-<Aside type="note" title="Porting in progress">
-This page is being ported from the [original email-docx](https://osamahassouna.github.io/email-docx/). The source content exists, it just hasn't been polished for the new playbook yet.
+Arabic, Hebrew, Farsi (Persian), and Urdu read right-to-left. The visual reading order, text alignment, and even some imagery should be mirrored. HTML email supports RTL well, but every piece needs explicit direction information — clients don't infer it from the language alone.
+
+## Where to set direction
+
+Set `dir="rtl"` and `direction:rtl` at every level you care about — the wrapper `<div>`, the outer `<table>`, every content `<td>`, every `<p>`. Setting it once at the top isn't enough; Outlook and Gmail's mobile clients don't propagate it.
+
+### On the body wrapper
+
+```html ins="direction: rtl !important;"
+<div style="display:block !important; min-width:100% !important; width:100% !important;
+            background:#ffffff; direction: rtl !important;">
+```
+
+### On the main table
+
+```html ins="dir=\"rtl\"" ins="direction: rtl;"
+<table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0"
+       bgcolor="#ffffff" dir="rtl"
+       style="border-spacing:0; border-collapse:collapse; direction: rtl;">
+```
+
+### On content cells
+
+```html ins="dir=\"rtl\""
+<td bgcolor="#ffffff" valign="top" dir="rtl">
+```
+
+### On paragraphs
+
+```html ins="direction:rtl;" ins="text-align:right;"
+<p style="color:#14110F; font-family:Arial, sans-serif; font-size:16px;
+          line-height:24px; margin:0; direction:rtl; text-align:right;">
+  النص العربي هنا.
+</p>
+```
+
+## Mirror your alignment values
+
+Layout choices that anchor to "left" in LTR should flip to "right" in RTL. This is usually obvious but the bugs come from missing one:
+
+| LTR | RTL |
+|---|---|
+| `align="left"` (logo cell) | `align="right"` |
+| `align="right"` (CTA, nav) | `align="left"` |
+| Image with text wrapping right | Image with text wrapping left |
+| Footer copyright on left | Footer copyright on right |
+| `padding-left: 20px` | `padding-right: 20px` |
+
+The three-cell header/footer pattern from [Header](/email-playbook/structure/header/) and [Footer](/email-playbook/structure/footer/) doesn't need swapping — the `align="left"`/`align="center"`/`align="right"` cells reverse automatically because the parent has `dir="rtl"`. But hard-coded padding or width values inside cells don't.
+
+## Mirroring images
+
+For images that are direction-aware (arrows pointing left/right, icons with a clear handedness), use a mirrored version for RTL builds:
+
+```html
+<!-- LTR: forward arrow -->
+<img src="https://i.example.com/arrow-right.png" alt="Next" ...>
+
+<!-- RTL: same shape, mirrored -->
+<img src="https://i.example.com/arrow-left.png" alt="Next" ...>
+```
+
+For purely decorative or symmetric images, no flip is needed.
+
+## Numbers, currency, and dates
+
+Numbers in Arabic/Hebrew read left-to-right even inside RTL paragraphs. You don't need to do anything special — the Unicode bidi algorithm handles it. But test mixed strings carefully:
+
+```
+السعر 1,250 ريال
+```
+
+The "1,250" reads LTR inside the otherwise-RTL line. If your email has a price block, currency symbol, or date inside a paragraph, render it in your sending tool and inspect — sometimes a comma or colon gets misplaced.
+
+## RTL font stacks
+
+Default OS fonts work fine for most Arabic and Hebrew email. A safe stack:
+
+```css
+font-family: 'Tajawal', 'Cairo', 'Geeza Pro', 'Arial Unicode MS', Arial, sans-serif;
+```
+
+- **Tajawal, Cairo** — modern web fonts; load via the head if you want them, fall back gracefully.
+- **Geeza Pro** — Apple's default Arabic font.
+- **Arial Unicode MS** — Microsoft's Arabic-supporting Arial. Used on Outlook for Windows.
+- **Arial, sans-serif** — final fallback. Outlook ships Arabic glyphs in regular Arial.
+
+For Hebrew:
+
+```css
+font-family: 'Heebo', 'Assistant', 'Arial Hebrew', Arial, sans-serif;
+```
+
+## RTL inside structures
+
+The header three-column layout adapts automatically when the parent direction is RTL — what was `align="left"` (logo on left) becomes visually "logo on right." Same for the footer.
+
+The body content cells `(align="center")` stay centered in either direction.
+
+The button pattern from [Buttons](/email-playbook/components/buttons/) works in RTL with no changes if the button text is RTL. The VML `<v:roundrect>` renders the same way regardless of direction.
+
+<Aside type="caution" title="Test the preheader in RTL">
+The [preheader](/email-playbook/production/preheader/) — the hidden text shown in the inbox preview — uses zero-width unicode characters and CSS. If you set the preheader in Arabic, also set `dir="rtl"` on its wrapper so the preview reads correctly.
 </Aside>
 
-Covers `dir="rtl"` on the body wrapper and table, `direction: rtl` in inline styles, mirrored alignment values, and Arabic-friendly font fallbacks.
+## Bilingual emails
+
+For an email with both Arabic and English content (common in MENA region campaigns):
+
+- Wrap each language block in its own `dir=""` cell.
+- Use the appropriate alignment for each block (`text-align:right` for Arabic, `text-align:left` for English).
+- The overall page direction can be either; pick the one matching the primary audience.
+
+```html
+<!-- Arabic block -->
+<td align="right" dir="rtl">
+  <p style="direction:rtl; text-align:right; ...">النص العربي</p>
+</td>
+
+<!-- English block -->
+<td align="left" dir="ltr">
+  <p style="direction:ltr; text-align:left; ...">English text</p>
+</td>
+```
+
+## What's next
+
+[Responsive](/email-playbook/compatibility/responsive/) covers the mobile collapse pattern, which also affects RTL layouts (the columns stack the same way regardless of direction).

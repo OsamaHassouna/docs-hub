@@ -1,12 +1,106 @@
 ---
-title: Background Images (VML)
-description: Background images that work in Outlook desktop using VML rectangles, plus fallbacks for clients that don't support CSS backgrounds.
+title: Background Images
+description: How to put a background image behind a content block — the VML hack for Outlook combined with the HTML background attribute for everyone else.
 ---
 
 import { Aside } from '@astrojs/starlight/components';
 
-<Aside type="note" title="Porting in progress">
-This page is being ported from the [original email-docx](https://osamahassouna.github.io/email-docx/). The source content exists, it just hasn't been polished for the new playbook yet.
+Background images on `<td>` cells render in most email clients via the `background=""` attribute. Outlook for Windows (2007 through 2019) is the exception — it ignores both the HTML attribute and the CSS `background-image` property. The fix is a Vector Markup Language (VML) `<v:rect>` block wrapped inside MSO conditional comments.
+
+## The pattern
+
+```html title="background-image-block.html"
+<td background="image-link.png" bgcolor="#1A1A1A" valign="top"
+    style="background-size: cover;">
+
+  <!--[if gte mso 9]>
+    <v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false"
+            style="mso-width-percent:1000; height:150px;">
+      <v:fill type="tile" src="image-link.png" color="#1A1A1A" />
+      <v:textbox inset="0,0,0,0">
+  <![endif]-->
+
+  <div>
+    <!-- The actual content that sits on top of the background image -->
+  </div>
+
+  <!--[if gte mso 9]>
+      </v:textbox>
+    </v:rect>
+  <![endif]-->
+
+</td>
+```
+
+### What each piece does
+
+- **`background="image-link.png"`** — The HTML attribute every modern client respects. Gmail, Apple Mail, Yahoo, Outlook.com all read this.
+- **`bgcolor="#1A1A1A"`** — Fallback color when the image fails to load or is blocked. Use a color close to the dominant tone of the image so the layout still reads.
+- **`style="background-size: cover;"`** — Makes the image fill the cell area in clients that respect CSS background-size (most modern ones).
+- **`<v:rect>` block** — The Outlook-specific renderer. Only Outlook reads inside the `[if gte mso 9]` conditional comments; everyone else skips it.
+- **`mso-width-percent:1000`** — The `<v:rect>` width as a fraction of the parent (1000 = 100%). This is the VML equivalent of `width: 100%`.
+- **`<v:fill type="tile" src="..." />`** — Tells Outlook how to render the image. `type="tile"` tiles it; switch to `type="frame"` for a single fitted image.
+- **`<v:textbox inset="0,0,0,0">`** — The content area inside the `<v:rect>`. `inset="0,0,0,0"` removes padding so the content sits flush against the rect edges.
+
+## Fixed height vs. content-driven height
+
+Background images need height information. There are two ways to provide it:
+
+### Fixed height — known image dimensions
+
+When the background area is a known size (a 600x200 hero, a 600x300 banner), set the height explicitly on the `<v:rect>`:
+
+```html ins="height:200px;"
+<v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false"
+        style="mso-width-percent:1000; height:200px;">
+```
+
+And remove `mso-fit-shape-to-text:true` from the `<v:textbox>`:
+
+```html
+<v:textbox inset="0,0,0,0">
+```
+
+### Content-driven height — variable content
+
+When the content height is unknown (variable text length, dynamic content), let the `<v:rect>` grow to fit by adding `mso-fit-shape-to-text:true` to the textbox:
+
+```html ins="style=\"mso-fit-shape-to-text:true\""
+<v:textbox style="mso-fit-shape-to-text:true" inset="0,0,0,0">
+```
+
+And omit the explicit height on the `<v:rect>`.
+
+<Aside type="caution" title="Don't use both">
+Setting an explicit `<v:rect height>` and `mso-fit-shape-to-text:true` at the same time confuses Outlook — it sometimes clips, sometimes expands beyond the intent. Pick one mode per block.
 </Aside>
 
-Covers VML `<v:rect>` and `<v:fill>` for Outlook desktop, the standard CSS `background-image` for everyone else, and the dual-block pattern. See [bulletproof buttons](/email-playbook/production/bulletproof-buttons/) for the related dual-block pattern.
+## Tiled vs. single image
+
+`<v:fill type="tile">` tiles the image across the cell. Use this for repeating patterns (subtle dot grid, brand watermark texture).
+
+For a single full-cover background image:
+
+```html
+<v:fill type="frame" src="image-link.png" color="#1A1A1A" />
+```
+
+`type="frame"` scales the image to fit the rect once, without tiling.
+
+## When to use this vs. an inline image
+
+Background images are right when:
+
+- The block has overlaid text or buttons on top of the image.
+- The image should fill a fixed-height area with content centered inside.
+- The block needs to scale gracefully if the image is blocked (the `bgcolor` shows through).
+
+Use an inline `<img>` ([Images](/email-playbook/components/images/)) when:
+
+- The image is the content itself (a hero illustration, product photo, branded graphic).
+- You want the image to scale with the email width.
+- Alt text accessibility matters more than visual composition.
+
+## What's next
+
+[Buttons](/email-playbook/components/buttons/) uses the same VML technique to build clickable CTAs that survive Outlook.

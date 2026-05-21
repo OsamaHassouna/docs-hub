@@ -1,12 +1,144 @@
 ---
-title: Body Structure
-description: The main body row of the email, where the actual content sections live.
+title: Email Body
+description: The body row — a flexible inner table where content blocks stack with explicit spacer rows between them. Padding and margin don't survive, so use rows.
 ---
 
 import { Aside } from '@astrojs/starlight/components';
 
-<Aside type="note" title="Porting in progress">
-This page is being ported from the [original email-docx](https://osamahassouna.github.io/email-docx/). The source content exists, it just hasn't been polished for the new playbook yet.
+The body is the second row of the main table. Structurally it's simpler than the [header](/email-playbook/structure/header/) — no fixed height, no three-column layout — but it carries the most rules about spacing, because padding and margin behave inconsistently across clients.
+
+## The body row
+
+```html title="email-body.html"
+<!-- Body Content -->
+<tr>
+  <td colspan="99" style="font-size:0pt; line-height:0pt; padding:0px; margin:0px;">
+
+    <!-- Body | design -->
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#ffffff">
+      <tr>
+        <td colspan="99" align="center" valign="top">
+
+          <!-- structure -->
+          <table cellpadding="0" cellspacing="0" border="0" width="100%" align="center">
+
+            <!-- V Spacing -->
+            <tr>
+              <td colspan="99" style="line-height:80px; height:80px; mso-line-height-rule:exactly;">&nbsp;</td>
+            </tr>
+
+            <!-- Content block 1 -->
+            <tr>
+              <td colspan="99" align="center">
+                <!-- a hero, paragraph, or component goes here -->
+              </td>
+            </tr>
+
+            <!-- V Spacing between blocks -->
+            <tr>
+              <td colspan="99" style="line-height:20px; height:20px; mso-line-height-rule:exactly;">&nbsp;</td>
+            </tr>
+
+            <!-- Content block 2 -->
+            <tr>
+              <td colspan="99" align="center">
+                <!-- next component -->
+              </td>
+            </tr>
+
+            <!-- V Spacing -->
+            <tr>
+              <td colspan="99" style="line-height:80px; height:80px; mso-line-height-rule:exactly;">&nbsp;</td>
+            </tr>
+
+          </table>
+
+        </td>
+      </tr>
+    </table>
+
+  </td>
+</tr>
+```
+
+The `font-size:0pt; line-height:0pt;` on the outer wrapper `<td>` prevents accidental whitespace between table layers — without it, some clients render a few pixels of dead space at the top.
+
+## Body options
+
+### Height
+
+Don't set one. Body height changes from email to email; let the content dictate it. Header and footer get explicit heights, body doesn't.
+
+### Content blocks
+
+Each content block is its own `<tr>` with a single full-width `<td>`. Pull components from the [Components](/email-playbook/components/spacing/) section and drop them in:
+
+```html
+<!-- Content -->
+<tr>
+  <td colspan="99" align="center">
+    <!-- buttons, images, text from the components library -->
+  </td>
+</tr>
+```
+
+### Vertical spacing — the only thing that works
+
+`padding` on table cells works inconsistently, and `margin` on block elements doesn't survive Gmail or Outlook at all. The reliable approach is to put a spacer `<tr>` between every content block:
+
+```html
+<!-- V Spacing -->
+<tr>
+  <td colspan="99" style="line-height:20px; height:20px; mso-line-height-rule:exactly;">&nbsp;</td>
+</tr>
+```
+
+<Aside type="caution" title="Always pair line-height with height">
+Outlook for Windows follows whichever value is smaller. If you set `height:80px` but leave `line-height` at the default, your 80px spacer will collapse to one text line. Set both to the same value, and add `mso-line-height-rule:exactly`.
 </Aside>
 
-Covers the body `<tr>` row, content sections, padding patterns, and combining components like images, text, and buttons inside it.
+Typical spacing rhythm:
+
+| Where | Spacer height |
+|---|---|
+| Top/bottom of the body | 80px |
+| Between unrelated sections | 40-60px |
+| Between related content blocks | 20-32px |
+| Tight stack (caption under image) | 8-16px |
+
+### `<td>` attributes for content cells
+
+Every content cell needs two attributes. `align` decides horizontal alignment of whatever is inside, and `colspan="99"` makes the cell stretch across the full table width when it's the only cell in its row:
+
+```html ins="align=\"center\" colspan=\"99\""
+<td colspan="99" align="center">
+  <!-- content -->
+</td>
+```
+
+Skip `colspan` only when you're laying out side-by-side cells (e.g. two-column blocks).
+
+### Complex content blocks
+
+When a content block has its own structure — a two-column layout, a card with a button, an image-text pairing — nest a fresh `<table>` inside the `<td>`. Treat each block as a self-contained unit:
+
+```html title="nested-content-block.html"
+<!-- Content -->
+<tr>
+  <td colspan="99" align="center">
+    <table cellpadding="0" cellspacing="0" border="0" width="100%" align="center">
+      <tr>
+        <td colspan="99" align="center">
+          <!-- block's own internal structure -->
+        </td>
+      </tr>
+    </table>
+  </td>
+</tr>
+```
+
+Each new table can have its own spacer rows, its own bgcolor, its own width. Nest as deeply as needed — Outlook handles ~10 levels of nesting before it starts misbehaving, which is more than any real email needs.
+
+## Next
+
+The body row is complete. The third and final row is the [Footer](/email-playbook/structure/footer/), which structurally mirrors the header.
