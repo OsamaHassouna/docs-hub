@@ -1,0 +1,126 @@
+---
+title: Dark Mode
+description: How email clients handle dark mode, the three behaviors you need to design for, and the techniques to control or override each.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+Dark mode in email is not one feature. It's three different behaviors depending on the client, and each one needs a different defensive technique. Get this wrong and your branded email arrives looking inverted, illegible, or just broken.
+
+## The three behaviors
+
+| Behavior | Clients | What they do |
+|---|---|---|
+| **No transformation** | Apple Mail (macOS/iOS), Outlook for Mac, most webmail | Render your CSS as-is. Optionally apply `prefers-color-scheme` media query. |
+| **Partial color invert** | Outlook 2019 / 365 / Outlook.com (desktop dark mode) | Inverts text and backgrounds with light values but keeps colored backgrounds alone. |
+| **Full color invert** | Gmail (Android, iOS), Outlook Mobile | Inverts everything aggressively. Logos turn negative, light backgrounds turn dark, brand colors get mutated. |
+
+You design for behavior 1 (your intended look). You override behavior 2 with hints. You defend against behavior 3 with techniques that prevent or guide the invert.
+
+## Layer 1: respect `prefers-color-scheme`
+
+For clients that respect it (Apple Mail, a handful of webmail), you can ship a dark mode design that the user opts into via their OS.
+
+```html
+<style>
+  :root {
+    color-scheme: light dark;
+    supported-color-schemes: light dark;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .body-bg { background-color: #14110F !important; }
+    .text-primary { color: #ECE7E0 !important; }
+    .text-muted { color: #A8A29C !important; }
+    .card-bg { background-color: #1F1C1A !important; }
+
+    /* Swap logo for dark-mode variant */
+    .logo-light { display: none !important; }
+    .logo-dark { display: inline-block !important; }
+  }
+</style>
+```
+
+The `color-scheme` and `supported-color-schemes` declarations tell the client your email is dark-mode-aware, which sometimes opts it out of aggressive auto-inversion.
+
+## Layer 2: dual logos with conditional display
+
+For logos, signatures, or brand assets that would look wrong inverted, ship both versions and toggle visibility.
+
+```html
+<!-- Light logo (default) -->
+<img src="https://cdn.example.com/logo-light.png" alt="Brand"
+     class="logo-light" width="120" style="display: inline-block;" />
+
+<!-- Dark logo (hidden by default) -->
+<img src="https://cdn.example.com/logo-dark.png" alt="Brand"
+     class="logo-dark" width="120" style="display: none;" />
+```
+
+Then in the dark-mode media query above, swap visibility. Works in any client that honors `prefers-color-scheme`.
+
+## Layer 3: defending against forced invert (Gmail mobile)
+
+Gmail on Android and iOS aggressively inverts your colors regardless of any opt-in. You can't fully stop it, but you can guide it.
+
+### Use mid-tone backgrounds, not white
+
+If your card background is `#FFFFFF`, Gmail will invert it to near-black. If it's `#F8F8F5` (a near-white off-tone), Gmail's invert is gentler — it darkens to a less aggressive shade.
+
+### Wrap brand-critical regions in tables with `bgcolor`
+
+Gmail respects the `bgcolor` HTML attribute (deprecated but supported) more reliably than CSS `background-color` for invert behavior. Setting both gives you two layers of intent.
+
+```html
+<table bgcolor="#1F2937" role="presentation" width="100%"
+       style="background-color: #1F2937;">
+  <tr>
+    <td style="color: #FFFFFF;">
+      Branded section that should stay dark
+    </td>
+  </tr>
+</table>
+```
+
+### Add a thin colored border or padding around logos
+
+Gmail's invert respects images on light backgrounds differently than images on dark or colored backgrounds. Wrapping a logo in a 1-pixel mid-tone border or in a colored container often prevents the negative-invert effect.
+
+## Layer 4: testing matrix
+
+Before shipping, verify in:
+
+| Client | What to check |
+|---|---|
+| Apple Mail macOS + dark mode | Your designed dark mode renders. |
+| Apple Mail iOS + dark mode | Same. Confirm logo swap works. |
+| Outlook 365 desktop + dark mode | Background colors stay (Outlook doesn't fully invert). |
+| Gmail Android + dark theme | Logos still readable, brand colors not mutated. |
+| Gmail iOS + dark theme | Same. |
+| Outlook.com + dark mode | Acceptable. Usually fine. |
+
+[Litmus](https://litmus.com/) and [Email on Acid](https://www.emailonacid.com/) both include dark mode previews across all major clients on paid tiers.
+
+## What NOT to do
+
+<Aside type="caution" title="Don't fight Gmail mobile's invert by hard-coding light backgrounds">
+You will lose. Gmail will invert it anyway and the result will be worse than letting it transform a more accommodating palette. Design for the invert to land somewhere acceptable rather than trying to prevent it.
+</Aside>
+
+<Aside type="caution" title="Don't ship invisible images for spacing">
+Transparent 1x1 spacer PNGs become visible artifacts when Gmail inverts. Use td-height spacing instead. See [Spacing](/email-playbook/components/spacing/).
+</Aside>
+
+<Aside type="caution" title="Don't rely on dark mode CSS for layout">
+The `prefers-color-scheme` query only affects colors and visibility. Don't use it to change layout, fonts, or structural elements. Those need to work identically in both modes.
+</Aside>
+
+## Realistic expectations
+
+You're not going to ship a pixel-perfect dark mode that matches every client. You're going to ship an email that:
+
+- Looks intentional in clients that respect your dark mode CSS.
+- Survives Outlook desktop's partial invert without becoming unreadable.
+- Doesn't break or look horrifying in Gmail mobile's forced invert.
+
+That's the bar. Hit it consistently and you're ahead of 90% of production email.

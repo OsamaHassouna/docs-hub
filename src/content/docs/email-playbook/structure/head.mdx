@@ -1,0 +1,192 @@
+---
+title: Head Structure
+description: The HTML doctype, namespaces, meta tags, and conditional comments that make the rest of an email template work.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+Every email template starts with a doctype, the XHTML html tag, and a head section loaded with meta tags and Outlook-specific conditional comments. Most of this is non-negotiable boilerplate. Understand each piece once, then paste it forever.
+
+## The full boilerplate
+
+```html
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:v="urn:schemas-microsoft-com:vml"
+      xmlns:o="urn:schemas-microsoft-com:office:office"
+      lang="en">
+<head>
+  <!--[if gte mso 9]>
+    <xml>
+      <o:OfficeDocumentSettings>
+        <o:AllowPNG/>
+        <o:PixelsPerInch>96</o:PixelsPerInch>
+      </o:OfficeDocumentSettings>
+    </xml>
+  <![endif]-->
+
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="format-detection" content="date=no" />
+  <meta name="format-detection" content="address=no" />
+  <meta name="format-detection" content="telephone=no" />
+  <meta name="x-apple-disable-message-reformatting" />
+
+  <!-- Font Link -->
+  <!--[if !mso]><!-->
+  <link rel="preconnect" href="https://fonts.gstatic.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans&family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+  <!--<![endif]-->
+
+  <title>Email Title</title>
+
+  <!--[if gte mso 9]>
+    <style type="text/css" media="all">
+      sup { font-size: 100% !important; }
+    </style>
+  <![endif]-->
+
+  <style type="text/css" media="screen">
+    body {
+      padding: 0 !important;
+      margin: 0 !important;
+      display: block !important;
+      min-width: 100% !important;
+      width: 100% !important;
+      background: #fff;
+      -webkit-text-size-adjust: none;
+    }
+    table, td, div, h1, p { font-family: Arial, sans-serif; }
+    a { text-decoration: none; }
+    p { padding: 0 !important; margin: 0 !important; }
+    img { -ms-interpolation-mode: bicubic; }
+
+    /* Mobile styles */
+    @media only screen and (max-device-width: 480px),
+           only screen and (max-width: 480px) {
+      .td {
+        width: 100% !important;
+        min-width: 100% !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Body content next -->
+</body>
+</html>
+```
+
+## Why each piece is there
+
+### XHTML 1.0 Transitional doctype
+
+Some email clients (Outlook in particular) treat the email's DOM as XHTML, not HTML5. Using the XHTML 1.0 Transitional doctype is the safest option for predictable rendering. HTML5 doctypes work in most modern clients, but switching to XHTML eliminates a class of edge cases for free.
+
+### The xmlns declarations
+
+```html
+xmlns:v="urn:schemas-microsoft-com:vml"
+xmlns:o="urn:schemas-microsoft-com:office:office"
+```
+
+These two namespaces enable VML (Vector Markup Language) and Office-specific tags. You'll need both for the Outlook PNG handling in the conditional comment below, and for VML background images later.
+
+### Setting language
+
+```html
+<html lang="en">
+```
+
+Set to your audience's language. For Arabic templates, use `lang="ar"` and add `dir="rtl"` on the body container. See [RTL Support](/email-playbook/compatibility/rtl/) for the full setup.
+
+### The MSO Office settings block
+
+```html
+<!--[if gte mso 9]>
+  <xml>
+    <o:OfficeDocumentSettings>
+      <o:AllowPNG/>
+      <o:PixelsPerInch>96</o:PixelsPerInch>
+    </o:OfficeDocumentSettings>
+  </xml>
+<![endif]-->
+```
+
+This block only runs in Microsoft Outlook on Windows (mso = "Microsoft Outlook"). It does two things:
+
+1. **`<o:AllowPNG/>`** — ensures PNG images render at the correct size in Outlook on Windows, which otherwise upscales them based on its own DPI logic.
+2. **`<o:PixelsPerInch>96</o:PixelsPerInch>`** — locks DPI to 96, preventing Outlook's HiDPI display from inflating image dimensions.
+
+Without this block, Outlook users on HiDPI screens see blurry, oversized images.
+
+### Meta tags explained
+
+| Tag | Purpose |
+|---|---|
+| `Content-Type` charset=utf-8 | Standard character encoding. |
+| `viewport` | Tells mobile clients to render at device width without zoom. |
+| `X-UA-Compatible` | Forces Outlook's IE rendering engine to its latest mode. |
+| `format-detection` date/address/telephone | Stops iOS Mail from auto-linking dates, addresses, and phone numbers. Critical if you want full control over what becomes a link. |
+| `x-apple-disable-message-reformatting` | Stops Apple Mail from auto-resizing the email to fit the screen, which often breaks layouts. |
+
+### Font loading (conditional)
+
+```html
+<!--[if !mso]><!-->
+<link rel="preconnect" href="https://fonts.gstatic.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans&family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+<!--<![endif]-->
+```
+
+Wrapped in `<!--[if !mso]><!-->` so Outlook on Windows skips it entirely. Outlook can't render web fonts, and the link tag may cause rendering glitches. The `!-->` and `<!--<![endif]-->` syntax is intentional: it makes the comment a no-op in non-Outlook clients (which read the link as normal HTML) and a true conditional comment in Outlook.
+
+Always pair web fonts with a fallback in the inline styles, e.g. `font-family: 'Poppins', Arial, sans-serif;`.
+
+### The inline `<style>` block for screen
+
+```html
+<style type="text/css" media="screen">
+  ...
+</style>
+```
+
+A few rules live here despite the "inline everywhere" principle:
+
+- `body` reset — Gmail webmail strips inline body styles, so this is the only place to set them reliably.
+- Default `font-family` for tables/divs/headings — Gmail will override your inline font if you don't set it here too.
+- Mobile media queries — the only place media queries belong.
+
+<Aside type="caution" title="Keep the style block small">
+Some clients strip `<style>` tags entirely. Treat anything in here as enhancement, not requirement. Don't put visual-critical styles here that aren't also covered inline.
+</Aside>
+
+### The MSO conditional for typography
+
+```html
+<!--[if gte mso 9]>
+  <style type="text/css" media="all">
+    sup { font-size: 100% !important; }
+  </style>
+<![endif]-->
+```
+
+Outlook on Windows aggressively shrinks superscript text. This forces it back to 100% so things like trademark symbols and footnote markers render at the right size.
+
+## What this gives you
+
+After this head section, you have a foundation that:
+
+- Renders PNG images correctly in Outlook
+- Loads web fonts in every client except Outlook (which falls back to your inline stack)
+- Disables iOS Mail's auto-linking of dates and phone numbers
+- Sets a reliable mobile viewport
+- Provides a body reset that survives Gmail's webmail stripping
+
+## Next
+
+Continue to [Body Container →](/email-playbook/structure/body-container/) for the outermost table and `<body>` setup.

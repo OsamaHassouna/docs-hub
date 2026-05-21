@@ -1,0 +1,59 @@
+---
+title: Getting Started
+description: The mental model for building HTML emails that survive real-world email clients.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+Building an HTML email is not building a web page. The constraints are different, the toolchain is different, and the techniques are different. Internalize that before writing a line of code, and the rest of this playbook will make sense.
+
+## The mental model
+
+Treat an email like a **document from 2005 that has to render in every mail client made since**. Specifically:
+
+1. **Layout is tables.** Always. Nested tables for everything structural.
+2. **CSS is inline.** Style attributes on every element. Stylesheets in `<head>` are unreliable.
+3. **JavaScript does not exist.** Most clients strip it; some flag the email as malicious.
+4. **External resources are risky.** Web fonts may not load. External CSS will be stripped. Images may be blocked by default.
+5. **Outlook is the floor.** If it renders in Outlook 2016 on Windows, you're safe.
+
+## What you're optimizing for
+
+- **Cross-client rendering.** The same code must look acceptable in 10+ rendering engines.
+- **Accessibility.** Screen readers need semantic structure. `role="presentation"` on layout tables.
+- **Inbox delivery.** Heavy or malformed emails get flagged. Stay lean.
+- **Mobile usability.** Half of opens are on phones. Tap targets, font sizes, single-column collapse.
+
+## What you're NOT optimizing for
+
+- **Pixel-perfect parity across clients.** Impossible. Aim for "looks good and works" everywhere.
+- **Modern CSS features.** No CSS Grid, no Flexbox (in production), no custom properties for layout.
+- **Animations or interactivity.** Some clients support limited CSS animation, but never rely on it.
+
+## The toolchain (minimal)
+
+You don't need a build pipeline. You need:
+
+- A code editor.
+- A browser (for the first visual check).
+- A real email client testing service: [Litmus](https://litmus.com/), [Email on Acid](https://www.emailonacid.com/), or [Mailtrap](https://mailtrap.io/) for previews.
+- Real test inboxes: one Gmail account, one Outlook.com account, one Apple Mail / iCloud account, one Yahoo.
+
+<Aside type="tip" title="Don't skip the testing service">
+Browser preview tells you almost nothing about how Outlook will render the email. Free tiers on Litmus and Email on Acid are enough to start. If you ship emails to real users, this is non-negotiable.
+</Aside>
+
+## How this playbook is structured
+
+The pages are ordered the way I'd build a template from scratch:
+
+1. **[Head structure](/email-playbook/structure/head/)** — the boilerplate that makes everything else work.
+2. **[Body container](/email-playbook/structure/body-container/)** — the outermost table and the `<body>` setup.
+3. **Header / Body / Footer** — the three logical sections of the email, each its own nested table.
+4. **Components** — spacing, images, buttons, text. Reused everywhere.
+5. **Compatibility** — Outlook quirks, RTL, responsive.
+6. **Production** — Gmail clipping, dark mode, preheader, bulletproof buttons.
+
+## Next
+
+Go to [Head Structure →](/email-playbook/structure/head/)

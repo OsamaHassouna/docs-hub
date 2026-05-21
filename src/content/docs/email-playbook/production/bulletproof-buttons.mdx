@@ -1,0 +1,171 @@
+---
+title: Bulletproof Buttons
+description: CTA buttons that render correctly in every client, including Outlook on Windows. VML for Outlook, HTML/CSS for everyone else.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+A "bulletproof button" is a CTA built so it renders correctly in **every** major email client, including the ones (Outlook desktop) that don't support modern CSS for padding, border-radius, or background fills.
+
+The technique combines:
+
+1. A standard HTML/CSS button for all modern clients.
+2. A VML rectangle wrapped in MSO conditional comments for Outlook desktop.
+
+## The full pattern
+
+```html
+<!-- Bulletproof button -->
+<table role="presentation" cellpadding="0" cellspacing="0" border="0">
+  <tr>
+    <td align="center">
+      <!--[if mso]>
+      <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml"
+                   xmlns:w="urn:schemas-microsoft-com:office:word"
+                   href="https://example.com/cta"
+                   style="height:48px; v-text-anchor:middle; width:200px;"
+                   arcsize="12%"
+                   strokecolor="#B8651B"
+                   fillcolor="#B8651B">
+        <w:anchorlock/>
+        <center style="color:#FFFFFF; font-family:Arial, sans-serif;
+                       font-size:16px; font-weight:bold;">
+          Get Started
+        </center>
+      </v:roundrect>
+      <![endif]-->
+
+      <!--[if !mso]><!-- -->
+      <a href="https://example.com/cta"
+         style="background-color: #B8651B;
+                border-radius: 6px;
+                color: #FFFFFF;
+                display: inline-block;
+                font-family: Arial, sans-serif;
+                font-size: 16px;
+                font-weight: bold;
+                line-height: 48px;
+                text-align: center;
+                text-decoration: none;
+                width: 200px;
+                -webkit-text-size-adjust: none;">
+        Get Started
+      </a>
+      <!--<![endif]-->
+    </td>
+  </tr>
+</table>
+```
+
+## How it works
+
+### Outlook desktop: VML
+
+The `<!--[if mso]>` block contains a VML `<v:roundrect>` element. VML (Vector Markup Language) is Microsoft's vector format that Outlook on Windows renders natively. It draws the button as a vector shape, which gives you:
+
+- Real rounded corners (Outlook ignores CSS `border-radius` on `<a>`).
+- Solid background fills at any size (Outlook doesn't reliably fill `<a>` backgrounds).
+- Precise width and height.
+
+The `<w:anchorlock/>` element makes the entire VML shape clickable. Without it, only the text inside the `<center>` block is clickable.
+
+### Everyone else: standard CSS
+
+The `<!--[if !mso]><!-- -->` block contains a standard `<a>` tag with inline CSS. Every modern email client renders this directly. The `display: inline-block` and `line-height: 48px` combination produces a visually centered button without needing flexbox or padding.
+
+### Why two blocks instead of one
+
+Outlook strips parts of standard CSS unpredictably. If you ship only the HTML/CSS button, Outlook will render it as ugly underlined text on a white background. If you ship only the VML, every other client will see nothing (VML is inside a comment they ignore).
+
+The two-block pattern delivers a correct button to every client at the cost of slightly more HTML.
+
+## Critical details
+
+### Match the dimensions exactly
+
+The VML rect's `width:200px; height:48px;` MUST match the `<a>` tag's `width: 200px; line-height: 48px;`. If they diverge, the button appears at different sizes in Outlook vs everywhere else.
+
+### Use `line-height` not `padding` for vertical centering
+
+`padding` on an `<a>` tag is unreliable across clients. `line-height: 48px` (equal to the button height) reliably vertical-centers the text in any client.
+
+### Set `-webkit-text-size-adjust: none`
+
+iOS Safari Mail aggressively adjusts text size. Without this declaration, the button text may scale up on iOS and break the button's layout.
+
+### Specify font-family inline
+
+Outlook ignores font-family inherited from anywhere except the inline style. Always declare `font-family: Arial, sans-serif;` (or your stack) directly on the `<a>` tag.
+
+## Color variants
+
+### Solid background
+
+The example above. Most common.
+
+### Outlined / ghost button
+
+```html
+<!--[if mso]>
+<v:roundrect ... strokecolor="#B8651B" fillcolor="#FFFFFF" stroke="t" strokeweight="2pt">
+  <w:anchorlock/>
+  <center style="color:#B8651B; ...">Learn More</center>
+</v:roundrect>
+<![endif]-->
+
+<!--[if !mso]><!-- -->
+<a href="..." style="background-color: #FFFFFF;
+                     border: 2px solid #B8651B;
+                     color: #B8651B;
+                     ...">
+  Learn More
+</a>
+<!--<![endif]-->
+```
+
+Note: VML strokes use `strokeweight="2pt"` in points, not pixels. 2pt is approximately 2.67px.
+
+### Full-width button (mobile)
+
+Add a media query in your `<style>` block:
+
+```css
+@media only screen and (max-width: 480px) {
+  .full-mobile-btn {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+}
+```
+
+Then add `class="full-mobile-btn"` to the `<a>` tag. The VML side stays at its desktop width and doesn't transform on mobile (mobile Outlook doesn't run VML), so this is fine.
+
+## What to avoid
+
+<Aside type="caution" title="Don't use `<button>` elements">
+Email clients strip or break `<button>` tags. Always use `<a>` for buttons.
+</Aside>
+
+<Aside type="caution" title="Don't rely on `border-radius` alone for Outlook">
+Outlook desktop ignores `border-radius` on `<a>` tags. You need the VML `<v:roundrect>` with `arcsize` attribute for actual rounded corners.
+</Aside>
+
+<Aside type="caution" title="Don't use background images on buttons">
+A button with a background image will render as plain text in any client that blocks images by default. Solid colors only.
+</Aside>
+
+## Testing
+
+Verify in:
+
+- Outlook 2016 / 2019 / 365 desktop (the only place where VML actually fires).
+- Gmail web (the strictest CSS interpreter outside Outlook).
+- Apple Mail (most forgiving).
+- iOS Mail (font-size adjustment).
+- Gmail Android (rendering parity with web).
+
+In Outlook, the `border-radius` and fill should be visible. If the button has square corners or a white background with underlined text, the VML block has a syntax error or is being stripped.
+
+## Generator
+
+If you build many buttons, hand-coding VML gets tedious. [Buttons.cm by Campaign Monitor](https://buttons.cm/) is a free bulletproof-button generator that outputs the full block.

@@ -1,0 +1,129 @@
+---
+title: Gmail 102KB Clipping
+description: The Gmail message size limit that silently truncates emails past 102KB, and how to design templates that stay under it.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+Gmail truncates the rendered HTML of any email larger than **102KB** and shows a "Message clipped — view entire message" link. Everything past the limit is hidden until the user clicks through, which most don't. Your CTA, footer, unsubscribe link, tracking pixel, and anything else you care about can silently vanish from the visible portion of the email.
+
+This is one of the most common production bugs in email development. It's also one of the easiest to prevent.
+
+## How the limit works
+
+- The limit is **102KB of HTML** (not total payload, not including images).
+- It applies to Gmail web, Gmail mobile (iOS + Android), and Gmail's Inbox by Gmail (deprecated but legacy).
+- It does NOT apply to other Gmail-based clients like Apple Mail connecting to a Gmail account via IMAP.
+- Comments, whitespace, and inline CSS all count toward the limit.
+
+## What gets clipped
+
+The truncation happens roughly at the byte boundary. Gmail attempts to close any open tags so the rendered HTML doesn't break, but the cut point is unpredictable. In practice:
+
+- Email content below the cut is hidden.
+- Tracking pixels at the bottom of the email don't fire (the image never loads).
+- Unsubscribe links may be inaccessible without clicking "view entire message".
+- The cut point may land mid-table, breaking the visible layout.
+
+## Measuring your file size
+
+The fastest check, on macOS or Linux:
+
+```bash
+wc -c email.html
+```
+
+On Windows PowerShell:
+
+```powershell
+(Get-Item email.html).Length
+```
+
+Or paste your HTML into one of these tools:
+- [Email on Acid's Email Size Checker](https://www.emailonacid.com/blog/article/email-development/gmail-clipping-faqs/)
+- [Mailtrap's Email Size Tester](https://mailtrap.io/)
+
+Aim for **under 90KB** to leave headroom for tracking pixel insertions, ESP modifications, and personalization variables that expand at send time.
+
+## Common sources of bloat
+
+| Source | Typical cost | Fix |
+|---|---|---|
+| Inline `<style>` blocks with reset CSS | 2-5KB | Keep small. Move large rules inline. |
+| Excessive HTML comments | 1-10KB | Strip in production. Keep development comments out of final output. |
+| Repeated inline styles on many cells | 10-30KB | Use a CSS inliner like [Juice](https://github.com/Automattic/juice) that deduplicates. |
+| VML background image fallbacks | 1-3KB each | Only add where actually needed (Outlook desktop). |
+| Embedded tracking parameters in URLs | 5-15KB | Use shorter param names. Use URL shorteners where possible. |
+| Inline base64 images | huge | Never inline base64 in email. Always use hosted URLs. |
+
+## Strategies to stay under
+
+### 1. Strip comments and whitespace before send
+
+Run your final HTML through a minifier that preserves email-safe whitespace. [HTML minifier](https://github.com/kangax/html-minifier) works, with safe defaults:
+
+```bash
+html-minifier email.html --collapse-whitespace --remove-comments \
+  --keep-closing-slash --conservative-collapse > email.min.html
+```
+
+<Aside type="caution" title="Don't over-minify">
+Aggressive whitespace removal can break Outlook rendering (especially around VML). Test the minified output in Outlook desktop before sending.
+</Aside>
+
+### 2. Limit personalization tokens
+
+Each `{{first_name}}` token gets replaced with the actual value at send time. If you have 50 personalization tokens and each name averages 8 characters, that's 400+ bytes of expansion. Tokens add up.
+
+### 3. Use shorter class names if you must use classes
+
+If you target many elements with classes in your style block, longer names (`.email-body-container`) cost more than shorter ones (`.bd`). It's ugly but counts.
+
+### 4. Externalize repeated images
+
+If you have a logo or icon that repeats 10 times, reference the same URL each time. Modern email clients cache it after the first load.
+
+### 5. Avoid base64-inlined images
+
+Never embed images as base64 in the HTML. A 50KB image as base64 becomes ~67KB of inline string and burns through the 102KB budget instantly. Always use hosted images via `<img src="https://...">`.
+
+### 6. Split long emails into shorter ones
+
+If you genuinely have more content than fits, split into two emails or a "see full article on web" link. A clipped email performs worse than a focused short one.
+
+## Detecting clipping in testing
+
+When you preview in Litmus or Email on Acid, look for:
+- The "Message clipped" link at the bottom of the Gmail preview.
+- A red size warning in their content analysis tools.
+
+In a real Gmail inbox, hover over the bottom of the email after opening it. The "[Message clipped] View entire message" link appears as a separate line under the email body.
+
+## The 102KB budget breakdown
+
+A realistic budget for a transactional or marketing email:
+
+| Section | Budget |
+|---|---|
+| Doctype + html + head | ~3KB |
+| Inline `<style>` reset | ~2KB |
+| Body container + header table | ~8KB |
+| Main body content (4-6 sections) | ~50KB |
+| Footer + unsubscribe + tracking | ~10KB |
+| VML conditional comments (Outlook) | ~5KB |
+| Personalization buffer (5-15%) | ~10KB |
+| Safety margin | ~12KB |
+| **Total** | **~100KB** |
+
+Stay under 90KB in your raw template to leave room for the ESP and tracking layer.
+
+## What "headroom" means
+
+Your ESP (SendGrid, Mailgun, Postmark, etc.) injects its own pixels, click-tracking redirects, and sometimes header metadata before delivery. These additions can range from 1KB to 8KB depending on the platform. Test with your actual ESP and measure the delivered size, not just the template size.
+
+## Quick reference
+
+- **Limit:** 102KB rendered HTML
+- **Practical target:** Under 90KB raw template
+- **Where it applies:** Gmail web + mobile
+- **First thing to check when an email feels broken:** open in Gmail, scroll to bottom, look for "Message clipped"

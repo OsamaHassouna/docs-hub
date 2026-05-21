@@ -1,0 +1,695 @@
+/* Theme — dark warm carbon by default, light counterpart toned to match.
+   Inter for all type, JetBrains Mono for code + eyebrows + dates.
+   Amber accent used sparingly: active nav bar, callout bar, link underline, code keyword. */
+
+:root {
+	color-scheme: light;
+
+	/* Type stacks */
+	--sl-font: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+	--sl-font-system: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+	--sl-font-system-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+	--sl-text-base: 1rem;
+	--sl-line-height: 1.7;
+
+	/* Wider content column — let articles use the available space. */
+	--sl-content-width: 56rem;
+	--sl-content-pad-x: 1.5rem;
+	--sl-sidebar-width: 18rem;
+	--sl-right-sidebar-width: 18rem;
+
+	/* Amber ramp */
+	--ink-amber: #B8651B;
+	--ink-amber-deep: #8E4D11;
+	--ink-amber-soft: #E68A2E;
+
+	/* Light palette (default) */
+	--ink-bg: #F7F4EE;
+	--ink-bg-elevated: #FFFFFF;
+	--ink-surface: #FAF7F1;
+	--ink-text: #14110F;
+	--ink-text-muted: #5F5853;
+	--ink-text-soft: #8A837D;
+	--ink-hairline: #E7E3DC;
+	--ink-hairline-strong: #D6D0C7;
+	--ink-callout-bg: #F0EBE0;
+	--ink-amber-tint: rgba(184, 101, 27, 0.10);
+}
+
+/* Map to Starlight tokens (light, default) */
+:root,
+:root[data-theme='light'] {
+	--sl-color-bg: var(--ink-bg);
+	--sl-color-bg-nav: var(--ink-bg);
+	--sl-color-bg-sidebar: var(--ink-bg);
+	--sl-color-bg-inline-code: var(--ink-callout-bg);
+	--sl-color-bg-accent: var(--ink-amber-tint);
+
+	--sl-color-text: var(--ink-text);
+	--sl-color-text-accent: var(--ink-amber);
+	--sl-color-text-invert: var(--ink-bg);
+
+	--sl-color-accent: var(--ink-amber);
+	--sl-color-accent-low: var(--ink-amber-tint);
+	--sl-color-accent-high: var(--ink-amber-deep);
+
+	--sl-color-hairline: var(--ink-hairline);
+	--sl-color-hairline-light: var(--ink-hairline);
+	--sl-color-hairline-shade: var(--ink-hairline-strong);
+
+	--sl-color-gray-1: var(--ink-text);
+	--sl-color-gray-2: var(--ink-text-muted);
+	--sl-color-gray-3: var(--ink-text-soft);
+	--sl-color-gray-4: var(--ink-hairline-strong);
+	--sl-color-gray-5: var(--ink-hairline);
+	--sl-color-gray-6: var(--ink-bg-elevated);
+	--sl-color-gray-7: var(--ink-bg);
+	--sl-color-white: var(--ink-text);
+	--sl-color-black: var(--ink-bg);
+}
+
+/* Dark — opt-in via theme toggle. Same editorial restraint, warm carbon. */
+:root[data-theme='dark'] {
+	color-scheme: dark;
+
+	--ink-amber: #E68A2E;
+	--ink-amber-deep: #B8651B;
+	--ink-amber-soft: #FFB77A;
+
+	--ink-bg: #0E0D0B;
+	--ink-bg-elevated: #14110F;
+	--ink-surface: #16140F;
+	--ink-text: #E8E4DD;
+	--ink-text-muted: #ACA59A;
+	--ink-text-soft: #8A857C;
+	--ink-hairline: #1A1815;
+	--ink-hairline-strong: #2A2724;
+	--ink-callout-bg: #1A1714;
+	--ink-amber-tint: rgba(230, 138, 46, 0.10);
+
+	--sl-color-bg: var(--ink-bg);
+	--sl-color-bg-nav: var(--ink-bg);
+	--sl-color-bg-sidebar: var(--ink-bg);
+	--sl-color-bg-inline-code: var(--ink-callout-bg);
+	--sl-color-bg-accent: var(--ink-amber-tint);
+
+	--sl-color-text: var(--ink-text);
+	--sl-color-text-accent: var(--ink-amber);
+	--sl-color-text-invert: var(--ink-bg);
+
+	--sl-color-accent: var(--ink-amber);
+	--sl-color-accent-low: var(--ink-amber-tint);
+	--sl-color-accent-high: var(--ink-amber-soft);
+
+	--sl-color-hairline: var(--ink-hairline);
+	--sl-color-hairline-light: var(--ink-hairline);
+	--sl-color-hairline-shade: var(--ink-hairline-strong);
+
+	--sl-color-gray-1: var(--ink-text);
+	--sl-color-gray-2: var(--ink-text-muted);
+	--sl-color-gray-3: var(--ink-text-soft);
+	--sl-color-gray-4: var(--ink-hairline-strong);
+	--sl-color-gray-5: var(--ink-hairline);
+	--sl-color-gray-6: var(--ink-bg-elevated);
+	--sl-color-gray-7: var(--ink-bg);
+	--sl-color-white: var(--ink-text);
+	--sl-color-black: var(--ink-bg);
+}
+
+/* Reserve scrollbar space so layout doesn't shift between long/short pages */
+html {
+	scrollbar-gutter: stable;
+}
+
+/* Typography rhythm */
+body {
+	font-feature-settings: 'ss01', 'ss02', 'cv11';
+	letter-spacing: -0.005em;
+	background: var(--ink-bg);
+	color: var(--ink-text);
+}
+
+.sl-markdown-content h1,
+.sl-markdown-content h2,
+.sl-markdown-content h3,
+.sl-markdown-content h4 {
+	font-family: var(--sl-font);
+	font-weight: 700;
+	letter-spacing: -0.02em;
+	line-height: 1.15;
+	color: var(--ink-text);
+}
+
+.sl-markdown-content h1 {
+	font-size: clamp(2.2rem, 4.5vw, 3rem);
+	font-weight: 700;
+	margin-bottom: 0.5em;
+}
+
+.sl-markdown-content h2 {
+	font-size: clamp(1.4rem, 2.4vw, 1.8rem);
+	margin-top: 2.4em;
+	padding-top: 1.2em;
+	border-top: 1px solid var(--ink-hairline);
+	font-weight: 600;
+}
+
+.sl-markdown-content h3 {
+	font-size: 1.18rem;
+	margin-top: 1.8em;
+	font-weight: 600;
+}
+
+.sl-markdown-content p,
+.sl-markdown-content li {
+	font-size: 1.0625rem;
+	line-height: 1.75;
+	color: var(--ink-text);
+}
+
+.sl-markdown-content p {
+	max-width: 68ch;
+}
+
+.sl-markdown-content a {
+	color: var(--ink-amber);
+	text-decoration-thickness: 1px;
+	text-underline-offset: 3px;
+	transition: color 180ms ease;
+}
+
+.sl-markdown-content a:hover {
+	color: var(--ink-text);
+}
+
+/* Lead paragraph (dek) */
+.sl-markdown-content > p:first-of-type {
+	font-size: 1.18rem;
+	color: var(--ink-text-muted);
+	max-width: 60ch;
+}
+
+/* Inline code */
+.sl-markdown-content code:not(pre code) {
+	background: var(--ink-callout-bg);
+	color: var(--ink-amber);
+	padding: 0.12em 0.4em;
+	border-radius: 3px;
+	font-size: 0.92em;
+	font-weight: 500;
+	border: 1px solid var(--ink-hairline);
+}
+
+/* Expressive Code frames — sharp, no shadow */
+.expressive-code {
+	margin-block: 1.5rem;
+}
+
+.expressive-code .frame {
+	border-radius: 4px !important;
+	overflow: hidden;
+	border: 1px solid var(--ink-hairline-strong) !important;
+	box-shadow: none !important;
+}
+
+/* Sidebar — flat v1 style with amber active bar */
+.sl-sidebar-content {
+	padding-top: 1.2rem;
+}
+
+.sl-sidebar-content ul ul {
+	border-left: none;
+	padding-left: 0.5rem;
+}
+
+.sl-sidebar-content a {
+	color: var(--ink-text-muted);
+	border-radius: 0;
+	padding: 0.42rem 0.7rem 0.42rem 0.9rem;
+	transition: color 160ms ease, background-color 160ms ease;
+	position: relative;
+	font-weight: 500;
+}
+
+.sl-sidebar-content a:hover {
+	color: var(--ink-text);
+	background: transparent;
+}
+
+.sl-sidebar-content a[aria-current='page'] {
+	color: var(--ink-text);
+	background: var(--ink-amber-tint);
+}
+
+.sl-sidebar-content a[aria-current='page']::before {
+	content: '';
+	position: absolute;
+	left: 0;
+	top: 4px;
+	bottom: 4px;
+	width: 2px;
+	background: var(--ink-amber);
+}
+
+/* Section group headers — mono caps */
+.sl-sidebar-content summary > div,
+.sl-sidebar-content .group-label > span {
+	font-family: var(--sl-font-system-mono);
+	font-weight: 500;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	font-size: 0.74rem;
+	color: var(--ink-text-soft);
+	padding-block: 0.6rem;
+}
+
+.sl-sidebar-content details > summary {
+	padding-inline: 0.5rem;
+}
+
+.sl-sidebar-content details[open] > summary > svg.caret {
+	color: var(--ink-text-soft);
+}
+
+/* Top bar — slim editorial */
+header.header {
+	border-bottom: 1px solid var(--ink-hairline);
+	background: color-mix(in srgb, var(--ink-bg) 92%, transparent);
+	backdrop-filter: saturate(140%) blur(8px);
+	height: 56px;
+}
+
+.site-title {
+	font-family: var(--sl-font);
+	font-weight: 600;
+	letter-spacing: -0.01em;
+	color: var(--ink-text);
+}
+
+.site-title::after {
+	content: ' / Docs';
+	color: var(--ink-text-soft);
+	font-weight: 400;
+}
+
+/* Tables, callouts */
+.sl-markdown-content table {
+	font-size: 0.95rem;
+	border-collapse: collapse;
+}
+
+.sl-markdown-content table th,
+.sl-markdown-content table td {
+	border-color: var(--ink-hairline);
+}
+
+.sl-markdown-content blockquote {
+	border-left: 2px solid var(--ink-amber);
+	background: var(--ink-callout-bg);
+	padding: 0.9rem 1.1rem;
+	border-radius: 0 4px 4px 0;
+	margin-block: 1.4rem;
+	color: var(--ink-text);
+}
+
+.sl-markdown-content blockquote p:first-of-type {
+	margin-top: 0;
+}
+
+/* Starlight asides — single editorial palette, accent shifts by variant */
+.sl-markdown-content starlight-aside,
+.sl-markdown-content .starlight-aside {
+	border-radius: 4px;
+	border: 1px solid var(--ink-hairline-strong);
+	background: var(--ink-callout-bg);
+	border-left: 2px solid var(--ink-amber);
+	padding: 1rem 1.1rem;
+}
+
+.sl-markdown-content .starlight-aside--tip,
+.sl-markdown-content .starlight-aside--note {
+	border-left-color: var(--ink-amber);
+}
+
+.sl-markdown-content .starlight-aside--caution {
+	border-left-color: #C9A06B;
+}
+
+.sl-markdown-content .starlight-aside--danger {
+	border-left-color: #C9665B;
+}
+
+.sl-markdown-content starlight-aside .starlight-aside__title,
+.sl-markdown-content .starlight-aside__title {
+	font-family: var(--sl-font-system-mono);
+	font-weight: 600;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	font-size: 0.72rem;
+	color: var(--ink-amber);
+	margin-bottom: 0.4rem;
+}
+
+.sl-markdown-content .starlight-aside--caution .starlight-aside__title { color: #C9A06B; }
+.sl-markdown-content .starlight-aside--danger .starlight-aside__title { color: #C9665B; }
+
+.sl-markdown-content .starlight-aside p,
+.sl-markdown-content .starlight-aside li {
+	color: var(--ink-text);
+}
+
+/* Hide default aside icons (we use mono caps labels for personality) */
+.sl-markdown-content .starlight-aside__icon {
+	display: none;
+}
+
+/* On-this-page right rail */
+.right-sidebar starlight-toc nav ul a {
+	color: var(--ink-text-soft);
+	border-left: 1px solid var(--ink-hairline);
+	padding: 0.32rem 0.7rem;
+	transition: color 160ms ease, border-color 160ms ease;
+}
+
+.right-sidebar starlight-toc nav ul a:hover {
+	color: var(--ink-text);
+}
+
+.right-sidebar starlight-toc nav ul a[aria-current='true'] {
+	color: var(--ink-text);
+	border-left-color: var(--ink-amber);
+	font-weight: 500;
+}
+
+.right-sidebar h2 {
+	font-family: var(--sl-font-system-mono);
+	font-weight: 500;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	font-size: 0.7rem;
+	color: var(--ink-text-soft);
+}
+
+/* Prev/Next pager */
+.pagination-links a {
+	border: 1px solid var(--ink-hairline-strong);
+	border-radius: 4px;
+	background: transparent;
+	padding: 1rem 1.1rem;
+	color: var(--ink-text);
+	transition: border-color 160ms ease, color 160ms ease;
+}
+
+.pagination-links a:hover {
+	border-color: var(--ink-amber);
+	color: var(--ink-text);
+}
+
+.pagination-links a > span:first-child {
+	font-family: var(--sl-font-system-mono);
+	font-weight: 500;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	font-size: 0.72rem;
+	color: var(--ink-text-soft);
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Landing-page (splash template) custom blocks: hero, cards, recent updates
+   ────────────────────────────────────────────────────────────────────────── */
+
+/* Splash hero polish */
+.hero {
+	padding-block: clamp(3rem, 6vw, 5rem) 0;
+}
+
+.hero h1 {
+	font-size: clamp(2.4rem, 5.4vw, 4rem);
+	font-weight: 800;
+	letter-spacing: -0.025em;
+	line-height: 1.05;
+	color: var(--ink-text);
+	font-family: var(--sl-font);
+}
+
+.hero .tagline {
+	color: var(--ink-text-muted);
+	font-size: clamp(1.05rem, 1.5vw, 1.18rem);
+	max-width: 60ch;
+	line-height: 1.6;
+}
+
+.hero .actions a {
+	border-radius: 4px;
+	font-weight: 500;
+	padding: 0.7rem 1.1rem;
+	font-size: 0.95rem;
+	transition: border-color 160ms ease, background 160ms ease, color 160ms ease;
+}
+
+.hero .actions a.primary {
+	background: transparent;
+	border: 1px solid var(--ink-amber);
+	color: var(--ink-amber);
+}
+
+.hero .actions a.primary:hover {
+	background: var(--ink-amber-tint);
+	color: var(--ink-amber-soft);
+}
+
+.hero .actions a.minimal {
+	background: transparent;
+	border: 1px solid var(--ink-hairline-strong);
+	color: var(--ink-text);
+}
+
+.hero .actions a.minimal:hover {
+	border-color: var(--ink-text-soft);
+}
+
+/* Hero eyebrow */
+.docs-eyebrow {
+	font-family: var(--sl-font-system-mono);
+	font-weight: 500;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+	font-size: 0.78rem;
+	color: var(--ink-amber);
+	margin-bottom: 1.2rem;
+	display: inline-block;
+}
+
+/* Section eyebrow + title pair */
+.docs-section-head {
+	margin-top: 4.5rem;
+	margin-bottom: 1.8rem;
+	border-top: 1px solid var(--ink-hairline);
+	padding-top: 2rem;
+}
+
+.docs-section-eyebrow {
+	font-family: var(--sl-font-system-mono);
+	font-weight: 500;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+	font-size: 0.74rem;
+	color: var(--ink-text-soft);
+	margin-bottom: 0.6rem;
+}
+
+.docs-section-title {
+	font-size: clamp(1.4rem, 2.4vw, 1.8rem);
+	font-weight: 600;
+	letter-spacing: -0.02em;
+	color: var(--ink-text);
+	margin: 0 0 0.4rem;
+	border-top: none;
+	padding-top: 0;
+}
+
+.docs-section-dek {
+	color: var(--ink-text-muted);
+	font-size: 1rem;
+	max-width: 60ch;
+	margin-bottom: 0;
+}
+
+/* Card grid (custom, replaces Starlight CardGrid for the landing) */
+.guide-grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 1rem;
+	margin-block: 1.5rem 0;
+}
+
+@media (max-width: 720px) {
+	.guide-grid {
+		grid-template-columns: 1fr;
+	}
+}
+
+.guide-card {
+	display: block;
+	border: 1px solid var(--ink-hairline-strong);
+	border-radius: 4px;
+	background: transparent;
+	padding: 1.6rem;
+	color: var(--ink-text);
+	text-decoration: none;
+	transition: border-color 200ms ease, background 200ms ease, transform 200ms ease;
+}
+
+.guide-card:hover {
+	border-color: var(--ink-amber);
+	background: var(--ink-amber-tint);
+	transform: translateY(-1px);
+	text-decoration: none;
+}
+
+.guide-card-top {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1rem;
+	margin-bottom: 1.1rem;
+}
+
+.guide-card-label {
+	font-family: var(--sl-font-system-mono);
+	font-weight: 500;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	font-size: 0.72rem;
+	color: var(--ink-text-soft);
+}
+
+.guide-card.is-live .guide-card-label {
+	color: var(--ink-amber);
+}
+
+.guide-card-chip {
+	font-family: var(--sl-font-system-mono);
+	font-weight: 500;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	font-size: 0.65rem;
+	color: var(--ink-text-soft);
+	border: 1px solid var(--ink-hairline-strong);
+	border-radius: 2px;
+	padding: 0.2rem 0.5rem;
+}
+
+.guide-card.is-live .guide-card-chip {
+	color: var(--ink-amber);
+	border-color: var(--ink-amber);
+}
+
+.guide-card-title {
+	font-size: 1.2rem;
+	font-weight: 600;
+	letter-spacing: -0.015em;
+	margin: 0 0 0.5rem;
+	color: var(--ink-text);
+}
+
+.guide-card-dek {
+	font-size: 0.95rem;
+	line-height: 1.55;
+	color: var(--ink-text-muted);
+	margin: 0 0 1.4rem;
+}
+
+.guide-card-foot {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1rem;
+	font-family: var(--sl-font-system-mono);
+	font-weight: 500;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	font-size: 0.7rem;
+	color: var(--ink-text-soft);
+}
+
+.guide-card.is-live .guide-card-foot .read-link {
+	color: var(--ink-amber);
+}
+
+/* Recent updates list */
+.recent-list {
+	list-style: none;
+	padding: 0;
+	margin-block: 1.5rem 0;
+	border-top: 1px solid var(--ink-hairline);
+}
+
+.recent-list li {
+	border-bottom: 1px solid var(--ink-hairline);
+	padding: 0;
+	font-size: inherit;
+}
+
+.recent-list a {
+	display: grid;
+	grid-template-columns: 90px 1fr auto;
+	gap: 1.5rem;
+	align-items: center;
+	padding: 1rem 0.3rem;
+	color: var(--ink-text);
+	text-decoration: none;
+	transition: background 160ms ease, color 160ms ease;
+}
+
+.recent-list a:hover {
+	background: var(--ink-amber-tint);
+	color: var(--ink-text);
+}
+
+.recent-date {
+	font-family: var(--sl-font-system-mono);
+	font-weight: 500;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	font-size: 0.78rem;
+	color: var(--ink-text-soft);
+}
+
+.recent-title {
+	font-size: 1rem;
+	color: var(--ink-text);
+}
+
+.recent-path {
+	font-family: var(--sl-font-system-mono);
+	font-weight: 500;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	font-size: 0.7rem;
+	color: var(--ink-text-soft);
+}
+
+@media (max-width: 720px) {
+	.recent-list a {
+		grid-template-columns: 1fr;
+		gap: 0.3rem;
+	}
+	.recent-path { font-size: 0.65rem; }
+}
+
+@media (min-width: 72rem) {
+	.right-sidebar-container:where(.astro-67yu43on){
+		width: var(--sl-right-sidebar-width, 18rem);
+	}
+	[data-has-sidebar][data-has-toc] .main-pane:where(.astro-67yu43on){
+		width: calc(100% - var(--sl-right-sidebar-width));
+	}
+	.sl-container:where(.astro-7nkwcw3z){
+		max-width: 100%;
+	}
+}
+main:where(.astro-bguv2lll){
+	--sl-main-pad: 0 2rem 3vh;
+}

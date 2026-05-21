@@ -1,0 +1,118 @@
+---
+title: Preheader Text
+description: The hidden line of text that shows up next to the subject line in inbox previews. Tiny effort, large impact on open rates.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+The preheader is the line of text that email clients show next to (or under) the subject line in the inbox list. If you don't set one explicitly, the client uses the first text it finds in your email body, which is usually something like "View this email in your browser" or "If you're having trouble viewing this email".
+
+Setting a real preheader is the single highest-ROI change in transactional and marketing email.
+
+## How to add one
+
+A preheader is hidden text that lives near the top of the `<body>`, styled to be invisible to the viewer but readable by the inbox preview.
+
+```html
+<body>
+  <!-- Preheader: shows in inbox preview, hidden in the rendered email -->
+  <div style="display: none; max-height: 0; overflow: hidden;
+              mso-hide: all; visibility: hidden; opacity: 0;
+              color: transparent; height: 0; width: 0;
+              font-size: 1px; line-height: 1px;">
+    Your order #4291 ships tomorrow. Track it here.
+  </div>
+
+  <!-- Real email content starts here -->
+</body>
+```
+
+### Why this many styles
+
+Different clients respect different hiding mechanisms:
+
+- `display: none` — most clients respect this.
+- `mso-hide: all` — Outlook on Windows.
+- `visibility: hidden` + `opacity: 0` — additional safety.
+- `font-size: 1px; line-height: 1px` — collapses any rendered remnant.
+- `color: transparent` — final safety if a client ignores all of the above.
+
+All seven properties together cover every major client. Removing any of them creates a class of edge cases.
+
+## Length guidance
+
+Inbox preview windows vary:
+
+| Client | Approximate preview length |
+|---|---|
+| Gmail desktop | 80-100 characters |
+| Gmail mobile | 40-60 characters |
+| Apple Mail desktop | 110-140 characters |
+| Apple Mail iOS | 50-80 characters |
+| Outlook desktop | 60-90 characters |
+| Outlook mobile | 30-50 characters |
+
+Front-load the most important information in the **first 40 characters**. Whatever you put after that may or may not be visible depending on the client.
+
+## Anti-pattern: the trailing-space hack
+
+You may see preheaders with trailing non-breaking spaces designed to push generic email content (like "View in browser") off the preview:
+
+```html
+<div style="display: none;">
+  Your preheader here.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</div>
+```
+
+This was needed before clients reliably honored `display: none`. Modern clients respect the hide rules, so the trailing spaces just waste bytes. Skip it.
+
+## What makes a good preheader
+
+A preheader is your second subject line. It should:
+
+- **Continue the subject's sentence**, not repeat it.
+- **Surface the most important detail**: order number, expiry date, person's name.
+- **Have a clear hook** if marketing: a specific benefit or number.
+
+### Examples
+
+**Bad** (repeats subject):
+
+- Subject: "Your order has shipped"
+- Preheader: "Your order has shipped"
+
+**Good** (continues):
+
+- Subject: "Your order has shipped"
+- Preheader: "Order #4291. Estimated arrival Wednesday. Track it →"
+
+**Bad** (generic):
+
+- Subject: "Welcome to Acme"
+- Preheader: "If you can't see this email, view it in your browser."
+
+**Good** (welcomes + sets next step):
+
+- Subject: "Welcome to Acme"
+- Preheader: "You're in. Set up your account in 60 seconds →"
+
+## Testing
+
+In your test inbox:
+
+1. Open Gmail web. The preheader appears next to the subject in the inbox list.
+2. Open Gmail mobile. Verify length on a small viewport.
+3. Open Apple Mail. Confirm it shows.
+4. Open Outlook. Confirm it shows (Outlook desktop preview is less prominent but visible).
+
+If the preheader doesn't appear, the most common cause is that a client is picking up "View in browser" or a tracking pixel alt text BEFORE the hidden div. Move the hidden div to be the absolute first element after the `<body>` tag.
+
+## Quick checklist
+
+- [ ] Preheader is the first element after `<body>`.
+- [ ] All seven hide-styles applied (display, mso-hide, visibility, opacity, color, height, font-size).
+- [ ] First 40 characters carry the essential info.
+- [ ] No more than 140 characters total.
+- [ ] Does NOT repeat the subject line.
+- [ ] Tested in Gmail (web + mobile), Apple Mail (web + iOS), Outlook.

@@ -1,0 +1,66 @@
+---
+title: HTML Email Playbook
+description: Practical patterns for building email templates that render reliably across Outlook, Gmail, Apple Mail, and the long tail of clients that haven't moved past 2007.
+---
+
+import { Card, CardGrid, Aside } from '@astrojs/starlight/components';
+
+Email development is its own universe. The CSS rules you trust break, the HTML you stopped using a decade ago becomes essential again, and Microsoft Outlook on Windows quietly determines half of your decisions.
+
+This playbook is the working reference I keep open while building templates. It covers the boilerplate, the table architecture, the Outlook compatibility hacks, and the production checks that catch problems before send.
+
+## When to use this
+
+You're hand-building HTML emails (not using MJML, Foundation for Emails, or a builder). You need them to render in:
+
+- Microsoft Outlook (Windows desktop)
+- Outlook 365 / Outlook.com
+- Gmail (web + mobile apps)
+- Apple Mail (macOS + iOS)
+- Yahoo Mail
+- Mobile native clients
+
+If you're using a generator like MJML, most of these problems are solved for you. If you're hand-coding for control or constraints, you're in the right place.
+
+## How it's organized
+
+<CardGrid>
+	<Card title="Structure" icon="seti:html">
+		The bones of every email: doctype, head boilerplate, the body container, and the header / body / footer table architecture.
+
+		[Start with structure →](/email-playbook/structure/head/)
+	</Card>
+	<Card title="Components" icon="puzzle">
+		Reusable building blocks: spacing patterns, images, background images (VML), buttons, and text. Each one inline-styled and cross-client tested.
+
+		[See components →](/email-playbook/components/spacing/)
+	</Card>
+	<Card title="Compatibility" icon="warning">
+		The places email engines diverge: Outlook MSO conditional comments, RTL support, and responsive behavior on mobile clients.
+
+		[Compatibility notes →](/email-playbook/compatibility/outlook/)
+	</Card>
+	<Card title="Production" icon="rocket">
+		What separates an email that renders from an email that performs: Gmail's 102KB clip, dark mode, preheader text, and bulletproof buttons.
+
+		[Production checks →](/email-playbook/production/gmail-clipping/)
+	</Card>
+</CardGrid>
+
+## Conventions in this guide
+
+<Aside type="tip" title="All CSS is inline">
+Email clients strip or ignore `<style>` blocks unpredictably. Every style example here is inline on the element. Media queries are the only exception and live in the `<head>`.
+</Aside>
+
+<Aside type="caution" title="Tables, not flexbox">
+Modern layout (flexbox, grid) has no place in email templates. Everything is nested `<table role="presentation">`. This is intentional, not legacy.
+</Aside>
+
+<Aside type="note" title="Outlook is the constraint">
+If a technique works in Outlook on Windows, it almost certainly works everywhere else. Design for Outlook first, then let the modern clients render the same code beautifully.
+</Aside>
+
+## Start here
+
+If this is your first time, read [Getting Started](/email-playbook/getting-started/) for the mental model. If you already know the landscape, jump to [the head structure](/email-playbook/structure/head/).
