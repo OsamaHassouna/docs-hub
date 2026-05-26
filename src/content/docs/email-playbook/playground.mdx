@@ -1,0 +1,18 @@
+---
+title: Playground
+description: Build and preview HTML emails using the patterns from this playbook. Start from a template, insert components, and export when ready.
+tableOfContents: false
+prev: false
+next: false
+---
+
+import EmailPlayground from '../../../components/EmailPlayground.astro';
+
+<style>{`
+  :root { --sl-content-width: 100%; }
+  .sl-markdown-content { max-width: none; }
+  starlight-content-panel > div { max-width: none; }
+  .sl-markdown-content > p:first-of-type { display: none; }
+`}</style>
+
+<EmailPlayground />

@@ -1,0 +1,1366 @@
+---
+---
+
+<div class="playground" id="playground">
+  <div class="pg-toolbar">
+    <div class="pg-toolbar-left">
+      <label class="pg-label" for="pg-template">Template</label>
+      <select id="pg-template">
+        <option value="blank">Blank</option>
+        <option value="welcome" selected>Welcome Email</option>
+        <option value="newsletter">Newsletter</option>
+      </select>
+
+      <div class="pg-snippet-wrap">
+        <button class="pg-btn pg-btn--ghost" id="pg-snippet-btn" type="button" aria-expanded="false" aria-haspopup="true">
+          Insert Snippet
+          <svg width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div class="pg-snippet-list" id="pg-snippet-list" role="menu" hidden>
+          <button type="button" role="menuitem" data-snippet="spacer">Spacer Row</button>
+          <button type="button" role="menuitem" data-snippet="image">Image</button>
+          <button type="button" role="menuitem" data-snippet="bgImage">Background Image (VML)</button>
+          <button type="button" role="menuitem" data-snippet="button">Bulletproof Button</button>
+          <button type="button" role="menuitem" data-snippet="twoCol">Two-Column Row</button>
+          <button type="button" role="menuitem" data-snippet="social">Social Icons Row</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="pg-toolbar-right">
+      <span class="pg-size" id="pg-size" title="HTML file size"></span>
+      <button class="pg-btn pg-btn--ghost" id="pg-copy" type="button">Copy HTML</button>
+      <button class="pg-btn pg-btn--primary" id="pg-download" type="button">Download</button>
+    </div>
+  </div>
+
+  <div class="pg-tabs">
+    <button class="pg-tab pg-tab--active" data-tab="html" type="button">HTML</button>
+    <button class="pg-tab" data-tab="mjml" type="button">MJML Equivalent</button>
+  </div>
+
+  <div class="pg-body">
+    <div class="pg-editor-pane">
+      <div id="pg-editor-html" class="pg-editor-instance"></div>
+      <div id="pg-editor-mjml" class="pg-editor-instance" hidden></div>
+      <div id="pg-mjml-loading" class="pg-loading" hidden>Loading MJML compiler...</div>
+    </div>
+    <div class="pg-preview-pane">
+      <div class="pg-preview-bar">
+        <button class="pg-view-btn pg-view-btn--active" data-width="100%" type="button">Desktop</button>
+        <button class="pg-view-btn" data-width="375px" type="button">Mobile</button>
+      </div>
+      <div class="pg-preview-container" id="pg-preview-container">
+        <iframe id="pg-preview" sandbox="allow-same-origin allow-scripts" title="Email preview"></iframe>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style is:global>
+  /* ── Reset Starlight markdown content margins inside playground ── */
+  .playground,
+  .playground * {
+    margin-top: 0 !important;
+  }
+
+  /* ── Playground layout ────────────────────────────────────────── */
+  .playground {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    height: calc(100vh - 180px);
+    min-height: 500px;
+    margin: 0 -0.5rem !important;
+  }
+
+  /* ── Toolbar ──────────────────────────────────────────────────── */
+  .pg-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.7rem 0.6rem;
+    flex-wrap: wrap;
+  }
+
+  .pg-toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+  }
+
+  .pg-toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    margin-left: auto;
+  }
+
+  .pg-label {
+    font-family: var(--sl-font-system-mono, monospace);
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-text-soft, #8A837D);
+    height: 30px;
+    display: inline-flex;
+    align-items: center;
+    margin-right: 0.1rem;
+  }
+
+  .playground select,
+  .pg-btn {
+    height: 30px;
+    box-sizing: border-box;
+  }
+
+  .playground select {
+    appearance: none;
+    background: var(--ink-bg-elevated, #FFFFFF);
+    border: 1px solid var(--ink-hairline-strong, #D6D0C7);
+    border-radius: 4px;
+    color: var(--ink-text, #14110F);
+    font-family: var(--sl-font, sans-serif);
+    font-size: 0.82rem;
+    padding: 0 2rem 0 0.6rem;
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238A837D' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.6rem center;
+    line-height: 28px;
+  }
+
+  :root[data-theme='dark'] .playground select {
+    background-color: var(--ink-bg, #0E0D0B);
+    border-color: var(--ink-hairline-strong, #2A2724);
+    color: var(--ink-text, #E8E4DD);
+  }
+
+  .playground select:focus-visible {
+    outline: 2px solid var(--ink-amber, #E68A2E);
+    outline-offset: -1px;
+  }
+
+  /* ── Buttons ──────────────────────────────────────────────────── */
+  .pg-btn {
+    font-family: var(--sl-font, sans-serif);
+    font-size: 0.8rem;
+    font-weight: 500;
+    border-radius: 4px;
+    padding: 0 0.65rem;
+    cursor: pointer;
+    transition: border-color 160ms ease, background 160ms ease, color 160ms ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    white-space: nowrap;
+    line-height: 28px;
+  }
+
+  .pg-btn--ghost {
+    background: transparent;
+    border: 1px solid var(--ink-hairline-strong, #D6D0C7);
+    color: var(--ink-text-muted, #5F5853);
+  }
+
+  :root[data-theme='dark'] .pg-btn--ghost {
+    border-color: var(--ink-hairline-strong, #2A2724);
+    color: var(--ink-text-muted, #ACA59A);
+  }
+
+  .pg-btn--ghost:hover {
+    border-color: var(--ink-amber, #B8651B);
+    color: var(--ink-text, #14110F);
+  }
+
+  :root[data-theme='dark'] .pg-btn--ghost:hover {
+    border-color: var(--ink-amber, #E68A2E);
+    color: var(--ink-text, #E8E4DD);
+  }
+
+  .pg-btn--primary {
+    background: var(--ink-amber, #B8651B);
+    border: 1px solid var(--ink-amber, #B8651B);
+    color: #ffffff;
+  }
+
+  .pg-btn--primary:hover {
+    background: var(--ink-amber-deep, #8E4D11);
+    border-color: var(--ink-amber-deep, #8E4D11);
+  }
+
+  :root[data-theme='dark'] .pg-btn--primary {
+    background: transparent;
+    border-color: var(--ink-amber, #E68A2E);
+    color: var(--ink-amber, #E68A2E);
+  }
+
+  :root[data-theme='dark'] .pg-btn--primary:hover {
+    background: rgba(230, 138, 46, 0.1);
+  }
+
+  /* ── Snippet dropdown ─────────────────────────────────────────── */
+  .pg-snippet-wrap {
+    position: relative;
+  }
+
+  .pg-snippet-list {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    z-index: 50;
+    background: var(--ink-bg-elevated, #FFFFFF);
+    border: 1px solid var(--ink-hairline-strong, #D6D0C7);
+    border-radius: 4px;
+    padding: 4px 0;
+    min-width: 210px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+  }
+
+  :root[data-theme='dark'] .pg-snippet-list {
+    background: var(--ink-bg-elevated, #14110F);
+    border-color: var(--ink-hairline-strong, #2A2724);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  }
+
+  .pg-snippet-list button {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    color: var(--ink-text-muted, #5F5853);
+    font-family: var(--sl-font, sans-serif);
+    font-size: 0.82rem;
+    padding: 0.45rem 0.8rem;
+    cursor: pointer;
+    transition: background 100ms ease, color 100ms ease;
+  }
+
+  :root[data-theme='dark'] .pg-snippet-list button {
+    color: var(--ink-text-muted, #ACA59A);
+  }
+
+  .pg-snippet-list button:hover {
+    background: var(--ink-amber-tint, rgba(184,101,27,0.08));
+    color: var(--ink-text, #14110F);
+  }
+
+  :root[data-theme='dark'] .pg-snippet-list button:hover {
+    background: var(--ink-amber-tint, rgba(230,138,46,0.1));
+    color: var(--ink-text, #E8E4DD);
+  }
+
+  /* ── Tabs ──────────────────────────────────────────────────────── */
+  .pg-tabs {
+    display: flex;
+    gap: 0;
+    border-top: 1px solid var(--ink-hairline, #E7E3DC);
+    border-bottom: 1px solid var(--ink-hairline, #E7E3DC);
+    padding-left: 0.4rem;
+  }
+
+  :root[data-theme='dark'] .pg-tabs {
+    border-color: var(--ink-hairline, #1A1815);
+  }
+
+  .pg-tab {
+    font-family: var(--sl-font-system-mono, monospace);
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-text-soft, #8A837D);
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    padding: 0.6rem 1rem;
+    margin-bottom: -1px;
+    cursor: pointer;
+    transition: color 160ms ease, border-color 160ms ease;
+  }
+
+  .pg-tab:hover {
+    color: var(--ink-text-muted, #5F5853);
+  }
+
+  :root[data-theme='dark'] .pg-tab:hover {
+    color: var(--ink-text-muted, #ACA59A);
+  }
+
+  .pg-tab--active {
+    color: var(--ink-text, #14110F);
+    border-bottom-color: var(--ink-amber, #B8651B);
+  }
+
+  :root[data-theme='dark'] .pg-tab--active {
+    color: var(--ink-text, #E8E4DD);
+    border-bottom-color: var(--ink-amber, #E68A2E);
+  }
+
+  /* ── Body: editor + preview split ─────────────────────────────── */
+  .pg-body {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .pg-editor-pane {
+    flex: 1;
+    min-width: 0;
+    position: relative;
+    border-right: 1px solid var(--ink-hairline, #E7E3DC);
+  }
+
+  :root[data-theme='dark'] .pg-editor-pane {
+    border-right-color: var(--ink-hairline-strong, #2A2724);
+  }
+
+  .pg-editor-instance {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    inset: 0;
+  }
+
+  .pg-loading {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--sl-font-system-mono, monospace);
+    font-size: 0.82rem;
+    color: var(--ink-text-soft, #8A837D);
+    background: var(--ink-bg, #F7F4EE);
+  }
+
+  :root[data-theme='dark'] .pg-loading {
+    background: var(--ink-bg-elevated, #14110F);
+  }
+
+  .pg-loading[hidden] { display: none; }
+
+  .pg-preview-pane {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .pg-preview-bar {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    padding: 0.45rem 0.7rem;
+    border-bottom: 1px solid var(--ink-hairline, #E7E3DC);
+  }
+
+  :root[data-theme='dark'] .pg-preview-bar {
+    border-bottom-color: var(--ink-hairline, #1A1815);
+  }
+
+  .pg-view-btn {
+    font-family: var(--sl-font-system-mono, monospace);
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-text-soft, #8A837D);
+    background: none;
+    border: 1px solid var(--ink-hairline-strong, #D6D0C7);
+    padding: 0.3rem 0.7rem;
+    cursor: pointer;
+    transition: color 160ms ease, border-color 160ms ease, background 160ms ease;
+    height: 30px;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  :root[data-theme='dark'] .pg-view-btn {
+    border-color: var(--ink-hairline-strong, #2A2724);
+  }
+
+  .pg-view-btn:first-child { border-radius: 4px 0 0 4px; }
+  .pg-view-btn:last-child { border-radius: 0 4px 4px 0; border-left: none; }
+
+  .pg-view-btn--active {
+    color: var(--ink-amber, #B8651B);
+    border-color: var(--ink-amber, #B8651B);
+    background: rgba(184,101,27,0.06);
+  }
+
+  :root[data-theme='dark'] .pg-view-btn--active {
+    color: var(--ink-amber, #E68A2E);
+    border-color: var(--ink-amber, #E68A2E);
+    background: rgba(230,138,46,0.08);
+  }
+
+  .pg-preview-container {
+    flex: 1;
+    background: #ffffff;
+    overflow: auto;
+    display: flex;
+    justify-content: center;
+    padding: 0;
+  }
+
+  .pg-preview-container iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: #ffffff;
+    transition: max-width 300ms ease;
+  }
+
+  /* ── File size badge ──────────────────────────────────────────── */
+  .pg-size {
+    font-family: var(--sl-font-system-mono, monospace);
+    font-size: 0.68rem;
+    letter-spacing: 0.04em;
+    color: var(--ink-text-soft, #8A837D);
+    height: 30px;
+    line-height: 28px;
+    padding: 0 0.5rem;
+    border: 1px solid var(--ink-hairline, #E7E3DC);
+    border-radius: 4px;
+    box-sizing: border-box;
+    display: inline-block;
+  }
+
+  :root[data-theme='dark'] .pg-size {
+    border-color: var(--ink-hairline, #1A1815);
+  }
+
+  .pg-size--warn { color: #C9A06B; border-color: #C9A06B; }
+  .pg-size--danger { color: #C9665B; border-color: #C9665B; }
+
+  /* ── Copy toast ───────────────────────────────────────────────── */
+  .pg-toast {
+    position: fixed;
+    bottom: 1.5rem;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--ink-bg-elevated, #FFFFFF);
+    border: 1px solid var(--ink-amber, #B8651B);
+    color: var(--ink-text, #14110F);
+    font-family: var(--sl-font, sans-serif);
+    font-size: 0.85rem;
+    padding: 0.5rem 1.2rem;
+    border-radius: 4px;
+    opacity: 0;
+    transition: opacity 200ms ease, transform 200ms ease;
+    z-index: 100;
+    pointer-events: none;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+
+  :root[data-theme='dark'] .pg-toast {
+    background: var(--ink-bg-elevated, #14110F);
+    border-color: var(--ink-amber, #E68A2E);
+    color: var(--ink-text, #E8E4DD);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  }
+
+  .pg-toast--visible {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* ── Mobile ───────────────────────────────────────────────────── */
+  @media (max-width: 768px) {
+    .playground { height: auto; min-height: auto; margin: 0; }
+    .pg-body { flex-direction: column; }
+    .pg-editor-pane {
+      position: relative;
+      height: 350px;
+      border-right: none;
+      border-bottom: 1px solid var(--ink-hairline, #E7E3DC);
+    }
+    :root[data-theme='dark'] .pg-editor-pane { border-bottom-color: var(--ink-hairline-strong, #2A2724); }
+    .pg-preview-pane { height: 400px; }
+  }
+</style>
+
+<script>
+  // ── Template Data ──────────────────────────────────────────────
+
+  const HEAD = `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<head>
+  <!--[if gte mso 9]>
+  <xml>
+    <o:OfficeDocumentSettings>
+      <o:AllowPNG/>
+      <o:PixelsPerInch>96</o:PixelsPerInch>
+    </o:OfficeDocumentSettings>
+  </xml>
+  <![endif]-->
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="format-detection" content="date=no" />
+  <meta name="format-detection" content="address=no" />
+  <meta name="format-detection" content="telephone=no" />
+  <meta name="x-apple-disable-message-reformatting" />
+
+  <!--[if !mso]><!-->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
+  <!--<![endif]-->
+
+  <title>Email</title>
+
+  <!--[if gte mso 9]>
+  <style type="text/css" media="all">
+    sup { font-size: 100% !important; }
+  </style>
+  <![endif]-->
+
+  <style type="text/css" media="screen">
+    body { margin:0; padding:0; width:100% !important; -webkit-text-size-adjust:none; }
+    table, td, div, p { font-family: 'Open Sans', Arial, Helvetica, sans-serif; }
+    table, td { border-collapse:collapse; }
+    a { text-decoration:none; }
+    p { padding:0 !important; margin:0 !important; }
+    img { border:0; -ms-interpolation-mode:bicubic; }
+    @media only screen and (max-width: 480px) {
+      .container { width:100% !important; }
+      .mobile-pad { padding-left:20px !important; padding-right:20px !important; }
+      .column { display:block !important; width:100% !important; }
+      .mobile-img { width:100% !important; height:auto !important; }
+    }
+  </style>
+</head>`;
+
+  const TEMPLATES: Record<string, { html: string; mjml: string }> = {
+    blank: {
+      html: HEAD + `
+<body style="margin:0; padding:0; background-color:#f2f5f8;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#f2f5f8">
+    <!-- Top spacer -->
+    <tr>
+      <td style="line-height:40px; height:40px; mso-line-height-rule:exactly;">&nbsp;</td>
+    </tr>
+    <tr>
+      <td align="center" style="padding:0 10px;">
+        <!--[if mso]><table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0"><tr><td><![endif]-->
+        <table role="presentation" class="container" width="600" cellpadding="0" cellspacing="0" border="0" style="background-color:#ffffff;">
+
+          <!-- ====== HEADER ====== -->
+          <tr>
+            <td style="background-color:#2d3036; padding:24px 32px;" class="mobile-pad">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td style="font-family:'Open Sans', Arial, sans-serif; font-size:16px; font-weight:600; color:#ffffff;">
+                    Your Company
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- ====== BODY ====== -->
+          <tr>
+            <td style="padding:40px 32px;" class="mobile-pad">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td style="font-family:'Open Sans', Arial, sans-serif; font-size:16px; line-height:26px; color:#333333;">
+                    Your content here. Use the "Insert Snippet" menu to add components.
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- ====== FOOTER ====== -->
+          <tr>
+            <td style="background-color:#f0f3fa; padding:24px 32px;" class="mobile-pad">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td style="font-family:'Open Sans', Arial, sans-serif; font-size:13px; line-height:20px; color:#6a7c94;">
+                    Your Company Inc. &middot; 123 Main Street, City, ST 12345<br />
+                    <a href="https://example.com/unsubscribe" style="color:#6a7c94; text-decoration:underline;">Unsubscribe</a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+        </table>
+        <!--[if mso]></td></tr></table><![endif]-->
+      </td>
+    </tr>
+    <!-- Bottom spacer -->
+    <tr>
+      <td style="line-height:80px; height:80px; mso-line-height-rule:exactly;">&nbsp;</td>
+    </tr>
+  </table>
+</body>
+</html>`,
+      mjml: `<mjml>
+  <mj-head>
+    <mj-attributes>
+      <mj-all font-family="'Open Sans', Arial, sans-serif" />
+      <mj-text line-height="26px" color="#333333" />
+    </mj-attributes>
+  </mj-head>
+  <mj-body background-color="#f2f5f8">
+    <mj-section background-color="#2d3036" padding="24px 32px">
+      <mj-column>
+        <mj-text font-size="16px" font-weight="600" color="#ffffff">Your Company</mj-text>
+      </mj-column>
+    </mj-section>
+    <mj-section background-color="#ffffff" padding="40px 32px">
+      <mj-column>
+        <mj-text font-size="16px">Your content here. Use the "Insert Snippet" menu to add components.</mj-text>
+      </mj-column>
+    </mj-section>
+    <mj-section background-color="#f0f3fa" padding="24px 32px">
+      <mj-column>
+        <mj-text font-size="13px" line-height="20px" color="#6a7c94">
+          Your Company Inc. &middot; 123 Main Street, City, ST 12345<br />
+          <a href="https://example.com/unsubscribe" style="color:#6a7c94; text-decoration:underline;">Unsubscribe</a>
+        </mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>`
+    },
+
+    welcome: {
+      html: HEAD + `
+<body style="margin:0; padding:0; background-color:#f2f5f8;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#f2f5f8">
+    <tr>
+      <td style="line-height:40px; height:40px; mso-line-height-rule:exactly;">&nbsp;</td>
+    </tr>
+    <tr>
+      <td align="center" style="padding:0 10px;">
+        <!--[if mso]><table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0"><tr><td><![endif]-->
+        <table role="presentation" class="container" width="600" cellpadding="0" cellspacing="0" border="0" style="background-color:#ffffff;">
+
+          <!-- ====== HEADER ====== -->
+          <tr>
+            <td style="background-color:#2d3036; padding:24px 32px;" class="mobile-pad">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td style="font-family:'Open Sans', Arial, sans-serif; font-size:16px; font-weight:600; color:#ffffff;">
+                    YourBrand
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- ====== BODY ====== -->
+          <!-- Spacer -->
+          <tr>
+            <td style="line-height:40px; height:40px; mso-line-height-rule:exactly;">&nbsp;</td>
+          </tr>
+          <!-- Heading -->
+          <tr>
+            <td style="padding:0 32px;" class="mobile-pad">
+              <p style="font-family:'Open Sans', Arial, sans-serif; font-size:24px; font-weight:700; line-height:32px; color:#1a1a1a;">
+                Welcome aboard!
+              </p>
+            </td>
+          </tr>
+          <!-- Spacer -->
+          <tr>
+            <td style="line-height:20px; height:20px; mso-line-height-rule:exactly;">&nbsp;</td>
+          </tr>
+          <!-- Text -->
+          <tr>
+            <td style="padding:0 32px;" class="mobile-pad">
+              <p style="font-family:'Open Sans', Arial, sans-serif; font-size:16px; line-height:26px; color:#555555;">
+                Thanks for signing up. We're excited to have you on board. Get started by exploring your dashboard and setting up your profile.
+              </p>
+            </td>
+          </tr>
+          <!-- Spacer -->
+          <tr>
+            <td style="line-height:32px; height:32px; mso-line-height-rule:exactly;">&nbsp;</td>
+          </tr>
+          <!-- Button -->
+          <tr>
+            <td style="padding:0 32px;" class="mobile-pad">
+              <!--[if mso]>
+              <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="https://example.com/dashboard" style="height:44px;v-text-anchor:middle;width:200px;" arcsize="10%" stroke="f" fillcolor="#389bcd">
+                <w:anchorlock/>
+                <center>
+              <![endif]-->
+              <a href="https://example.com/dashboard" style="background-color:#389bcd; border:1px solid #389bcd; border-radius:4px; color:#ffffff; display:inline-block; font-family:'Open Sans', Arial, sans-serif; font-size:15px; font-weight:600; line-height:44px; text-align:center; text-decoration:none; width:200px; -webkit-text-size-adjust:none;">
+                Go to Dashboard
+              </a>
+              <!--[if mso]>
+                </center>
+              </v:roundrect>
+              <![endif]-->
+            </td>
+          </tr>
+          <!-- Spacer -->
+          <tr>
+            <td style="line-height:48px; height:48px; mso-line-height-rule:exactly;">&nbsp;</td>
+          </tr>
+
+          <!-- ====== FOOTER ====== -->
+          <tr>
+            <td style="background-color:#f0f3fa; padding:24px 32px;" class="mobile-pad">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td style="font-family:'Open Sans', Arial, sans-serif; font-size:13px; line-height:20px; color:#6a7c94;">
+                    YourBrand Inc. &middot; 123 Main Street, City, ST 12345<br />
+                    <a href="https://example.com/unsubscribe" style="color:#6a7c94; text-decoration:underline;">Unsubscribe</a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+        </table>
+        <!--[if mso]></td></tr></table><![endif]-->
+      </td>
+    </tr>
+    <tr>
+      <td style="line-height:80px; height:80px; mso-line-height-rule:exactly;">&nbsp;</td>
+    </tr>
+  </table>
+</body>
+</html>`,
+      mjml: `<mjml>
+  <mj-head>
+    <mj-attributes>
+      <mj-all font-family="'Open Sans', Arial, sans-serif" />
+      <mj-text line-height="26px" color="#333333" />
+    </mj-attributes>
+  </mj-head>
+  <mj-body background-color="#f2f5f8">
+    <mj-section background-color="#2d3036" padding="24px 32px">
+      <mj-column>
+        <mj-text font-size="16px" font-weight="600" color="#ffffff">YourBrand</mj-text>
+      </mj-column>
+    </mj-section>
+    <mj-section background-color="#ffffff" padding="40px 32px 20px">
+      <mj-column>
+        <mj-text font-size="24px" font-weight="700" line-height="32px" color="#1a1a1a">
+          Welcome aboard!
+        </mj-text>
+      </mj-column>
+    </mj-section>
+    <mj-section background-color="#ffffff" padding="0 32px 20px">
+      <mj-column>
+        <mj-text font-size="16px" color="#555555">
+          Thanks for signing up. We're excited to have you on board. Get started by exploring your dashboard and setting up your profile.
+        </mj-text>
+      </mj-column>
+    </mj-section>
+    <mj-section background-color="#ffffff" padding="12px 32px 48px">
+      <mj-column>
+        <mj-button background-color="#389bcd" border-radius="4px" font-size="15px" font-weight="600" inner-padding="12px 30px" href="https://example.com/dashboard">
+          Go to Dashboard
+        </mj-button>
+      </mj-column>
+    </mj-section>
+    <mj-section background-color="#f0f3fa" padding="24px 32px">
+      <mj-column>
+        <mj-text font-size="13px" line-height="20px" color="#6a7c94">
+          YourBrand Inc. &middot; 123 Main Street, City, ST 12345<br />
+          <a href="https://example.com/unsubscribe" style="color:#6a7c94; text-decoration:underline;">Unsubscribe</a>
+        </mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>`
+    },
+
+    newsletter: {
+      html: HEAD + `
+<body style="margin:0; padding:0; background-color:#f2f5f8;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#f2f5f8">
+    <tr>
+      <td style="line-height:40px; height:40px; mso-line-height-rule:exactly;">&nbsp;</td>
+    </tr>
+    <tr>
+      <td align="center" style="padding:0 10px;">
+        <!--[if mso]><table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0"><tr><td><![endif]-->
+        <table role="presentation" class="container" width="600" cellpadding="0" cellspacing="0" border="0" style="background-color:#ffffff;">
+
+          <!-- ====== HEADER ====== -->
+          <tr>
+            <td style="background-color:#2d3036; padding:24px 32px;" class="mobile-pad">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td style="font-family:'Open Sans', Arial, sans-serif; font-size:18px; font-weight:700; color:#ffffff;">
+                    Newsletter
+                  </td>
+                  <td align="right" style="font-family:'Open Sans', Arial, sans-serif; font-size:13px; color:#a0a4ab;">
+                    May 2026
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- ====== BODY ====== -->
+          <!-- Heading -->
+          <tr>
+            <td style="line-height:40px; height:40px; mso-line-height-rule:exactly;">&nbsp;</td>
+          </tr>
+          <tr>
+            <td style="padding:0 32px;" class="mobile-pad">
+              <p style="font-family:'Open Sans', Arial, sans-serif; font-size:22px; font-weight:700; line-height:30px; color:#1a1a1a;">
+                This month's highlights
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td style="line-height:12px; height:12px; mso-line-height-rule:exactly;">&nbsp;</td>
+          </tr>
+          <tr>
+            <td style="padding:0 32px;" class="mobile-pad">
+              <p style="font-family:'Open Sans', Arial, sans-serif; font-size:16px; line-height:26px; color:#555555;">
+                A quick roundup of what shipped, what's coming, and what you should know.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Divider -->
+          <tr>
+            <td style="line-height:24px; height:24px; mso-line-height-rule:exactly;">&nbsp;</td>
+          </tr>
+          <tr>
+            <td style="padding:0 32px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr><td style="border-bottom:1px solid #eeeeee; line-height:1px; height:1px; mso-line-height-rule:exactly;">&nbsp;</td></tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="line-height:24px; height:24px; mso-line-height-rule:exactly;">&nbsp;</td>
+          </tr>
+
+          <!-- Two-column section -->
+          <tr>
+            <td style="padding:0 32px;" class="mobile-pad">
+              <!--[if mso]><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td width="250" valign="top"><![endif]-->
+              <div style="display:inline-block; width:100%; max-width:250px; vertical-align:top;">
+                <table role="presentation" class="column" width="250" cellpadding="0" cellspacing="0" border="0">
+                  <tr>
+                    <td>
+                      <img src="https://placehold.co/250x170/e8e8e8/999999?text=Feature+Image" width="250" height="170" alt="Feature" style="display:block; width:250px; height:auto;" class="mobile-img" />
+                    </td>
+                  </tr>
+                </table>
+              </div>
+              <!--[if mso]></td><td width="20"></td><td width="250" valign="top"><![endif]-->
+              <div style="display:inline-block; width:100%; max-width:250px; vertical-align:top;">
+                <table role="presentation" class="column" width="250" cellpadding="0" cellspacing="0" border="0">
+                  <tr>
+                    <td style="padding-top:8px; font-family:'Open Sans', Arial, sans-serif;">
+                      <p style="margin:0; font-size:18px; font-weight:700; line-height:24px; color:#1a1a1a;">New Feature</p>
+                      <p style="margin:10px 0 0; font-size:14px; line-height:22px; color:#555555;">
+                        We shipped the thing you've been asking about. Here's what it does and why it matters for your workflow.
+                      </p>
+                    </td>
+                  </tr>
+                </table>
+              </div>
+              <!--[if mso]></td></tr></table><![endif]-->
+            </td>
+          </tr>
+
+          <!-- CTA -->
+          <tr>
+            <td style="line-height:24px; height:24px; mso-line-height-rule:exactly;">&nbsp;</td>
+          </tr>
+          <tr>
+            <td align="center" style="padding:0 32px 40px;" class="mobile-pad">
+              <!--[if mso]>
+              <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="https://example.com/blog" style="height:44px;v-text-anchor:middle;width:180px;" arcsize="10%" stroke="f" fillcolor="#389bcd">
+                <w:anchorlock/>
+                <center>
+              <![endif]-->
+              <a href="https://example.com/blog" style="background-color:#389bcd; border:1px solid #389bcd; border-radius:4px; color:#ffffff; display:inline-block; font-family:'Open Sans', Arial, sans-serif; font-size:15px; font-weight:600; line-height:44px; text-align:center; text-decoration:none; width:180px; -webkit-text-size-adjust:none;">
+                Read More
+              </a>
+              <!--[if mso]>
+                </center>
+              </v:roundrect>
+              <![endif]-->
+            </td>
+          </tr>
+
+          <!-- ====== FOOTER ====== -->
+          <tr>
+            <td style="background-color:#f0f3fa; padding:24px 32px;" class="mobile-pad">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td align="center" style="font-family:'Open Sans', Arial, sans-serif; font-size:13px; line-height:20px; color:#6a7c94;">
+                    YourBrand Inc. &middot; 123 Main Street, City, ST 12345<br />
+                    <a href="https://example.com/unsubscribe" style="color:#6a7c94; text-decoration:underline;">Unsubscribe</a> &middot;
+                    <a href="https://example.com/preferences" style="color:#6a7c94; text-decoration:underline;">Preferences</a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+        </table>
+        <!--[if mso]></td></tr></table><![endif]-->
+      </td>
+    </tr>
+    <tr>
+      <td style="line-height:80px; height:80px; mso-line-height-rule:exactly;">&nbsp;</td>
+    </tr>
+  </table>
+</body>
+</html>`,
+      mjml: `<mjml>
+  <mj-head>
+    <mj-attributes>
+      <mj-all font-family="'Open Sans', Arial, sans-serif" />
+      <mj-text line-height="26px" color="#555555" />
+    </mj-attributes>
+  </mj-head>
+  <mj-body background-color="#f2f5f8">
+    <mj-section background-color="#2d3036" padding="24px 32px">
+      <mj-column>
+        <mj-text font-size="18px" font-weight="700" color="#ffffff">Newsletter</mj-text>
+      </mj-column>
+      <mj-column>
+        <mj-text align="right" font-size="13px" color="#a0a4ab">May 2026</mj-text>
+      </mj-column>
+    </mj-section>
+    <mj-section background-color="#ffffff" padding="40px 32px 12px">
+      <mj-column>
+        <mj-text font-size="22px" font-weight="700" line-height="30px" color="#1a1a1a">
+          This month's highlights
+        </mj-text>
+        <mj-text font-size="16px" padding-top="12px">
+          A quick roundup of what shipped, what's coming, and what you should know.
+        </mj-text>
+      </mj-column>
+    </mj-section>
+    <mj-section background-color="#ffffff" padding="0 32px">
+      <mj-column><mj-divider border-color="#eeeeee" /></mj-column>
+    </mj-section>
+    <mj-section background-color="#ffffff" padding="24px 32px">
+      <mj-column width="48%">
+        <mj-image src="https://placehold.co/250x170/e8e8e8/999999?text=Feature+Image" alt="Feature" width="250px" />
+      </mj-column>
+      <mj-column width="48%">
+        <mj-text font-size="18px" font-weight="700" line-height="24px" color="#1a1a1a">New Feature</mj-text>
+        <mj-text font-size="14px" line-height="22px" padding-top="10px">
+          We shipped the thing you've been asking about. Here's what it does and why it matters for your workflow.
+        </mj-text>
+      </mj-column>
+    </mj-section>
+    <mj-section background-color="#ffffff" padding="12px 32px 40px">
+      <mj-column>
+        <mj-button align="center" background-color="#389bcd" border-radius="4px" font-size="15px" font-weight="600" inner-padding="12px 30px" href="https://example.com/blog">
+          Read More
+        </mj-button>
+      </mj-column>
+    </mj-section>
+    <mj-section background-color="#f0f3fa" padding="24px 32px">
+      <mj-column>
+        <mj-text align="center" font-size="13px" line-height="20px" color="#6a7c94">
+          YourBrand Inc. &middot; 123 Main Street, City, ST 12345<br />
+          <a href="https://example.com/unsubscribe" style="color:#6a7c94; text-decoration:underline;">Unsubscribe</a> &middot;
+          <a href="https://example.com/preferences" style="color:#6a7c94; text-decoration:underline;">Preferences</a>
+        </mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>`
+    }
+  };
+
+  // ── Snippet Data ─────────────────────────────────────────────
+
+  const SNIPPETS: Record<string, string> = {
+    spacer: `<!-- Spacer: 40px -->\n<tr>\n  <td style="line-height:40px; height:40px; mso-line-height-rule:exactly;">&nbsp;</td>\n</tr>`,
+
+    image: `<!-- Image -->\n<tr>\n  <td style="padding:0 40px;">\n    <img src="https://placehold.co/520x200/e8e8e8/999999?text=Your+Image" width="520" height="200" alt="Description" style="display:block; width:100%; height:auto; border:0;" />\n  </td>\n</tr>`,
+
+    bgImage: `<!-- Background image with VML fallback for Outlook -->\n<tr>\n  <td background="https://placehold.co/600x200/333333/ffffff?text=Background" bgcolor="#333333" style="background-size:cover;" valign="top">\n    <!--[if gte mso 9]>\n    <v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false" style="mso-width-percent:1000; height:200px;">\n      <v:fill type="tile" src="https://placehold.co/600x200/333333/ffffff?text=Background" color="#333333" />\n      <v:textbox inset="0,0,0,0">\n    <![endif]-->\n    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">\n      <tr>\n        <td style="padding:60px 40px; font-family:Arial, Helvetica, sans-serif; font-size:24px; font-weight:bold; color:#ffffff; text-align:center;">\n          Content over background\n        </td>\n      </tr>\n    </table>\n    <!--[if gte mso 9]>\n      </v:textbox>\n    </v:rect>\n    <![endif]-->\n  </td>\n</tr>`,
+
+    button: `<!-- Bulletproof button with VML for Outlook -->\n<tr>\n  <td style="padding:20px 40px;">\n    <!--[if mso]>\n    <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="https://example.com" style="height:44px; v-text-anchor:middle; width:200px;" arcsize="10%" stroke="f" fillcolor="#1a73e8">\n      <w:anchorlock/>\n      <center>\n    <![endif]-->\n    <a href="https://example.com" style="background-color:#1a73e8; border-radius:4px; color:#ffffff; display:inline-block; font-family:Arial, Helvetica, sans-serif; font-size:15px; font-weight:bold; line-height:44px; text-align:center; text-decoration:none; width:200px; -webkit-text-size-adjust:none;">\n      Button Text\n    </a>\n    <!--[if mso]>\n      </center>\n    </v:roundrect>\n    <![endif]-->\n  </td>\n</tr>`,
+
+    twoCol: `<!-- Two-column responsive row (hybrid pattern) -->\n<tr>\n  <td style="padding:20px 40px;">\n    <!--[if mso]><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td width="250" valign="top"><![endif]-->\n    <div style="display:inline-block; width:100%; max-width:250px; vertical-align:top;">\n      <table role="presentation" width="250" cellpadding="0" cellspacing="0" border="0">\n        <tr>\n          <td style="font-family:Arial, Helvetica, sans-serif; font-size:16px; line-height:24px; color:#333333;">\n            Left column content\n          </td>\n        </tr>\n      </table>\n    </div>\n    <!--[if mso]></td><td width="20"></td><td width="250" valign="top"><![endif]-->\n    <div style="display:inline-block; width:100%; max-width:250px; vertical-align:top;">\n      <table role="presentation" width="250" cellpadding="0" cellspacing="0" border="0">\n        <tr>\n          <td style="font-family:Arial, Helvetica, sans-serif; font-size:16px; line-height:24px; color:#333333;">\n            Right column content\n          </td>\n        </tr>\n      </table>\n    </div>\n    <!--[if mso]></td></tr></table><![endif]-->\n  </td>\n</tr>`,
+
+    social: `<!-- Social icons row -->\n<tr>\n  <td align="center" style="padding:20px 40px;">\n    <table role="presentation" cellpadding="0" cellspacing="0" border="0">\n      <tr>\n        <td style="padding:0 8px;">\n          <a href="https://twitter.com/yourbrand">\n            <img src="https://placehold.co/32/1da1f2/ffffff?text=X" width="32" height="32" alt="Twitter" style="display:block; border:0;" />\n          </a>\n        </td>\n        <td style="padding:0 8px;">\n          <a href="https://linkedin.com/company/yourbrand">\n            <img src="https://placehold.co/32/0077b5/ffffff?text=in" width="32" height="32" alt="LinkedIn" style="display:block; border:0;" />\n          </a>\n        </td>\n        <td style="padding:0 8px;">\n          <a href="https://github.com/yourbrand">\n            <img src="https://placehold.co/32/333333/ffffff?text=GH" width="32" height="32" alt="GitHub" style="display:block; border:0;" />\n          </a>\n        </td>\n      </tr>\n    </table>\n  </td>\n</tr>`
+  };
+
+  // ── State ────────────────────────────────────────────────────
+
+  let htmlEditor: any = null;
+  let mjmlEditor: any = null;
+  let activeTab: 'html' | 'mjml' = 'html';
+  let mjmlLoaded = false;
+  let mjml2html: any = null;
+  let currentTemplate = 'welcome';
+  let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+  let toastTimer: ReturnType<typeof setTimeout> | null = null;
+  let lastSavedHtml = TEMPLATES.welcome.html;
+
+  // ── Monaco Loader ────────────────────────────────────────────
+
+  function loadScript(src: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = src;
+      s.onload = () => resolve();
+      s.onerror = () => reject(new Error(`Failed to load ${src}`));
+      document.head.appendChild(s);
+    });
+  }
+
+  async function loadMonaco(): Promise<any> {
+    await loadScript('https://cdn.jsdelivr.net/npm/monaco-editor@0.52.0/min/vs/loader.js');
+    return new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => reject(new Error('Monaco load timeout')), 30000);
+      (window as any).require.config({
+        paths: { vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.52.0/min/vs' }
+      });
+      (window as any).require(['vs/editor/editor.main'], (m: any) => {
+        clearTimeout(timeout);
+        resolve(m);
+      }, (err: any) => {
+        clearTimeout(timeout);
+        reject(err);
+      });
+    });
+  }
+
+  function showEditorError(msg: string) {
+    const el = document.getElementById('pg-editor-html');
+    if (el) {
+      el.style.display = 'flex';
+      el.style.alignItems = 'center';
+      el.style.justifyContent = 'center';
+      el.style.fontFamily = 'var(--sl-font-system-mono, monospace)';
+      el.style.fontSize = '0.85rem';
+      el.style.color = '#C9665B';
+      el.style.padding = '2rem';
+      el.style.textAlign = 'center';
+      el.textContent = msg;
+    }
+  }
+
+  // ── Preview ──────────────────────────────────────────────────
+
+  function updatePreview(html: string) {
+    const iframe = document.getElementById('pg-preview') as HTMLIFrameElement;
+    if (!iframe) return;
+    iframe.srcdoc = html;
+    updateSize(html);
+  }
+
+  function updateSize(html: string) {
+    const sizeEl = document.getElementById('pg-size');
+    if (!sizeEl) return;
+    const bytes = new Blob([html]).size;
+    const kb = (bytes / 1024).toFixed(1);
+    sizeEl.textContent = `${kb} KB`;
+    sizeEl.className = 'pg-size';
+    if (bytes > 102400) {
+      sizeEl.classList.add('pg-size--danger');
+      sizeEl.title = 'Over 102 KB - Gmail will clip this email';
+    } else if (bytes > 80000) {
+      sizeEl.classList.add('pg-size--warn');
+      sizeEl.title = 'Approaching Gmail 102 KB clip limit';
+    } else {
+      sizeEl.title = 'HTML file size';
+    }
+  }
+
+  function schedulePreview() {
+    if (debounceTimer) clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+      const editor = activeTab === 'html' ? htmlEditor : mjmlEditor;
+      if (!editor) return;
+
+      if (activeTab === 'html') {
+        updatePreview(editor.getValue());
+      } else if (mjml2html) {
+        try {
+          const result = mjml2html(editor.getValue());
+          updatePreview(result.html || '');
+        } catch (e: any) {
+          updatePreview(`<html><body style="font-family:monospace;padding:2rem;color:#c9665b;">${e.message || 'MJML compilation error'}</body></html>`);
+        }
+      } else {
+        updatePreview(TEMPLATES[currentTemplate].html);
+      }
+    }, 300);
+  }
+
+  // ── MJML Loader ──────────────────────────────────────────────
+
+  async function loadMjmlCompiler() {
+    if (mjmlLoaded) return;
+    const loadingEl = document.getElementById('pg-mjml-loading');
+    if (loadingEl) loadingEl.hidden = false;
+
+    const cdns = ['esm.sh', 'cdn.skypack.dev'];
+    const pkg = 'mjml-browser@4.15.3';
+
+    for (const cdn of cdns) {
+      try {
+        const url = `https://${cdn}/${pkg}`;
+        const mod = await (new Function('u', 'return import(u)'))(url);
+        mjml2html = mod.default || mod;
+        mjmlLoaded = true;
+        break;
+      } catch (e) {
+        console.warn(`Failed to load MJML from ${cdn}:`, e);
+      }
+    }
+
+    if (!mjmlLoaded && loadingEl) {
+      loadingEl.textContent = 'MJML compiler unavailable. Preview shows the HTML equivalent instead.';
+      loadingEl.hidden = false;
+      return;
+    }
+
+    if (loadingEl) loadingEl.hidden = true;
+  }
+
+  // ── Editor Creation ──────────────────────────────────────────
+
+  function createEditor(containerId: string, value: string, language: string, monaco: any): any {
+    const container = document.getElementById(containerId);
+    if (!container) return null;
+
+    return monaco.editor.create(container, {
+      value,
+      language,
+      theme: 'vs-dark',
+      fontSize: 13,
+      fontFamily: "'JetBrains Mono', monospace",
+      lineHeight: 20,
+      minimap: { enabled: false },
+      scrollBeyondLastLine: false,
+      wordWrap: 'on',
+      padding: { top: 12, bottom: 12 },
+      renderLineHighlight: 'none',
+      overviewRulerBorder: false,
+      scrollbar: { verticalScrollbarSize: 8, horizontalScrollbarSize: 8 },
+      tabSize: 2,
+      automaticLayout: true
+    });
+  }
+
+  // ── Toast ────────────────────────────────────────────────────
+
+  function showToast(msg: string) {
+    let toast = document.querySelector('.pg-toast') as HTMLElement | null;
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.className = 'pg-toast';
+      document.body.appendChild(toast);
+    }
+    if (toastTimer) clearTimeout(toastTimer);
+    toast.textContent = msg;
+    toast.classList.add('pg-toast--visible');
+    toastTimer = setTimeout(() => toast!.classList.remove('pg-toast--visible'), 2000);
+  }
+
+  // ── Init ─────────────────────────────────────────────────────
+
+  async function init() {
+    let monaco: any;
+    try {
+      monaco = await loadMonaco();
+    } catch (e) {
+      showEditorError('Failed to load code editor. Check your internet connection and reload.');
+      console.error('Monaco load failed:', e);
+      return;
+    }
+
+    htmlEditor = createEditor('pg-editor-html', TEMPLATES.welcome.html, 'html', monaco);
+    if (htmlEditor) {
+      htmlEditor.onDidChangeModelContent(() => schedulePreview());
+      updatePreview(htmlEditor.getValue());
+    }
+
+    // ── Template selector ────────────────────────────────────
+    const templateSelect = document.getElementById('pg-template') as HTMLSelectElement;
+    templateSelect?.addEventListener('change', () => {
+      const name = templateSelect.value;
+      const tpl = TEMPLATES[name];
+      if (!tpl) return;
+
+      if (htmlEditor && htmlEditor.getValue() !== lastSavedHtml) {
+        if (!confirm('Switch template? Your current edits will be replaced.')) {
+          templateSelect.value = currentTemplate;
+          return;
+        }
+      }
+
+      currentTemplate = name;
+      lastSavedHtml = tpl.html;
+      if (htmlEditor) htmlEditor.setValue(tpl.html);
+      if (mjmlEditor) mjmlEditor.setValue(tpl.mjml);
+
+      if (activeTab === 'html') {
+        updatePreview(tpl.html);
+      } else if (mjml2html) {
+        try {
+          const result = mjml2html(tpl.mjml);
+          updatePreview(result.html || '');
+        } catch { updatePreview(tpl.html); }
+      } else {
+        updatePreview(tpl.html);
+      }
+    });
+
+    // ── Tabs ─────────────────────────────────────────────────
+    const tabs = document.querySelectorAll('.pg-tab');
+    const htmlPane = document.getElementById('pg-editor-html');
+    const mjmlPane = document.getElementById('pg-editor-mjml');
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', async () => {
+        const target = (tab as HTMLElement).dataset.tab as 'html' | 'mjml';
+        if (target === activeTab) return;
+
+        tabs.forEach(t => t.classList.remove('pg-tab--active'));
+        tab.classList.add('pg-tab--active');
+        activeTab = target;
+
+        if (target === 'mjml') {
+          if (htmlPane) htmlPane.hidden = true;
+          if (mjmlPane) mjmlPane.hidden = false;
+
+          if (!mjmlEditor) {
+            mjmlEditor = createEditor('pg-editor-mjml', TEMPLATES[currentTemplate].mjml, 'html', monaco);
+            if (mjmlEditor) mjmlEditor.onDidChangeModelContent(() => schedulePreview());
+          }
+
+          await loadMjmlCompiler();
+          schedulePreview();
+        } else {
+          if (mjmlPane) mjmlPane.hidden = true;
+          if (htmlPane) htmlPane.hidden = false;
+          schedulePreview();
+        }
+      });
+    });
+
+    // ── Snippet dropdown ─────────────────────────────────────
+    const snippetBtn = document.getElementById('pg-snippet-btn');
+    const snippetList = document.getElementById('pg-snippet-list');
+    if (!snippetBtn || !snippetList) return;
+
+    snippetBtn.addEventListener('click', () => {
+      const open = snippetList.hidden;
+      snippetList.hidden = !open;
+      snippetBtn.setAttribute('aria-expanded', String(open));
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!snippetList.hidden && !snippetBtn.contains(e.target as Node) && !snippetList.contains(e.target as Node)) {
+        snippetList.hidden = true;
+        snippetBtn.setAttribute('aria-expanded', 'false');
+      }
+    });
+
+    snippetList.querySelectorAll('[data-snippet]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const key = (btn as HTMLElement).dataset.snippet!;
+        const code = SNIPPETS[key];
+        if (!code) return;
+
+        const editor = activeTab === 'html' ? htmlEditor : null;
+        if (!editor) {
+          showToast('Snippets are for the HTML editor');
+          return;
+        }
+
+        const sel = editor.getSelection();
+        const pos = sel || editor.getPosition();
+        const range = sel || { startLineNumber: pos.lineNumber, startColumn: pos.column, endLineNumber: pos.lineNumber, endColumn: pos.column };
+        editor.executeEdits('snippet', [{
+          range,
+          text: '\n' + code + '\n',
+          forceMoveMarkers: true
+        }]);
+        editor.focus();
+        snippetList.hidden = true;
+        snippetBtn.setAttribute('aria-expanded', 'false');
+      });
+    });
+
+    // ── Copy ─────────────────────────────────────────────────
+    document.getElementById('pg-copy')?.addEventListener('click', async () => {
+      const editor = activeTab === 'html' ? htmlEditor : mjmlEditor;
+      if (!editor) return;
+
+      let html = editor.getValue();
+      if (activeTab === 'mjml' && mjml2html) {
+        try {
+          html = mjml2html(html).html;
+        } catch { /* use raw */ }
+      }
+
+      try {
+        await navigator.clipboard.writeText(html);
+        showToast('Copied to clipboard');
+      } catch {
+        showToast('Copy failed');
+      }
+    });
+
+    // ── Download ─────────────────────────────────────────────
+    document.getElementById('pg-download')?.addEventListener('click', () => {
+      const editor = activeTab === 'html' ? htmlEditor : mjmlEditor;
+      if (!editor) return;
+
+      let html = editor.getValue();
+      const isMjml = activeTab === 'mjml';
+      if (isMjml && mjml2html) {
+        try {
+          html = mjml2html(html).html;
+        } catch { /* use raw */ }
+      }
+
+      const ext = (isMjml && !mjml2html) ? 'mjml' : 'html';
+      const blob = new Blob([html], { type: ext === 'html' ? 'text/html' : 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `email-${currentTemplate}.${ext}`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('Downloaded');
+    });
+
+    // ── Preview viewport ─────────────────────────────────────
+    const viewBtns = document.querySelectorAll('.pg-view-btn');
+    const iframe = document.getElementById('pg-preview') as HTMLIFrameElement;
+
+    viewBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        viewBtns.forEach(b => b.classList.remove('pg-view-btn--active'));
+        btn.classList.add('pg-view-btn--active');
+        const width = (btn as HTMLElement).dataset.width || '100%';
+        if (iframe) iframe.style.maxWidth = width;
+      });
+    });
+  }
+
+  // ── Bootstrap ────────────────────────────────────────────────
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+</script>

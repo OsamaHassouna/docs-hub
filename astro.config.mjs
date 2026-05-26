@@ -105,6 +105,7 @@ export default defineConfig({
 							],
 						},
 						{ label: 'Templates', slug: 'email-playbook/templates' },
+						{ label: 'Playground', slug: 'email-playbook/playground' },
 					],
 				},
 			],
