@@ -235,8 +235,14 @@ body {
 	gap: 0.5rem;
 }
 
-.sl-sidebar-content a[href$="/email-playbook/builder/"]::after,
-.sl-sidebar-content a[href$="/email-playbook/builder"]::after {
+/* Builder lock — Phase 3 indicator. Uses nav.sidebar (real class) because */
+/* .sl-sidebar-content was renamed to .sidebar-content in Starlight ≥0.32. */
+nav.sidebar a[href$="/email-playbook/builder/"] {
+	display: flex;
+	align-items: center;
+}
+
+nav.sidebar a[href$="/email-playbook/builder/"]::after {
 	content: '\1F512';
 	margin-left: auto;
 	font-size: 0.85em;
