@@ -159,7 +159,7 @@ The actual system prompt should be assembled by concatenating the relevant playb
 **Goal:** AI clients (Claude Desktop, Cursor, etc.) consume the playbook as structured rules and build emails directly.
 
 **Live:**
-- npm package: `email-playbook-mcp` (publish pending — `cd mcp && npm publish` from owner account)
+- npm package: [`email-playbook-mcp@0.1.0`](https://www.npmjs.com/package/email-playbook-mcp) (published under `osama_hassouna`)
 - Hosted JSON-RPC: `https://docs.osamahassouna.com/api/mcp`
 - Docs: `https://docs.osamahassouna.com/email-playbook/cli/`
 
