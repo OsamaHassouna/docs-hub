@@ -10,10 +10,16 @@ Without it, your model invents `flex` and `grid` (no email client supports those
 
 With it, the model calls structured tools to pull the exact patterns from the playbook and composes emails using those, instead of guessing from training data.
 
+> 🔒 **No email permissions, no inbox access.** This is a knowledge MCP — it returns playbook rules and HTML patterns. It never reads your mail, sends mail, or asks for Gmail/Outlook/SMTP credentials. Confusable with inbox-integration MCPs but it's a different category entirely.
+
 ## Install
 
 ```bash
+# Global install (standard)
 npm install -g email-playbook-mcp
+
+# Or run on demand without installing
+npx -y email-playbook-mcp@latest
 ```
 
 ## Use it in Claude Desktop
@@ -31,6 +37,20 @@ Edit `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) o
 ```
 
 Restart Claude Desktop. The playbook tools appear in the model's tool list. Ask it to build an email and it'll call them automatically.
+
+### What happens under the hood
+
+For an image-to-email or "build me a welcome email" prompt, the model typically calls:
+
+```
+1. list_categories                                    ← orient
+2. get_playbook_rules({ category: "ai-generation" })  ← absolute rules first
+3. get_playbook_rules({ category: "compatibility" })  ← responsive + Outlook
+4. list_components → get_component({ name: "buttons" }) ← components it needs
+5. compose final HTML using those exact patterns
+```
+
+You don't write that prompt by hand — the model orients itself via the tool descriptions.
 
 ## Use it in Cursor
 
@@ -62,6 +82,12 @@ $ email-playbook get-component buttons | jq '{name, slots, requires_vml}'
 ```
 
 Other commands: `list-categories`, `list-components`, `get-rules <category>`. Help text is generated from the bundled spec at runtime, never stale. Run `email-playbook --help`.
+
+Run without installing globally:
+
+```bash
+npx -y -p email-playbook-mcp email-playbook list-categories
+```
 
 ## Tools
 
