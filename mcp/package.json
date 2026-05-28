@@ -1,10 +1,11 @@
 {
   "name": "email-playbook-mcp",
-  "version": "0.1.0",
-  "description": "MCP server exposing the Osama Hassouna HTML Email Playbook as structured rules and components for AI clients (Claude Desktop, Cursor, Cline).",
+  "version": "0.2.0",
+  "description": "MCP server + CLI exposing the Osama Hassouna HTML Email Playbook as structured rules and components. For AI clients (Claude Desktop, Cursor, Cline) and terminal usage.",
   "type": "module",
   "bin": {
-    "email-playbook-mcp": "./src/server.mjs"
+    "email-playbook-mcp": "./src/server.mjs",
+    "email-playbook": "./src/cli.mjs"
   },
   "main": "./src/tools.mjs",
   "exports": {

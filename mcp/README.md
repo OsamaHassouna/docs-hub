@@ -1,12 +1,17 @@
 # email-playbook-mcp
 
-An [MCP](https://modelcontextprotocol.io/) server that exposes the [HTML Email Playbook](https://docs.osamahassouna.com/email-playbook/) as structured tools for AI clients. The model calls deterministic tools to fetch playbook rules and component patterns, then generates emails that actually render correctly in Outlook, Gmail, and Apple Mail.
+An [MCP](https://modelcontextprotocol.io/) server **and** terminal CLI that expose the [HTML Email Playbook](https://docs.osamahassouna.com/email-playbook/) as structured tools. AI clients can pull deterministic rules and component patterns into their reasoning; developers can query the same content from the terminal.
 
 ## Install
 
 ```bash
 npm install -g email-playbook-mcp
 ```
+
+Ships two binaries from one package:
+
+- `email-playbook-mcp` — MCP server, stdio transport, for Claude Desktop / Cursor / Cline.
+- `email-playbook` — terminal CLI for direct query + scripting.
 
 ## Configure your AI client
 
@@ -44,6 +49,19 @@ Other MCP-aware clients (Cline, Continue, Windsurf) — same shape.
 | `get_playbook_rules` | Return full rule pages for one category — text + code examples. |
 | `list_components` | List components (button, spacer, image, background-image, text) with metadata. |
 | `get_component` | Return full component record — HTML pattern, slots, VML/responsive flags. |
+
+## CLI
+
+```bash
+email-playbook --help
+
+email-playbook list-categories
+email-playbook get-rules structure
+email-playbook list-components
+email-playbook get-component buttons | jq '.slots'
+```
+
+Output is pretty-printed JSON to stdout. Exit codes: `0` success, `1` runtime error, `2` usage error.
 
 ## Hosted alternative
 

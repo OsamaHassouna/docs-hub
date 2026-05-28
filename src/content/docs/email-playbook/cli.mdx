@@ -1,16 +1,18 @@
 ---
-title: AI Integration (MCP)
-description: Use the Email Playbook directly inside Claude Desktop, Cursor, or any MCP-aware AI client. Two install paths — local npm package or hosted HTTP endpoint.
+title: AI Integration (MCP + CLI)
+description: Use the Email Playbook directly inside Claude Desktop, Cursor, your terminal, or any HTTP/JSON-RPC client. Three install paths from the same npm package.
 ---
 
 import { Aside } from '@astrojs/starlight/components';
 
-This playbook is published as an [MCP server](https://modelcontextprotocol.io/) so AI clients can pull rules and components into their reasoning while building email HTML. The model calls structured tools, you stay out of copy-paste hell, and the same rules ship to every assistant you use.
+This playbook is published as an [MCP server](https://modelcontextprotocol.io/) + terminal CLI so AI clients and dev workflows can pull rules and components into whatever they're building. The model (or you) calls structured tools, you stay out of copy-paste hell, and the same rules ship to every surface.
 
-<Aside type="tip" title="Two install paths">
-**Local** — install the npm package, AI client spawns it via stdio. Standard MCP pattern, works in Claude Desktop, Cursor, Cline, Continue, Windsurf.
+<Aside type="tip" title="Three install paths, one package">
+**MCP server (local)** — install the npm package, AI client spawns `email-playbook-mcp` via stdio. Works in Claude Desktop, Cursor, Cline, Continue, Windsurf.
 
-**Hosted** — point any HTTP/JSON-RPC client at `https://docs.osamahassouna.com/api/mcp`. No install. Useful for scripts, agents, or assistants that speak HTTP MCP.
+**CLI (local)** — same package ships an `email-playbook` command for terminal use, piping, scripting.
+
+**Hosted JSON-RPC** — point any HTTP client at `https://docs.osamahassouna.com/api/mcp`. No install. Useful for scripts or remote agents.
 </Aside>
 
 ## What it gives the model
@@ -67,6 +69,28 @@ Edit `~/.cursor/mcp.json`:
 ### Cline / Continue / Windsurf
 
 Same shape — point a `command` entry at `email-playbook-mcp` in the respective MCP config.
+
+## CLI
+
+The same package ships a terminal command for direct use:
+
+```bash
+email-playbook --help
+
+email-playbook list-categories
+email-playbook get-rules structure
+email-playbook list-components
+email-playbook get-component buttons
+```
+
+Output is pretty-printed JSON to stdout, so it pipes cleanly:
+
+```bash
+email-playbook get-component buttons | jq '.slots'
+email-playbook list-components | jq -r '.[] | select(.requires_vml) | .name'
+```
+
+Exit codes are scripting-friendly: `0` success, `1` runtime error, `2` usage error.
 
 ## Hosted endpoint
 
