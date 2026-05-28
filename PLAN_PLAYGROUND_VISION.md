@@ -242,6 +242,32 @@ Additive content + non-breaking rate limit + dynamic help. Server, CLI, hosted e
 
 ---
 
+## Open questions for v1.0.0
+
+Tracked here so they don't drift between sessions.
+
+### Multi-guide naming on npm
+
+Today: `email-playbook-mcp` (unscoped).
+
+Future plan: when a second guide ships (Angular Notes, Design Systems, etc.), introduce the `@osamahassouna/*` scope and publish each guide as its own scoped package:
+
+- `@osamahassouna/email-playbook` (replaces `email-playbook-mcp`)
+- `@osamahassouna/angular-notes`
+- `@osamahassouna/design-systems`
+
+Old `email-playbook-mcp` deprecates with a pointer to the new name. This becomes the v1.0.0 cut. Decision deferred until the second guide is closer — name reform without ecosystem signal is premature.
+
+### Docs-hub visibility
+
+2026-05-29: repo flipped to public on GitHub to fix broken links from the published npm package. Audit pre-flip: no secrets in tracked files, no secrets in git history, `.gitignore` covers env / scratch / vercel / tarballs. `HANDOFF.md` stale-scaffolding doc removed.
+
+### Repo split (extract MCP to dedicated public repo)
+
+Considered + skipped 2026-05-29. Reasons: monorepo keeps spec extraction + MCP source + docs site in one Git history, simpler. If the MCP project ever grows enough that the docs-hub cadence is wrong for it, revisit.
+
+---
+
 ## Phase 3 — Full Visual Editor
 
 **Goal:** Section/row/component editor that merges Builder UX with Playground. The current locked Builder becomes the real Playground.
