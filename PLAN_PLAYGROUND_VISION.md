@@ -154,28 +154,25 @@ The actual system prompt should be assembled by concatenating the relevant playb
 
 ---
 
-## Phase 2 — CLI / MCP
+## Phase 2 — CLI / MCP — SHIPPED 2026-05-28
 
-**Goal:** Let AI clients (Claude Desktop, Cursor, etc.) consume the playbook as structured rules and build emails directly.
+**Goal:** AI clients (Claude Desktop, Cursor, etc.) consume the playbook as structured rules and build emails directly.
 
-**Estimated effort:** weekend.
+**Live:**
+- npm package: `email-playbook-mcp` (publish pending — `cd mcp && npm publish` from owner account)
+- Hosted JSON-RPC: `https://docs.osamahassouna.com/api/mcp`
+- Docs: `https://docs.osamahassouna.com/email-playbook/cli/`
 
-### Outline
+**Shape:**
+- 4 read-only tools: `list_categories`, `get_playbook_rules({category})`, `list_components`, `get_component({name})`.
+- Components return rich metadata (subcategory, slots, requires_vml, responsive) not just HTML strings — keeps the system composable for Phase 3.
+- Architecture: MDX → canonical `mcp/data/playbook-spec.json` IR → shared `tools.mjs` → stdio server (npm) + Astro `/api/mcp` (hosted). Single source of truth, no transport coupling.
+- License: MIT.
 
-- Wrap playbook content as a JSON spec (`playbook-spec.json`): each rule, pattern, and component as structured data
-- Small MCP server exposing tools:
-  - `get_playbook_rules(category)` — returns rules for head/structure/components/compatibility/production
-  - `get_component(name)` — returns HTML pattern for a specific component (button, spacer, image, etc.)
-  - `validate_email_html(html)` — checks an HTML email against playbook rules, returns violations
-  - `build_email(intent, brand)` — minimal generator using templates + brand
-- Publish as npm package (name TBD: `email-playbook-mcp` or similar)
-- Documentation page at `/email-playbook/cli/` explaining install + use with Claude Desktop / Cursor
-
-### Open questions for Phase 2 kickoff
-
-- MCP server vs. plain CLI vs. both?
-- Hosted MCP (Vercel function) or local-only?
-- License: MIT presumably
+**Deferred to follow-ups:**
+- `get_layout_pattern` (two-column-hero, centered-CTA) — useful but adds scope; only add if a real user asks.
+- `validate_email_html` — needs real usage data on common failure patterns before it stops being regex hell.
+- Thin CLI wrapper (Phase 2.5, optional): `email-playbook list-components`, `email-playbook get-component button`, `email-playbook scaffold transactional`. Same `tools.mjs` core.
 
 ---
 
