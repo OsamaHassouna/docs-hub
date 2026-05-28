@@ -111,8 +111,12 @@ export default defineConfig({
 							],
 						},
 						{ label: 'Templates', slug: 'email-playbook/templates' },
-						{ label: 'Builder', slug: 'email-playbook/builder' },
 						{ label: 'Playground', slug: 'email-playbook/playground' },
+						{
+							label: 'Builder',
+							slug: 'email-playbook/builder',
+							badge: { text: '🔒 Soon', variant: 'note' },
+						},
 					],
 				},
 			],
