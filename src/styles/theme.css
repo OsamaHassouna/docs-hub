@@ -230,6 +230,20 @@ body {
 	transition: color 160ms ease, background-color 160ms ease;
 	position: relative;
 	font-weight: 500;
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+}
+
+.sl-sidebar-content a .sl-badge,
+.sl-sidebar-content a [class*='badge'] {
+	margin-left: auto;
+	background: transparent;
+	border: none;
+	padding: 0;
+	font-size: 0.95em;
+	line-height: 1;
+	color: var(--ink-text-soft);
 }
 
 .sl-sidebar-content a:hover {

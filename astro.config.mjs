@@ -115,7 +115,7 @@ export default defineConfig({
 						{
 							label: 'Builder',
 							slug: 'email-playbook/builder',
-							badge: { text: '🔒 Soon', variant: 'note' },
+							badge: '🔒',
 						},
 					],
 				},
