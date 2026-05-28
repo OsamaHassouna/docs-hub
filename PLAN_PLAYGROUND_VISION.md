@@ -169,10 +169,12 @@ The actual system prompt should be assembled by concatenating the relevant playb
 - Architecture: MDX → canonical `mcp/data/playbook-spec.json` IR → shared `tools.mjs` → stdio server (npm) + Astro `/api/mcp` (hosted). Single source of truth, no transport coupling.
 - License: MIT.
 
-**Deferred to follow-ups:**
-- `get_layout_pattern` (two-column-hero, centered-CTA) — useful but adds scope; only add if a real user asks.
-- `validate_email_html` — needs real usage data on common failure patterns before it stops being regex hell.
-- Thin CLI wrapper (Phase 2.5, optional): `email-playbook list-components`, `email-playbook get-component button`, `email-playbook scaffold transactional`. Same `tools.mjs` core.
+**Phase 2.5 also SHIPPED 2026-05-28 — CLI wrapper.** Same npm package (`email-playbook-mcp@0.2.0`) now ships a second bin `email-playbook` for terminal usage. Commands match MCP tool names 1:1 (`list-categories`, `get-rules <category>`, `list-components`, `get-component <name>`). Shared `tools.mjs` core, no duplication.
+
+**Deferred to follow-ups (when real usage justifies):**
+- `get_layout` — discrete named layouts (two-column-hero, centered-CTA, sidebar-with-content). Requires `layouts/` content section in the playbook first — this is a content problem, not a code problem.
+- `analyze_html` (NOT `validate_email_html`) — return issues ("possible Outlook issue / missing VML fallback / Gmail clipping risk") instead of binary pass/fail. Less brittle than strict validation.
+- `supported_clients` field on components — defer until a component exists with narrower-than-all support.
 
 ---
 
