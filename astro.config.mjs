@@ -112,11 +112,7 @@ export default defineConfig({
 						},
 						{ label: 'Templates', slug: 'email-playbook/templates' },
 						{ label: 'Playground', slug: 'email-playbook/playground' },
-						{
-							label: 'Builder',
-							slug: 'email-playbook/builder',
-							attrs: { 'data-locked': 'true' },
-						},
+						{ label: 'Builder', slug: 'email-playbook/builder' },
 					],
 				},
 			],

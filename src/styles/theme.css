@@ -235,8 +235,9 @@ body {
 	gap: 0.5rem;
 }
 
-.sl-sidebar-content a[data-locked='true']::after {
-	content: '🔒';
+.sl-sidebar-content a[href$="/email-playbook/builder/"]::after,
+.sl-sidebar-content a[href$="/email-playbook/builder"]::after {
+	content: '\1F512';
 	margin-left: auto;
 	font-size: 0.85em;
 	opacity: 0.55;
