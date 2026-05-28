@@ -1,0 +1,51 @@
+{
+  "name": "email-playbook-mcp",
+  "version": "0.1.0",
+  "description": "MCP server exposing the Osama Hassouna HTML Email Playbook as structured rules and components for AI clients (Claude Desktop, Cursor, Cline).",
+  "type": "module",
+  "bin": {
+    "email-playbook-mcp": "./src/server.mjs"
+  },
+  "main": "./src/tools.mjs",
+  "exports": {
+    ".": "./src/tools.mjs",
+    "./server": "./src/server.mjs",
+    "./spec": "./data/playbook-spec.json"
+  },
+  "files": [
+    "src/",
+    "data/playbook-spec.json",
+    "README.md"
+  ],
+  "scripts": {
+    "start": "node src/server.mjs"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "email",
+    "html-email",
+    "outlook",
+    "gmail",
+    "claude",
+    "cursor",
+    "ai-tools"
+  ],
+  "author": "Osama Hassouna <eng.osama2021@gmail.com>",
+  "license": "MIT",
+  "homepage": "https://docs.osamahassouna.com/email-playbook/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OsamaHassouna/docs-hub.git",
+    "directory": "mcp"
+  },
+  "bugs": {
+    "url": "https://github.com/OsamaHassouna/docs-hub/issues"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

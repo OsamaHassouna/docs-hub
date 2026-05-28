@@ -1,0 +1,32 @@
+{
+  "spacing": {
+    "category": "layout",
+    "slots": ["height_px"],
+    "requires_vml": false,
+    "responsive": true
+  },
+  "images": {
+    "category": "media",
+    "slots": ["src", "alt", "width_px", "height_px"],
+    "requires_vml": false,
+    "responsive": true
+  },
+  "background-images": {
+    "category": "media",
+    "slots": ["src", "alt", "width_px", "height_px", "fallback_color"],
+    "requires_vml": true,
+    "responsive": true
+  },
+  "buttons": {
+    "category": "interactive",
+    "slots": ["text", "url", "background_color", "text_color", "width_px", "height_px"],
+    "requires_vml": true,
+    "responsive": true
+  },
+  "text": {
+    "category": "text",
+    "slots": ["font_family", "font_size_px", "line_height_px", "color", "body_text"],
+    "requires_vml": false,
+    "responsive": true
+  }
+}

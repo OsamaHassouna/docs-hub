@@ -1,0 +1,132 @@
+---
+title: AI Integration (MCP)
+description: Use the Email Playbook directly inside Claude Desktop, Cursor, or any MCP-aware AI client. Two install paths — local npm package or hosted HTTP endpoint.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+This playbook is published as an [MCP server](https://modelcontextprotocol.io/) so AI clients can pull rules and components into their reasoning while building email HTML. The model calls structured tools, you stay out of copy-paste hell, and the same rules ship to every assistant you use.
+
+<Aside type="tip" title="Two install paths">
+**Local** — install the npm package, AI client spawns it via stdio. Standard MCP pattern, works in Claude Desktop, Cursor, Cline, Continue, Windsurf.
+
+**Hosted** — point any HTTP/JSON-RPC client at `https://docs.osamahassouna.com/api/mcp`. No install. Useful for scripts, agents, or assistants that speak HTTP MCP.
+</Aside>
+
+## What it gives the model
+
+Four tools. All read-only, all deterministic, all serving the same content you read on this site.
+
+| Tool | What it returns |
+|---|---|
+| `list_categories` | The four rule categories (structure, components, compatibility, production) with page counts. |
+| `get_playbook_rules` | Full rule pages for a category — title, description, body, all code examples. |
+| `list_components` | All components (button, spacer, image, background-image, text) with metadata: subcategory, VML flag, responsive flag. |
+| `get_component` | Full record for one component — title, description, narrative, HTML pattern, slots, examples. |
+
+The model uses these to discover and quote the exact playbook patterns instead of hallucinating its own table layout from training data.
+
+## Local install (recommended)
+
+```bash
+npm install -g email-playbook-mcp
+```
+
+Then add it to your client config.
+
+### Claude Desktop
+
+Edit `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
+
+```json
+{
+  "mcpServers": {
+    "email-playbook": {
+      "command": "email-playbook-mcp"
+    }
+  }
+}
+```
+
+Restart Claude Desktop. The tools appear in the model's tool list automatically.
+
+### Cursor
+
+Edit `~/.cursor/mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "email-playbook": {
+      "command": "email-playbook-mcp"
+    }
+  }
+}
+```
+
+### Cline / Continue / Windsurf
+
+Same shape — point a `command` entry at `email-playbook-mcp` in the respective MCP config.
+
+## Hosted endpoint
+
+Skip the install. Send JSON-RPC 2.0 requests to `https://docs.osamahassouna.com/api/mcp`.
+
+### Discover
+
+```bash
+curl https://docs.osamahassouna.com/api/mcp
+```
+
+Returns server info and supported methods.
+
+### List tools
+
+```bash
+curl -X POST https://docs.osamahassouna.com/api/mcp \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
+```
+
+### Call a tool
+
+```bash
+curl -X POST https://docs.osamahassouna.com/api/mcp \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": 2,
+    "method": "tools/call",
+    "params": {
+      "name": "get_component",
+      "arguments": { "name": "buttons" }
+    }
+  }'
+```
+
+Returns the bulletproof button pattern, its slots, and metadata.
+
+<Aside type="note" title="No auth">
+The content is public — the same rules you read here, served as JSON. No tokens needed.
+</Aside>
+
+## Example flow inside an AI client
+
+Once installed, ask the model something like:
+
+> "Build me a transactional welcome email with a CTA button. Use the email playbook tools to follow the patterns exactly."
+
+The model will typically:
+
+1. Call `list_categories` to orient itself.
+2. Call `get_playbook_rules` for `structure` and `compatibility` to get the boilerplate + responsive pattern.
+3. Call `list_components` and `get_component` for the components it needs (button, spacer).
+4. Assemble the email using the exact HTML patterns from the playbook.
+
+The output renders correctly in Outlook + Gmail + Apple Mail because it never deviated from the playbook's table layout, VML, and inline-style conventions.
+
+## Source
+
+- npm package: [`email-playbook-mcp`](https://www.npmjs.com/package/email-playbook-mcp)
+- GitHub: [`OsamaHassouna/docs-hub`](https://github.com/OsamaHassouna/docs-hub) — `mcp/` directory
+- License: MIT

@@ -4,8 +4,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "astro dev",
+    "dev": "node mcp/build/extract.mjs && astro dev",
     "start": "astro dev",
+    "build:spec": "node mcp/build/extract.mjs",
+    "prebuild": "node mcp/build/extract.mjs",
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro"

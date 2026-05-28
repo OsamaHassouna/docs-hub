@@ -112,6 +112,7 @@ export default defineConfig({
 						},
 						{ label: 'Templates', slug: 'email-playbook/templates' },
 						{ label: 'Playground', slug: 'email-playbook/playground' },
+						{ label: 'MCP', slug: 'email-playbook/cli' },
 						{ label: 'Builder', slug: 'email-playbook/builder' },
 					],
 				},
