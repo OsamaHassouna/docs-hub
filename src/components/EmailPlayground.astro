@@ -36,14 +36,54 @@
 
   <div class="pg-tabs">
     <button class="pg-tab pg-tab--active" data-tab="html" type="button">HTML</button>
-    <button class="pg-tab" data-tab="mjml" type="button">MJML Equivalent</button>
+    <button class="pg-tab pg-tab--image" data-tab="image" type="button">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M1 9.5l2.5-3 2 2 2.5-3L11 9.5M2 11h8a1 1 0 001-1V2a1 1 0 00-1-1H2a1 1 0 00-1 1v8a1 1 0 001 1z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      From Image
+      <span class="pg-tab-badge">New</span>
+    </button>
   </div>
 
   <div class="pg-body">
     <div class="pg-editor-pane">
       <div id="pg-editor-html" class="pg-editor-instance"></div>
-      <div id="pg-editor-mjml" class="pg-editor-instance" hidden></div>
-      <div id="pg-mjml-loading" class="pg-loading" hidden>Loading MJML compiler...</div>
+
+      <div id="pg-editor-image" class="pg-editor-instance pg-image-pane" hidden>
+        <div class="pg-image-inner">
+          <div class="pg-image-drop" id="pg-image-drop" role="button" tabindex="0" aria-label="Upload or paste an email design image">
+            <div class="pg-image-drop-empty" id="pg-image-empty">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 16l4-4 3 3 5-5 4 4M5 21h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <p class="pg-image-drop-title">Drop, paste, or upload an email design</p>
+              <p class="pg-image-drop-hint">PNG, JPG, WebP or GIF · max 4MB · <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+<kbd>V</kbd> to paste</p>
+              <button class="pg-btn pg-btn--ghost pg-image-pick" id="pg-image-pick" type="button">Choose file</button>
+              <input type="file" id="pg-image-file" accept="image/png,image/jpeg,image/webp,image/gif" hidden />
+            </div>
+            <div class="pg-image-drop-filled" id="pg-image-filled" hidden>
+              <img id="pg-image-thumb" alt="Selected design preview" />
+              <button class="pg-image-clear" id="pg-image-clear" type="button" aria-label="Remove image">×</button>
+            </div>
+          </div>
+
+          <div class="pg-image-actions">
+            <button class="pg-btn pg-btn--primary pg-image-generate" id="pg-image-generate" type="button" disabled>
+              <span class="pg-image-generate-label">Generate HTML</span>
+              <span class="pg-image-generate-spinner" hidden>
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-dasharray="8 24"><animateTransform attributeName="transform" type="rotate" from="0 7 7" to="360 7 7" dur="0.8s" repeatCount="indefinite"/></circle></svg>
+                Generating
+              </span>
+            </button>
+            <span class="pg-image-status" id="pg-image-status" role="status" aria-live="polite"></span>
+          </div>
+
+          <div class="pg-image-error" id="pg-image-error" hidden role="alert"></div>
+
+          <div class="pg-image-tip">
+            <svg class="pg-image-tip-icon" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="6.4" stroke="currentColor" stroke-width="1.3"/><path d="M8 5.2v.3M8 7.2v3.4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+            <div class="pg-image-tip-body">
+              <span class="pg-image-tip-label">Figma tip</span>Press <kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>C</kbd> on any frame to copy as PNG, then paste here.
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
     <div class="pg-preview-pane">
       <div class="pg-preview-bar">
@@ -301,6 +341,298 @@
     border-bottom-color: var(--ink-amber, #E68A2E);
   }
 
+  .pg-tab--image {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .pg-tab-badge {
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    padding: 1px 5px;
+    border-radius: 2px;
+    background: var(--ink-amber, #B8651B);
+    color: var(--ink-bg-elevated, #FFFFFF);
+  }
+
+  :root[data-theme='dark'] .pg-tab-badge {
+    background: var(--ink-amber, #E68A2E);
+    color: var(--ink-bg, #0E0D0B);
+  }
+
+  /* ── Image pane ──────────────────────────────────────────────── */
+  .pg-image-pane {
+    height: 100%;
+    overflow: auto;
+    padding: 1.5rem;
+    background: var(--ink-bg, #F7F4EE);
+  }
+
+  :root[data-theme='dark'] .pg-image-pane {
+    background: var(--ink-bg, #0E0D0B);
+  }
+
+  /* [hidden] must beat display:flex on the state swappers */
+  .pg-image-pane [hidden] {
+    display: none !important;
+  }
+
+  .pg-image-inner {
+    max-width: 36rem;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .pg-image-drop {
+    position: relative;
+    border: 1.5px dashed var(--ink-hairline-strong, #D6D0C7);
+    border-radius: 4px;
+    background: var(--ink-bg-elevated, #FFFFFF);
+    min-height: 240px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 160ms ease, background 160ms ease;
+    cursor: pointer;
+  }
+
+  :root[data-theme='dark'] .pg-image-drop {
+    border-color: var(--ink-hairline-strong, #2A2724);
+    background: var(--ink-bg-elevated, #14110F);
+  }
+
+  .pg-image-drop:hover {
+    border-color: var(--ink-amber, #B8651B);
+  }
+
+  .pg-image-drop:focus-visible {
+    border-color: var(--ink-amber, #B8651B);
+    outline: 2px solid var(--ink-amber, #B8651B);
+    outline-offset: 2px;
+  }
+
+  :root[data-theme='dark'] .pg-image-drop:hover,
+  :root[data-theme='dark'] .pg-image-drop:focus-visible {
+    border-color: var(--ink-amber, #E68A2E);
+  }
+
+  :root[data-theme='dark'] .pg-image-drop:focus-visible {
+    outline-color: var(--ink-amber, #E68A2E);
+  }
+
+  .pg-image-drop--dragover {
+    border-color: var(--ink-amber, #B8651B);
+    background: rgba(184,101,27,0.04);
+  }
+
+  :root[data-theme='dark'] .pg-image-drop--dragover {
+    border-color: var(--ink-amber, #E68A2E);
+    background: rgba(230,138,46,0.06);
+  }
+
+  .pg-image-drop-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+    text-align: center;
+    color: var(--ink-text-muted, #5F5853);
+    padding: 1.5rem;
+  }
+
+  :root[data-theme='dark'] .pg-image-drop-empty {
+    color: var(--ink-text-muted, #ACA59A);
+  }
+
+  .pg-image-drop-empty svg {
+    color: var(--ink-text-soft, #8A837D);
+    margin-bottom: 0.3rem;
+  }
+
+  .pg-image-drop-title {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--ink-text, #14110F);
+    margin: 0 !important;
+  }
+
+  :root[data-theme='dark'] .pg-image-drop-title {
+    color: var(--ink-text, #E8E4DD);
+  }
+
+  .pg-image-drop-hint {
+    font-size: 0.78rem;
+    margin: 0 0 0.7rem !important;
+  }
+
+  .pg-image-pick {
+    margin-top: 0.4rem !important;
+  }
+
+  .pg-image-drop-filled {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+
+  .pg-image-drop-filled img {
+    max-width: 100%;
+    max-height: 320px;
+    object-fit: contain;
+    display: block;
+    border-radius: 2px;
+  }
+
+  .pg-image-clear {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 50%;
+    background: var(--ink-text, #14110F);
+    color: var(--ink-bg-elevated, #FFFFFF);
+    font-size: 1.1rem;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  :root[data-theme='dark'] .pg-image-clear {
+    background: var(--ink-text, #E8E4DD);
+    color: var(--ink-bg, #0E0D0B);
+  }
+
+  .pg-image-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .pg-image-generate {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .pg-image-generate:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  .pg-image-generate-spinner {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .pg-image-status {
+    font-size: 0.82rem;
+    color: var(--ink-text-muted, #5F5853);
+  }
+
+  :root[data-theme='dark'] .pg-image-status {
+    color: var(--ink-text-muted, #ACA59A);
+  }
+
+  .pg-image-error {
+    padding: 0.7rem 0.9rem;
+    border-left: 3px solid var(--ink-amber, #B8651B);
+    background: rgba(184,101,27,0.06);
+    color: var(--ink-text, #14110F);
+    font-size: 0.85rem;
+    line-height: 1.5;
+    border-radius: 0 2px 2px 0;
+  }
+
+  :root[data-theme='dark'] .pg-image-error {
+    border-left-color: var(--ink-amber, #E68A2E);
+    background: rgba(230,138,46,0.08);
+    color: var(--ink-text, #E8E4DD);
+  }
+
+  .pg-image-tip {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    margin: 0 !important;
+    padding: 0.7rem 0.9rem;
+    border-radius: 3px;
+    background: var(--ink-bg-elevated, #FFFFFF);
+    border: 1px solid var(--ink-hairline, #E7E3DC);
+    border-left: 2px solid var(--ink-amber, #B8651B);
+    font-size: 0.8rem;
+    line-height: 1.5;
+    color: var(--ink-text-muted, #5F5853);
+  }
+
+  :root[data-theme='dark'] .pg-image-tip {
+    background: var(--ink-bg-elevated, #14110F);
+    border-color: var(--ink-hairline-strong, #2A2724);
+    border-left-color: var(--ink-amber, #E68A2E);
+    color: var(--ink-text-muted, #ACA59A);
+  }
+
+  .pg-image-tip-icon {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    color: var(--ink-amber, #B8651B);
+  }
+
+  :root[data-theme='dark'] .pg-image-tip-icon {
+    color: var(--ink-amber, #E68A2E);
+  }
+
+  .pg-image-tip-body {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .pg-image-tip-label {
+    font-family: var(--sl-font-system-mono, monospace);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-amber, #B8651B);
+    margin-right: 0.45rem;
+    vertical-align: baseline;
+  }
+
+  :root[data-theme='dark'] .pg-image-tip-label {
+    color: var(--ink-amber, #E68A2E);
+  }
+
+  .pg-image-tip kbd {
+    font-family: var(--sl-font-system-mono, monospace);
+    font-size: 0.7rem;
+    padding: 1px 5px;
+    border: 1px solid var(--ink-hairline-strong, #D6D0C7);
+    border-radius: 3px;
+    background: var(--ink-bg, #F7F4EE);
+    color: var(--ink-text, #14110F);
+    box-shadow: 0 1px 0 var(--ink-hairline-strong, #D6D0C7);
+  }
+
+  :root[data-theme='dark'] .pg-image-tip kbd {
+    border-color: var(--ink-hairline-strong, #2A2724);
+    background: var(--ink-bg, #0E0D0B);
+    color: var(--ink-text, #E8E4DD);
+    box-shadow: 0 1px 0 var(--ink-hairline-strong, #2A2724);
+  }
+
   /* ── Body: editor + preview split ─────────────────────────────── */
   .pg-body {
     display: flex;
@@ -325,24 +657,6 @@
     position: absolute;
     inset: 0;
   }
-
-  .pg-loading {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: var(--sl-font-system-mono, monospace);
-    font-size: 0.82rem;
-    color: var(--ink-text-soft, #8A837D);
-    background: var(--ink-bg, #F7F4EE);
-  }
-
-  :root[data-theme='dark'] .pg-loading {
-    background: var(--ink-bg-elevated, #14110F);
-  }
-
-  .pg-loading[hidden] { display: none; }
 
   .pg-preview-pane {
     flex: 1;
@@ -538,7 +852,7 @@
   </style>
 </head>`;
 
-  const TEMPLATES: Record<string, { html: string; mjml: string }> = {
+  const TEMPLATES: Record<string, { html: string }> = {
     blank: {
       html: HEAD + `
 <body style="margin:0; padding:0; background-color:#f2f5f8;">
@@ -603,34 +917,6 @@
   </table>
 </body>
 </html>`,
-      mjml: `<mjml>
-  <mj-head>
-    <mj-attributes>
-      <mj-all font-family="'Open Sans', Arial, sans-serif" />
-      <mj-text line-height="26px" color="#333333" />
-    </mj-attributes>
-  </mj-head>
-  <mj-body background-color="#f2f5f8">
-    <mj-section background-color="#2d3036" padding="24px 32px">
-      <mj-column>
-        <mj-text font-size="16px" font-weight="600" color="#ffffff">Your Company</mj-text>
-      </mj-column>
-    </mj-section>
-    <mj-section background-color="#ffffff" padding="40px 32px">
-      <mj-column>
-        <mj-text font-size="16px">Your content here. Use the "Insert Snippet" menu to add components.</mj-text>
-      </mj-column>
-    </mj-section>
-    <mj-section background-color="#f0f3fa" padding="24px 32px">
-      <mj-column>
-        <mj-text font-size="13px" line-height="20px" color="#6a7c94">
-          Your Company Inc. &middot; 123 Main Street, City, ST 12345<br />
-          <a href="https://example.com/unsubscribe" style="color:#6a7c94; text-decoration:underline;">Unsubscribe</a>
-        </mj-text>
-      </mj-column>
-    </mj-section>
-  </mj-body>
-</mjml>`
     },
 
     welcome: {
@@ -733,50 +1019,6 @@
   </table>
 </body>
 </html>`,
-      mjml: `<mjml>
-  <mj-head>
-    <mj-attributes>
-      <mj-all font-family="'Open Sans', Arial, sans-serif" />
-      <mj-text line-height="26px" color="#333333" />
-    </mj-attributes>
-  </mj-head>
-  <mj-body background-color="#f2f5f8">
-    <mj-section background-color="#2d3036" padding="24px 32px">
-      <mj-column>
-        <mj-text font-size="16px" font-weight="600" color="#ffffff">YourBrand</mj-text>
-      </mj-column>
-    </mj-section>
-    <mj-section background-color="#ffffff" padding="40px 32px 20px">
-      <mj-column>
-        <mj-text font-size="24px" font-weight="700" line-height="32px" color="#1a1a1a">
-          Welcome aboard!
-        </mj-text>
-      </mj-column>
-    </mj-section>
-    <mj-section background-color="#ffffff" padding="0 32px 20px">
-      <mj-column>
-        <mj-text font-size="16px" color="#555555">
-          Thanks for signing up. We're excited to have you on board. Get started by exploring your dashboard and setting up your profile.
-        </mj-text>
-      </mj-column>
-    </mj-section>
-    <mj-section background-color="#ffffff" padding="12px 32px 48px">
-      <mj-column>
-        <mj-button background-color="#389bcd" border-radius="4px" font-size="15px" font-weight="600" inner-padding="12px 30px" href="https://example.com/dashboard">
-          Go to Dashboard
-        </mj-button>
-      </mj-column>
-    </mj-section>
-    <mj-section background-color="#f0f3fa" padding="24px 32px">
-      <mj-column>
-        <mj-text font-size="13px" line-height="20px" color="#6a7c94">
-          YourBrand Inc. &middot; 123 Main Street, City, ST 12345<br />
-          <a href="https://example.com/unsubscribe" style="color:#6a7c94; text-decoration:underline;">Unsubscribe</a>
-        </mj-text>
-      </mj-column>
-    </mj-section>
-  </mj-body>
-</mjml>`
     },
 
     newsletter: {
@@ -921,64 +1163,6 @@
   </table>
 </body>
 </html>`,
-      mjml: `<mjml>
-  <mj-head>
-    <mj-attributes>
-      <mj-all font-family="'Open Sans', Arial, sans-serif" />
-      <mj-text line-height="26px" color="#555555" />
-    </mj-attributes>
-  </mj-head>
-  <mj-body background-color="#f2f5f8">
-    <mj-section background-color="#2d3036" padding="24px 32px">
-      <mj-column>
-        <mj-text font-size="18px" font-weight="700" color="#ffffff">Newsletter</mj-text>
-      </mj-column>
-      <mj-column>
-        <mj-text align="right" font-size="13px" color="#a0a4ab">May 2026</mj-text>
-      </mj-column>
-    </mj-section>
-    <mj-section background-color="#ffffff" padding="40px 32px 12px">
-      <mj-column>
-        <mj-text font-size="22px" font-weight="700" line-height="30px" color="#1a1a1a">
-          This month's highlights
-        </mj-text>
-        <mj-text font-size="16px" padding-top="12px">
-          A quick roundup of what shipped, what's coming, and what you should know.
-        </mj-text>
-      </mj-column>
-    </mj-section>
-    <mj-section background-color="#ffffff" padding="0 32px">
-      <mj-column><mj-divider border-color="#eeeeee" /></mj-column>
-    </mj-section>
-    <mj-section background-color="#ffffff" padding="24px 32px">
-      <mj-column width="48%">
-        <mj-image src="https://placehold.co/250x170/e8e8e8/999999?text=Feature+Image" alt="Feature" width="250px" />
-      </mj-column>
-      <mj-column width="48%">
-        <mj-text font-size="18px" font-weight="700" line-height="24px" color="#1a1a1a">New Feature</mj-text>
-        <mj-text font-size="14px" line-height="22px" padding-top="10px">
-          We shipped the thing you've been asking about. Here's what it does and why it matters for your workflow.
-        </mj-text>
-      </mj-column>
-    </mj-section>
-    <mj-section background-color="#ffffff" padding="12px 32px 40px">
-      <mj-column>
-        <mj-button align="center" background-color="#389bcd" border-radius="4px" font-size="15px" font-weight="600" inner-padding="12px 30px" href="https://example.com/blog">
-          Read More
-        </mj-button>
-      </mj-column>
-    </mj-section>
-    <mj-section background-color="#f0f3fa" padding="24px 32px">
-      <mj-column>
-        <mj-text align="center" font-size="13px" line-height="20px" color="#6a7c94">
-          YourBrand Inc. &middot; 123 Main Street, City, ST 12345<br />
-          <a href="https://example.com/unsubscribe" style="color:#6a7c94; text-decoration:underline;">Unsubscribe</a> &middot;
-          <a href="https://example.com/preferences" style="color:#6a7c94; text-decoration:underline;">Preferences</a>
-        </mj-text>
-      </mj-column>
-    </mj-section>
-  </mj-body>
-</mjml>`
     }
   };
 
@@ -1001,10 +1185,7 @@
   // ── State ────────────────────────────────────────────────────
 
   let htmlEditor: any = null;
-  let mjmlEditor: any = null;
-  let activeTab: 'html' | 'mjml' = 'html';
-  let mjmlLoaded = false;
-  let mjml2html: any = null;
+  let activeTab: 'html' | 'image' = 'html';
   let currentTemplate = 'welcome';
   let debounceTimer: ReturnType<typeof setTimeout> | null = null;
   let toastTimer: ReturnType<typeof setTimeout> | null = null;
@@ -1084,53 +1265,9 @@
   function schedulePreview() {
     if (debounceTimer) clearTimeout(debounceTimer);
     debounceTimer = setTimeout(() => {
-      const editor = activeTab === 'html' ? htmlEditor : mjmlEditor;
-      if (!editor) return;
-
-      if (activeTab === 'html') {
-        updatePreview(editor.getValue());
-      } else if (mjml2html) {
-        try {
-          const result = mjml2html(editor.getValue());
-          updatePreview(result.html || '');
-        } catch (e: any) {
-          updatePreview(`<html><body style="font-family:monospace;padding:2rem;color:#c9665b;">${e.message || 'MJML compilation error'}</body></html>`);
-        }
-      } else {
-        updatePreview(TEMPLATES[currentTemplate].html);
-      }
+      if (!htmlEditor) return;
+      updatePreview(htmlEditor.getValue());
     }, 300);
-  }
-
-  // ── MJML Loader ──────────────────────────────────────────────
-
-  async function loadMjmlCompiler() {
-    if (mjmlLoaded) return;
-    const loadingEl = document.getElementById('pg-mjml-loading');
-    if (loadingEl) loadingEl.hidden = false;
-
-    const cdns = ['esm.sh', 'cdn.skypack.dev'];
-    const pkg = 'mjml-browser@4.15.3';
-
-    for (const cdn of cdns) {
-      try {
-        const url = `https://${cdn}/${pkg}`;
-        const mod = await (new Function('u', 'return import(u)'))(url);
-        mjml2html = mod.default || mod;
-        mjmlLoaded = true;
-        break;
-      } catch (e) {
-        console.warn(`Failed to load MJML from ${cdn}:`, e);
-      }
-    }
-
-    if (!mjmlLoaded && loadingEl) {
-      loadingEl.textContent = 'MJML compiler unavailable. Preview shows the HTML equivalent instead.';
-      loadingEl.hidden = false;
-      return;
-    }
-
-    if (loadingEl) loadingEl.hidden = true;
   }
 
   // ── Editor Creation ──────────────────────────────────────────
@@ -1173,6 +1310,206 @@
     toastTimer = setTimeout(() => toast!.classList.remove('pg-toast--visible'), 2000);
   }
 
+  // ── Image pane ───────────────────────────────────────────────
+
+  const IMAGE_MAX_BYTES = 4 * 1024 * 1024;
+  const IMAGE_ALLOWED = new Set(['image/png', 'image/jpeg', 'image/webp', 'image/gif']);
+
+  let currentImageBase64: string | null = null;
+  let currentImageMime: string | null = null;
+
+  function initImagePane(switchTab: (target: 'html' | 'image') => void) {
+    const drop = document.getElementById('pg-image-drop');
+    const empty = document.getElementById('pg-image-empty');
+    const filled = document.getElementById('pg-image-filled');
+    const thumb = document.getElementById('pg-image-thumb') as HTMLImageElement | null;
+    const clear = document.getElementById('pg-image-clear');
+    const fileInput = document.getElementById('pg-image-file') as HTMLInputElement | null;
+    const pickBtn = document.getElementById('pg-image-pick');
+    const generateBtn = document.getElementById('pg-image-generate') as HTMLButtonElement | null;
+    const generateLabel = generateBtn?.querySelector('.pg-image-generate-label') as HTMLElement | null;
+    const generateSpinner = generateBtn?.querySelector('.pg-image-generate-spinner') as HTMLElement | null;
+    const status = document.getElementById('pg-image-status');
+    const errorBox = document.getElementById('pg-image-error');
+
+    if (!drop || !empty || !filled || !thumb || !fileInput || !generateBtn) return;
+
+    function showError(msg: string) {
+      if (!errorBox) return;
+      errorBox.textContent = msg;
+      errorBox.hidden = false;
+    }
+
+    function clearError() {
+      if (!errorBox) return;
+      errorBox.textContent = '';
+      errorBox.hidden = true;
+    }
+
+    function setStatus(msg: string) {
+      if (status) status.textContent = msg;
+    }
+
+    function setImageFromFile(file: File) {
+      clearError();
+      setStatus('');
+
+      if (!IMAGE_ALLOWED.has(file.type)) {
+        showError(`Unsupported file type: ${file.type || 'unknown'}. Use PNG, JPG, WebP, or GIF.`);
+        return;
+      }
+      if (file.size > IMAGE_MAX_BYTES) {
+        showError(`Image is ${(file.size / 1024 / 1024).toFixed(1)}MB. Max is 4MB.`);
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        const dataUrl = String(reader.result || '');
+        const comma = dataUrl.indexOf(',');
+        if (comma === -1) {
+          showError('Could not read image.');
+          return;
+        }
+        currentImageBase64 = dataUrl.slice(comma + 1);
+        currentImageMime = file.type;
+        if (thumb) thumb.src = dataUrl;
+        empty!.hidden = true;
+        filled!.hidden = false;
+        generateBtn!.disabled = false;
+        setStatus(`${file.name || 'Image'} · ${(file.size / 1024).toFixed(0)}KB`);
+      };
+      reader.onerror = () => showError('Could not read image.');
+      reader.readAsDataURL(file);
+    }
+
+    function clearImage() {
+      currentImageBase64 = null;
+      currentImageMime = null;
+      if (thumb) thumb.src = '';
+      if (fileInput) fileInput.value = '';
+      empty!.hidden = false;
+      filled!.hidden = true;
+      generateBtn!.disabled = true;
+      setStatus('');
+      clearError();
+    }
+
+    // ── Click + keyboard activate drop area ──
+    drop.addEventListener('click', (e) => {
+      if ((e.target as HTMLElement).closest('.pg-image-clear')) return;
+      if (!filled!.hidden) return;
+      fileInput.click();
+    });
+
+    drop.addEventListener('keydown', (e) => {
+      const ke = e as KeyboardEvent;
+      if ((ke.key === 'Enter' || ke.key === ' ') && filled!.hidden) {
+        e.preventDefault();
+        fileInput.click();
+      }
+    });
+
+    pickBtn?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      fileInput.click();
+    });
+
+    // ── File input ──
+    fileInput.addEventListener('change', () => {
+      const file = fileInput.files?.[0];
+      if (file) setImageFromFile(file);
+    });
+
+    // ── Drag and drop ──
+    ['dragenter', 'dragover'].forEach(evt => {
+      drop.addEventListener(evt, (e) => {
+        e.preventDefault();
+        drop.classList.add('pg-image-drop--dragover');
+      });
+    });
+    ['dragleave', 'drop'].forEach(evt => {
+      drop.addEventListener(evt, (e) => {
+        e.preventDefault();
+        if (evt === 'drop' || !drop.contains((e as DragEvent).relatedTarget as Node)) {
+          drop.classList.remove('pg-image-drop--dragover');
+        }
+      });
+    });
+    drop.addEventListener('drop', (e) => {
+      const dt = (e as DragEvent).dataTransfer;
+      const file = dt?.files?.[0];
+      if (file) setImageFromFile(file);
+    });
+
+    // ── Paste (only when image tab is active) ──
+    window.addEventListener('paste', (e) => {
+      if (activeTab !== 'image') return;
+      const items = (e as ClipboardEvent).clipboardData?.items;
+      if (!items) return;
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        if (item.kind === 'file' && item.type.startsWith('image/')) {
+          const file = item.getAsFile();
+          if (file) {
+            e.preventDefault();
+            setImageFromFile(file);
+            break;
+          }
+        }
+      }
+    });
+
+    // ── Clear ──
+    clear?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      clearImage();
+    });
+
+    // ── Generate ──
+    generateBtn.addEventListener('click', async () => {
+      if (!currentImageBase64 || !currentImageMime) return;
+      clearError();
+      generateBtn.disabled = true;
+      if (generateLabel) generateLabel.hidden = true;
+      if (generateSpinner) generateSpinner.hidden = false;
+      setStatus('Generating · this can take 10-30s');
+
+      try {
+        const res = await fetch('/api/generate-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image: currentImageBase64, mimeType: currentImageMime }),
+        });
+        const data = await res.json().catch(() => ({ error: 'Server returned non-JSON.' }));
+
+        if (!res.ok) {
+          showError(data.error || `Request failed (${res.status}).`);
+          return;
+        }
+        if (!data.html) {
+          showError('No HTML returned. Try a different image.');
+          return;
+        }
+
+        if (htmlEditor) {
+          htmlEditor.setValue(data.html);
+          lastSavedHtml = data.html;
+        }
+        switchTab('html');
+        schedulePreview();
+        showToast('Email generated · review and edit in HTML tab');
+        setStatus('Done. Switched to HTML tab.');
+      } catch (err) {
+        showError(`Network error: ${(err as Error).message}`);
+      } finally {
+        if (generateLabel) generateLabel.hidden = false;
+        if (generateSpinner) generateSpinner.hidden = true;
+        if (currentImageBase64) generateBtn.disabled = false;
+      }
+    });
+  }
+
   // ── Init ─────────────────────────────────────────────────────
 
   async function init() {
@@ -1185,10 +1522,23 @@
       return;
     }
 
-    htmlEditor = createEditor('pg-editor-html', TEMPLATES.welcome.html, 'html', monaco);
+    const builderHtml = sessionStorage.getItem('email-builder-html');
+    const initialHtml = builderHtml || TEMPLATES.welcome.html;
+    if (builderHtml) {
+      sessionStorage.removeItem('email-builder-html');
+      currentTemplate = 'blank';
+      lastSavedHtml = builderHtml;
+    }
+
+    htmlEditor = createEditor('pg-editor-html', initialHtml, 'html', monaco);
     if (htmlEditor) {
       htmlEditor.onDidChangeModelContent(() => schedulePreview());
       updatePreview(htmlEditor.getValue());
+    }
+
+    if (builderHtml) {
+      const templateSelect = document.getElementById('pg-template') as HTMLSelectElement;
+      if (templateSelect) templateSelect.value = 'blank';
     }
 
     // ── Template selector ────────────────────────────────────
@@ -1208,52 +1558,35 @@
       currentTemplate = name;
       lastSavedHtml = tpl.html;
       if (htmlEditor) htmlEditor.setValue(tpl.html);
-      if (mjmlEditor) mjmlEditor.setValue(tpl.mjml);
-
-      if (activeTab === 'html') {
-        updatePreview(tpl.html);
-      } else if (mjml2html) {
-        try {
-          const result = mjml2html(tpl.mjml);
-          updatePreview(result.html || '');
-        } catch { updatePreview(tpl.html); }
-      } else {
-        updatePreview(tpl.html);
-      }
+      updatePreview(tpl.html);
     });
 
     // ── Tabs ─────────────────────────────────────────────────
     const tabs = document.querySelectorAll('.pg-tab');
     const htmlPane = document.getElementById('pg-editor-html');
-    const mjmlPane = document.getElementById('pg-editor-mjml');
+    const imagePane = document.getElementById('pg-editor-image');
+
+    function switchTab(target: 'html' | 'image') {
+      if (htmlPane) htmlPane.hidden = target !== 'html';
+      if (imagePane) imagePane.hidden = target !== 'image';
+      tabs.forEach(t => {
+        const isMatch = (t as HTMLElement).dataset.tab === target;
+        t.classList.toggle('pg-tab--active', isMatch);
+      });
+      activeTab = target;
+    }
 
     tabs.forEach(tab => {
-      tab.addEventListener('click', async () => {
-        const target = (tab as HTMLElement).dataset.tab as 'html' | 'mjml';
+      tab.addEventListener('click', () => {
+        const target = (tab as HTMLElement).dataset.tab as 'html' | 'image';
         if (target === activeTab) return;
 
-        tabs.forEach(t => t.classList.remove('pg-tab--active'));
-        tab.classList.add('pg-tab--active');
-        activeTab = target;
-
-        if (target === 'mjml') {
-          if (htmlPane) htmlPane.hidden = true;
-          if (mjmlPane) mjmlPane.hidden = false;
-
-          if (!mjmlEditor) {
-            mjmlEditor = createEditor('pg-editor-mjml', TEMPLATES[currentTemplate].mjml, 'html', monaco);
-            if (mjmlEditor) mjmlEditor.onDidChangeModelContent(() => schedulePreview());
-          }
-
-          await loadMjmlCompiler();
-          schedulePreview();
-        } else {
-          if (mjmlPane) mjmlPane.hidden = true;
-          if (htmlPane) htmlPane.hidden = false;
-          schedulePreview();
-        }
+        switchTab(target);
+        if (target === 'html') schedulePreview();
       });
     });
+
+    initImagePane(switchTab);
 
     // ── Snippet dropdown ─────────────────────────────────────
     const snippetBtn = document.getElementById('pg-snippet-btn');
@@ -1301,18 +1634,9 @@
 
     // ── Copy ─────────────────────────────────────────────────
     document.getElementById('pg-copy')?.addEventListener('click', async () => {
-      const editor = activeTab === 'html' ? htmlEditor : mjmlEditor;
-      if (!editor) return;
-
-      let html = editor.getValue();
-      if (activeTab === 'mjml' && mjml2html) {
-        try {
-          html = mjml2html(html).html;
-        } catch { /* use raw */ }
-      }
-
+      if (!htmlEditor) return;
       try {
-        await navigator.clipboard.writeText(html);
+        await navigator.clipboard.writeText(htmlEditor.getValue());
         showToast('Copied to clipboard');
       } catch {
         showToast('Copy failed');
@@ -1321,23 +1645,12 @@
 
     // ── Download ─────────────────────────────────────────────
     document.getElementById('pg-download')?.addEventListener('click', () => {
-      const editor = activeTab === 'html' ? htmlEditor : mjmlEditor;
-      if (!editor) return;
-
-      let html = editor.getValue();
-      const isMjml = activeTab === 'mjml';
-      if (isMjml && mjml2html) {
-        try {
-          html = mjml2html(html).html;
-        } catch { /* use raw */ }
-      }
-
-      const ext = (isMjml && !mjml2html) ? 'mjml' : 'html';
-      const blob = new Blob([html], { type: ext === 'html' ? 'text/html' : 'text/plain' });
+      if (!htmlEditor) return;
+      const blob = new Blob([htmlEditor.getValue()], { type: 'text/html' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `email-${currentTemplate}.${ext}`;
+      a.download = `email-${currentTemplate}.html`;
       a.click();
       URL.revokeObjectURL(url);
       showToast('Downloaded');

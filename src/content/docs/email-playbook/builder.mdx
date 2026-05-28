@@ -1,0 +1,204 @@
+---
+title: Builder
+description: Form-driven visual email builder. Coming in Phase 3 — for now, use the Playground.
+tableOfContents: false
+prev: false
+next: false
+---
+
+<div class="bld-soon">
+  <div class="bld-soon-inner">
+    <span class="bld-soon-eyebrow">Phase 3 · Coming soon</span>
+    <h2 class="bld-soon-title">Visual email builder</h2>
+    <p class="bld-soon-lede">
+      A form-driven editor for non-technical users. Pick a template, drop in
+      sections, configure components through forms — no code required.
+    </p>
+
+    <ul class="bld-soon-list">
+      <li>
+        <span class="bld-soon-bullet">→</span>
+        Section frame for header, body, and footer with add-row and add-component flows
+      </li>
+      <li>
+        <span class="bld-soon-bullet">→</span>
+        Reusable components from the playbook — buttons, two-column rows, VML backgrounds, social
+      </li>
+      <li>
+        <span class="bld-soon-bullet">→</span>
+        Brand panel for colors, fonts, and logo applied across the email
+      </li>
+      <li>
+        <span class="bld-soon-bullet">→</span>
+        Code tab showing generated HTML, ready to export
+      </li>
+    </ul>
+
+    <div class="bld-soon-meanwhile">
+      <span class="bld-soon-eyebrow">In the meantime</span>
+      <p>
+        Use the <a href="/email-playbook/playground/">Playground</a> for code-first editing
+        with live preview. Phase 1 will add an <strong>image-to-email</strong> flow there —
+        paste a screenshot and get playbook-compliant HTML.
+      </p>
+    </div>
+  </div>
+</div>
+
+<style>{`
+  .bld-soon {
+    max-width: 56rem;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 4rem;
+  }
+
+  .bld-soon-inner {
+    border: 1px solid var(--ink-hairline, #E7E3DC);
+    border-radius: 4px;
+    padding: 3rem 2.5rem;
+    background: var(--ink-bg-elevated, #FFFFFF);
+  }
+
+  :root[data-theme='dark'] .bld-soon-inner {
+    border-color: var(--ink-hairline-strong, #2A2724);
+    background: var(--ink-bg, #0E0D0B);
+  }
+
+  .bld-soon-eyebrow {
+    display: inline-block;
+    font-family: var(--sl-font-system-mono, monospace);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-amber, #B8651B);
+    margin-bottom: 0.75rem;
+  }
+
+  :root[data-theme='dark'] .bld-soon-eyebrow {
+    color: var(--ink-amber, #E68A2E);
+  }
+
+  .bld-soon-title {
+    font-size: 2rem;
+    font-weight: 600;
+    line-height: 1.2;
+    margin: 0 0 0.75rem !important;
+    color: var(--ink-text, #14110F);
+  }
+
+  :root[data-theme='dark'] .bld-soon-title {
+    color: var(--ink-text, #E8E4DD);
+  }
+
+  .bld-soon-lede {
+    font-size: 1.05rem;
+    line-height: 1.6;
+    color: var(--ink-text-muted, #5F5853);
+    margin: 0 0 2rem !important;
+    max-width: 38rem;
+  }
+
+  :root[data-theme='dark'] .bld-soon-lede {
+    color: var(--ink-text-muted, #ACA59A);
+  }
+
+  .bld-soon-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 2.5rem !important;
+    border-top: 1px solid var(--ink-hairline, #E7E3DC);
+  }
+
+  :root[data-theme='dark'] .bld-soon-list {
+    border-top-color: var(--ink-hairline-strong, #2A2724);
+  }
+
+  .bld-soon-list li {
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+    padding: 0.9rem 0;
+    border-bottom: 1px solid var(--ink-hairline, #E7E3DC);
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: var(--ink-text, #14110F);
+  }
+
+  :root[data-theme='dark'] .bld-soon-list li {
+    border-bottom-color: var(--ink-hairline-strong, #2A2724);
+    color: var(--ink-text, #E8E4DD);
+  }
+
+  .bld-soon-bullet {
+    color: var(--ink-amber, #B8651B);
+    font-family: var(--sl-font-system-mono, monospace);
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  :root[data-theme='dark'] .bld-soon-bullet {
+    color: var(--ink-amber, #E68A2E);
+  }
+
+  .bld-soon-meanwhile {
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--ink-hairline, #E7E3DC);
+  }
+
+  :root[data-theme='dark'] .bld-soon-meanwhile {
+    border-top-color: var(--ink-hairline-strong, #2A2724);
+  }
+
+  .bld-soon-meanwhile p {
+    margin: 0.5rem 0 0 !important;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--ink-text-muted, #5F5853);
+  }
+
+  :root[data-theme='dark'] .bld-soon-meanwhile p {
+    color: var(--ink-text-muted, #ACA59A);
+  }
+
+  .bld-soon-meanwhile a {
+    color: var(--ink-amber, #B8651B);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+    transition: color 160ms ease;
+  }
+
+  .bld-soon-meanwhile a:hover {
+    color: var(--ink-text, #14110F);
+  }
+
+  :root[data-theme='dark'] .bld-soon-meanwhile a {
+    color: var(--ink-amber, #E68A2E);
+  }
+
+  :root[data-theme='dark'] .bld-soon-meanwhile a:hover {
+    color: var(--ink-text, #E8E4DD);
+  }
+
+  .bld-soon-meanwhile strong {
+    color: var(--ink-text, #14110F);
+    font-weight: 600;
+  }
+
+  :root[data-theme='dark'] .bld-soon-meanwhile strong {
+    color: var(--ink-text, #E8E4DD);
+  }
+
+  @media (max-width: 600px) {
+    .bld-soon {
+      padding: 2rem 1rem 3rem;
+    }
+    .bld-soon-inner {
+      padding: 2rem 1.5rem;
+    }
+    .bld-soon-title {
+      font-size: 1.6rem;
+    }
+  }
+`}</style>

@@ -1,9 +1,11 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
+import vercel from '@astrojs/vercel';
 
 export default defineConfig({
 	site: 'https://docs.osamahassouna.com',
+	adapter: vercel(),
 	integrations: [
 		starlight({
 			title: 'Osama Hassouna',
@@ -29,6 +31,10 @@ export default defineConfig({
 							} catch (e) {}
 						})();
 					`,
+				},
+				{
+					tag: 'script',
+					attrs: { defer: true, src: '/_vercel/insights/script.js' },
 				},
 			],
 			customCss: [
@@ -105,6 +111,7 @@ export default defineConfig({
 							],
 						},
 						{ label: 'Templates', slug: 'email-playbook/templates' },
+						{ label: 'Builder', slug: 'email-playbook/builder' },
 						{ label: 'Playground', slug: 'email-playbook/playground' },
 					],
 				},

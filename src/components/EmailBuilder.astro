@@ -1,0 +1,1375 @@
+---
+---
+
+<div class="builder" id="builder">
+  <div class="bld-form-panel">
+    <div class="bld-form-scroll">
+
+      <div class="bld-section">
+        <h3 class="bld-section-title">Template</h3>
+        <div class="bld-tpl-grid" id="bld-tpl-grid">
+          <button class="bld-tpl-card bld-tpl-card--active" data-template="welcome" type="button">
+            <div class="bld-tpl-thumb">
+              <div class="bld-th-bar"></div>
+              <div class="bld-th-gap"></div>
+              <div class="bld-th-line"></div>
+              <div class="bld-th-line bld-th-line--short"></div>
+              <div class="bld-th-gap"></div>
+              <div class="bld-th-btn"></div>
+              <div class="bld-th-gap"></div>
+              <div class="bld-th-foot"></div>
+            </div>
+            <span class="bld-tpl-name">Welcome</span>
+          </button>
+          <button class="bld-tpl-card" data-template="newsletter" type="button">
+            <div class="bld-tpl-thumb">
+              <div class="bld-th-bar"></div>
+              <div class="bld-th-gap"></div>
+              <div class="bld-th-line"></div>
+              <div class="bld-th-divider"></div>
+              <div class="bld-th-cols">
+                <div class="bld-th-col-img"></div>
+                <div class="bld-th-col-txt">
+                  <div class="bld-th-line"></div>
+                  <div class="bld-th-line bld-th-line--short"></div>
+                </div>
+              </div>
+              <div class="bld-th-gap"></div>
+              <div class="bld-th-foot"></div>
+            </div>
+            <span class="bld-tpl-name">Newsletter</span>
+          </button>
+          <button class="bld-tpl-card" data-template="promotional" type="button">
+            <div class="bld-tpl-thumb">
+              <div class="bld-th-hero"></div>
+              <div class="bld-th-gap"></div>
+              <div class="bld-th-cols bld-th-cols--even">
+                <div class="bld-th-feature"></div>
+                <div class="bld-th-feature"></div>
+                <div class="bld-th-feature"></div>
+              </div>
+              <div class="bld-th-gap"></div>
+              <div class="bld-th-foot"></div>
+            </div>
+            <span class="bld-tpl-name">Promotional</span>
+          </button>
+          <button class="bld-tpl-card" data-template="transactional" type="button">
+            <div class="bld-tpl-thumb">
+              <div class="bld-th-bar"></div>
+              <div class="bld-th-gap"></div>
+              <div class="bld-th-line"></div>
+              <div class="bld-th-gap"></div>
+              <div class="bld-th-infobox"></div>
+              <div class="bld-th-gap"></div>
+              <div class="bld-th-btn"></div>
+              <div class="bld-th-gap"></div>
+              <div class="bld-th-foot"></div>
+            </div>
+            <span class="bld-tpl-name">Transactional</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="bld-section">
+        <h3 class="bld-section-title">Brand</h3>
+        <label class="bld-field">
+          <span class="bld-field-label">Company Name</span>
+          <input type="text" id="bld-company" value="YourBrand" />
+        </label>
+        <label class="bld-field">
+          <span class="bld-field-label">Logo URL <span class="bld-optional">(optional)</span></span>
+          <input type="url" id="bld-logo" placeholder="https://your-domain.com/logo.png" />
+        </label>
+        <div class="bld-color-row">
+          <label class="bld-field bld-field--half">
+            <span class="bld-field-label">Header Color</span>
+            <div class="bld-color-input">
+              <input type="color" id="bld-primary" value="#2d3036" />
+              <span class="bld-color-hex" id="bld-primary-hex">#2d3036</span>
+            </div>
+          </label>
+          <label class="bld-field bld-field--half">
+            <span class="bld-field-label">Button Color</span>
+            <div class="bld-color-input">
+              <input type="color" id="bld-accent" value="#389bcd" />
+              <span class="bld-color-hex" id="bld-accent-hex">#389bcd</span>
+            </div>
+          </label>
+        </div>
+        <label class="bld-field">
+          <span class="bld-field-label">Font</span>
+          <select id="bld-font">
+            <option value="Open Sans" selected>Open Sans</option>
+            <option value="Roboto">Roboto</option>
+            <option value="Lato">Lato</option>
+            <option value="Poppins">Poppins</option>
+            <option value="Montserrat">Montserrat</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="bld-section">
+        <h3 class="bld-section-title">Content</h3>
+        <div class="bld-field">
+          <span class="bld-field-label">Direction</span>
+          <div class="bld-toggle-row" id="bld-dir-toggle">
+            <button class="bld-toggle bld-toggle--active" data-dir="ltr" type="button">LTR</button>
+            <button class="bld-toggle" data-dir="rtl" type="button">RTL</button>
+          </div>
+        </div>
+        <label class="bld-field">
+          <span class="bld-field-label">Heading</span>
+          <input type="text" id="bld-heading" value="Welcome aboard!" />
+        </label>
+        <label class="bld-field">
+          <span class="bld-field-label">Body</span>
+          <textarea id="bld-body" rows="3">Thanks for signing up. We're excited to have you on board. Get started by exploring your dashboard and setting up your profile.</textarea>
+        </label>
+        <label class="bld-field">
+          <span class="bld-field-label">Button Text</span>
+          <input type="text" id="bld-btn-text" value="Go to Dashboard" />
+        </label>
+        <label class="bld-field">
+          <span class="bld-field-label">Button URL</span>
+          <input type="url" id="bld-btn-url" value="https://example.com" />
+        </label>
+      </div>
+
+      <div class="bld-section">
+        <h3 class="bld-section-title">Footer</h3>
+        <label class="bld-field">
+          <span class="bld-field-label">Company Address</span>
+          <input type="text" id="bld-address" value="123 Main Street, City, ST 12345" />
+        </label>
+        <label class="bld-field">
+          <span class="bld-field-label">Unsubscribe URL</span>
+          <input type="url" id="bld-unsub" value="https://example.com/unsubscribe" />
+        </label>
+      </div>
+
+      <div class="bld-actions">
+        <button class="bld-btn bld-btn--primary" id="bld-to-playground" type="button">
+          Open in Playground
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5.25 2.625L9.625 7L5.25 11.375" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <button class="bld-btn bld-btn--ghost" id="bld-download" type="button">Download HTML</button>
+        <button class="bld-btn bld-btn--ghost" id="bld-copy" type="button">Copy HTML</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="bld-preview-panel">
+    <div class="bld-preview-bar">
+      <button class="bld-view-btn bld-view-btn--active" data-width="100%" type="button">Desktop</button>
+      <button class="bld-view-btn" data-width="375px" type="button">Mobile</button>
+      <span class="bld-size" id="bld-size"></span>
+    </div>
+    <div class="bld-preview-container" id="bld-preview-container">
+      <iframe id="bld-preview" sandbox="allow-same-origin" title="Email preview"></iframe>
+    </div>
+  </div>
+</div>
+
+<style is:global>
+  .builder,
+  .builder * {
+    margin-top: 0 !important;
+  }
+
+  .builder {
+    display: flex;
+    overflow: hidden;
+    height: calc(100vh - 180px);
+    min-height: 500px;
+    margin: 0 -0.5rem !important;
+  }
+
+  /* ---- Form panel ---- */
+  .bld-form-panel {
+    width: 340px;
+    min-width: 340px;
+    border-right: 1px solid var(--ink-hairline, #E7E3DC);
+    display: flex;
+    flex-direction: column;
+  }
+
+  :root[data-theme='dark'] .bld-form-panel {
+    border-right-color: var(--ink-hairline-strong, #2A2724);
+  }
+
+  .bld-form-scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem 1rem 2rem;
+  }
+
+  .bld-section {
+    margin-bottom: 1.4rem;
+  }
+
+  .bld-section-title {
+    font-family: var(--sl-font-system-mono, monospace);
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-text-soft, #8A837D);
+    margin-bottom: 0.6rem !important;
+  }
+
+  /* ---- Template cards ---- */
+  .bld-tpl-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+
+  .bld-tpl-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.6rem;
+    background: var(--ink-bg-elevated, #FFFFFF);
+    border: 1.5px solid var(--ink-hairline-strong, #D6D0C7);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: border-color 160ms ease, background 160ms ease;
+    font-family: var(--sl-font, sans-serif);
+  }
+
+  :root[data-theme='dark'] .bld-tpl-card {
+    background: var(--ink-bg, #0E0D0B);
+    border-color: var(--ink-hairline-strong, #2A2724);
+  }
+
+  .bld-tpl-card:hover {
+    border-color: var(--ink-amber, #B8651B);
+  }
+
+  :root[data-theme='dark'] .bld-tpl-card:hover {
+    border-color: var(--ink-amber, #E68A2E);
+  }
+
+  .bld-tpl-card--active {
+    border-color: var(--ink-amber, #B8651B);
+    background: rgba(184,101,27,0.04);
+  }
+
+  :root[data-theme='dark'] .bld-tpl-card--active {
+    border-color: var(--ink-amber, #E68A2E);
+    background: rgba(230,138,46,0.06);
+  }
+
+  .bld-tpl-name {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--ink-text-muted, #5F5853);
+  }
+
+  :root[data-theme='dark'] .bld-tpl-name {
+    color: var(--ink-text-muted, #ACA59A);
+  }
+
+  /* ---- Template thumbnails ---- */
+  .bld-tpl-thumb {
+    width: 100%;
+    height: 72px;
+    display: flex;
+    flex-direction: column;
+    background: var(--ink-bg, #F7F4EE);
+    border-radius: 3px;
+    padding: 4px;
+    overflow: hidden;
+  }
+
+  :root[data-theme='dark'] .bld-tpl-thumb {
+    background: var(--ink-bg-elevated, #14110F);
+  }
+
+  .bld-th-bar { height: 10px; background: var(--ink-hairline-strong, #D6D0C7); border-radius: 2px 2px 0 0; flex-shrink: 0; }
+  :root[data-theme='dark'] .bld-th-bar { background: var(--ink-hairline-strong, #2A2724); }
+  .bld-th-gap { height: 4px; flex-shrink: 0; }
+  .bld-th-line { height: 3px; background: var(--ink-hairline, #E7E3DC); margin: 1px 6px; border-radius: 1px; flex-shrink: 0; }
+  :root[data-theme='dark'] .bld-th-line { background: var(--ink-hairline, #1A1815); }
+  .bld-th-line--short { width: 55%; }
+  .bld-th-btn { height: 5px; width: 40%; margin: 0 auto; background: var(--ink-amber, #B8651B); border-radius: 1px; flex-shrink: 0; }
+  :root[data-theme='dark'] .bld-th-btn { background: var(--ink-amber, #E68A2E); }
+  .bld-th-foot { height: 6px; background: var(--ink-hairline, #E7E3DC); border-radius: 0 0 2px 2px; margin-top: auto; flex-shrink: 0; }
+  :root[data-theme='dark'] .bld-th-foot { background: var(--ink-hairline, #1A1815); }
+  .bld-th-divider { height: 1px; background: var(--ink-hairline, #E7E3DC); margin: 2px 4px; flex-shrink: 0; }
+  :root[data-theme='dark'] .bld-th-divider { background: var(--ink-hairline, #1A1815); }
+
+  .bld-th-cols { display: flex; gap: 3px; padding: 0 4px; flex: 1; min-height: 0; }
+  .bld-th-col-img { width: 40%; background: var(--ink-hairline-strong, #D6D0C7); border-radius: 2px; }
+  :root[data-theme='dark'] .bld-th-col-img { background: var(--ink-hairline-strong, #2A2724); }
+  .bld-th-col-txt { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+  .bld-th-col-txt .bld-th-line { margin: 1px 2px; }
+
+  .bld-th-hero { height: 24px; background: var(--ink-amber, #B8651B); border-radius: 2px 2px 0 0; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+  :root[data-theme='dark'] .bld-th-hero { background: var(--ink-amber, #E68A2E); }
+  .bld-th-cols--even { gap: 2px; }
+  .bld-th-feature { flex: 1; background: var(--ink-hairline, #E7E3DC); border-radius: 2px; }
+  :root[data-theme='dark'] .bld-th-feature { background: var(--ink-hairline, #1A1815); }
+
+  .bld-th-infobox { flex: 1; border: 1.5px solid var(--ink-hairline-strong, #D6D0C7); border-radius: 2px; margin: 0 4px; min-height: 14px; }
+  :root[data-theme='dark'] .bld-th-infobox { border-color: var(--ink-hairline-strong, #2A2724); }
+
+  /* ---- Form fields ---- */
+  .bld-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    margin-bottom: 0.7rem;
+  }
+
+  .bld-field-label {
+    font-family: var(--sl-font, sans-serif);
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--ink-text-muted, #5F5853);
+  }
+
+  :root[data-theme='dark'] .bld-field-label {
+    color: var(--ink-text-muted, #ACA59A);
+  }
+
+  .bld-optional {
+    font-weight: 400;
+    color: var(--ink-text-soft, #8A837D);
+  }
+
+  .builder input[type="text"],
+  .builder input[type="url"],
+  .builder textarea,
+  .builder select {
+    appearance: none;
+    background: var(--ink-bg-elevated, #FFFFFF);
+    border: 1px solid var(--ink-hairline-strong, #D6D0C7);
+    border-radius: 4px;
+    color: var(--ink-text, #14110F);
+    font-family: var(--sl-font, sans-serif);
+    font-size: 0.82rem;
+    padding: 0.45rem 0.6rem;
+    line-height: 1.4;
+    width: 100%;
+    box-sizing: border-box;
+    transition: border-color 160ms ease;
+  }
+
+  :root[data-theme='dark'] .builder input[type="text"],
+  :root[data-theme='dark'] .builder input[type="url"],
+  :root[data-theme='dark'] .builder textarea,
+  :root[data-theme='dark'] .builder select {
+    background: var(--ink-bg, #0E0D0B);
+    border-color: var(--ink-hairline-strong, #2A2724);
+    color: var(--ink-text, #E8E4DD);
+  }
+
+  .builder input:focus-visible,
+  .builder textarea:focus-visible,
+  .builder select:focus-visible {
+    outline: 2px solid var(--ink-amber, #E68A2E);
+    outline-offset: -1px;
+  }
+
+  .builder textarea {
+    resize: vertical;
+    min-height: 60px;
+  }
+
+  .builder select {
+    padding-right: 2rem;
+    background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238A837D' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.6rem center;
+    cursor: pointer;
+  }
+
+  /* ---- Color inputs ---- */
+  .bld-color-row {
+    display: flex;
+    gap: 0.6rem;
+    margin-bottom: 0.7rem;
+  }
+
+  .bld-field--half { flex: 1; }
+
+  .bld-color-input {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: var(--ink-bg-elevated, #FFFFFF);
+    border: 1px solid var(--ink-hairline-strong, #D6D0C7);
+    border-radius: 4px;
+    padding: 0.3rem 0.5rem;
+  }
+
+  :root[data-theme='dark'] .bld-color-input {
+    background: var(--ink-bg, #0E0D0B);
+    border-color: var(--ink-hairline-strong, #2A2724);
+  }
+
+  .builder input[type="color"] {
+    appearance: none;
+    -webkit-appearance: none;
+    border: 1px solid var(--ink-hairline-strong, #D6D0C7);
+    border-radius: 3px;
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    cursor: pointer;
+    background: none;
+  }
+
+  .builder input[type="color"]::-webkit-color-swatch-wrapper { padding: 2px; }
+  .builder input[type="color"]::-webkit-color-swatch { border: none; border-radius: 2px; }
+
+  .bld-color-hex {
+    font-family: var(--sl-font-system-mono, monospace);
+    font-size: 0.72rem;
+    color: var(--ink-text-soft, #8A837D);
+    letter-spacing: 0.02em;
+  }
+
+  /* ---- Direction toggle ---- */
+  .bld-toggle-row {
+    display: flex;
+    gap: 0;
+  }
+
+  .bld-toggle {
+    font-family: var(--sl-font-system-mono, monospace);
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-text-soft, #8A837D);
+    background: none;
+    border: 1px solid var(--ink-hairline-strong, #D6D0C7);
+    padding: 0.35rem 0.8rem;
+    cursor: pointer;
+    transition: color 160ms ease, border-color 160ms ease, background 160ms ease;
+  }
+
+  :root[data-theme='dark'] .bld-toggle {
+    border-color: var(--ink-hairline-strong, #2A2724);
+  }
+
+  .bld-toggle:first-child { border-radius: 4px 0 0 4px; }
+  .bld-toggle:last-child { border-radius: 0 4px 4px 0; border-left: none; }
+
+  .bld-toggle--active {
+    color: var(--ink-amber, #B8651B);
+    border-color: var(--ink-amber, #B8651B);
+    background: rgba(184,101,27,0.06);
+  }
+
+  :root[data-theme='dark'] .bld-toggle--active {
+    color: var(--ink-amber, #E68A2E);
+    border-color: var(--ink-amber, #E68A2E);
+    background: rgba(230,138,46,0.08);
+  }
+
+  /* ---- Action buttons ---- */
+  .bld-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    padding-top: 0.6rem;
+    border-top: 1px solid var(--ink-hairline, #E7E3DC);
+  }
+
+  :root[data-theme='dark'] .bld-actions {
+    border-top-color: var(--ink-hairline, #1A1815);
+  }
+
+  .bld-btn {
+    height: 36px;
+    box-sizing: border-box;
+    font-family: var(--sl-font, sans-serif);
+    font-size: 0.82rem;
+    font-weight: 500;
+    border-radius: 4px;
+    padding: 0 0.8rem;
+    cursor: pointer;
+    transition: border-color 160ms ease, background 160ms ease, color 160ms ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    white-space: nowrap;
+    width: 100%;
+  }
+
+  .bld-btn--primary {
+    background: var(--ink-amber, #B8651B);
+    border: 1px solid var(--ink-amber, #B8651B);
+    color: #ffffff;
+  }
+
+  .bld-btn--primary:hover {
+    background: var(--ink-amber-deep, #8E4D11);
+    border-color: var(--ink-amber-deep, #8E4D11);
+  }
+
+  :root[data-theme='dark'] .bld-btn--primary {
+    background: transparent;
+    border-color: var(--ink-amber, #E68A2E);
+    color: var(--ink-amber, #E68A2E);
+  }
+
+  :root[data-theme='dark'] .bld-btn--primary:hover {
+    background: rgba(230, 138, 46, 0.1);
+  }
+
+  .bld-btn--ghost {
+    background: transparent;
+    border: 1px solid var(--ink-hairline-strong, #D6D0C7);
+    color: var(--ink-text-muted, #5F5853);
+  }
+
+  :root[data-theme='dark'] .bld-btn--ghost {
+    border-color: var(--ink-hairline-strong, #2A2724);
+    color: var(--ink-text-muted, #ACA59A);
+  }
+
+  .bld-btn--ghost:hover {
+    border-color: var(--ink-amber, #B8651B);
+    color: var(--ink-text, #14110F);
+  }
+
+  :root[data-theme='dark'] .bld-btn--ghost:hover {
+    border-color: var(--ink-amber, #E68A2E);
+    color: var(--ink-text, #E8E4DD);
+  }
+
+  /* ---- Preview panel ---- */
+  .bld-preview-panel {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .bld-preview-bar {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    padding: 0.5rem 0.7rem;
+    border-bottom: 1px solid var(--ink-hairline, #E7E3DC);
+  }
+
+  :root[data-theme='dark'] .bld-preview-bar {
+    border-bottom-color: var(--ink-hairline, #1A1815);
+  }
+
+  .bld-view-btn {
+    font-family: var(--sl-font-system-mono, monospace);
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-text-soft, #8A837D);
+    background: none;
+    border: 1px solid var(--ink-hairline-strong, #D6D0C7);
+    padding: 0.3rem 0.7rem;
+    cursor: pointer;
+    transition: color 160ms ease, border-color 160ms ease, background 160ms ease;
+    height: 30px;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  :root[data-theme='dark'] .bld-view-btn {
+    border-color: var(--ink-hairline-strong, #2A2724);
+  }
+
+  .bld-view-btn:first-child { border-radius: 4px 0 0 4px; }
+  .bld-view-btn:nth-child(2) { border-radius: 0 4px 4px 0; border-left: none; }
+
+  .bld-view-btn--active {
+    color: var(--ink-amber, #B8651B);
+    border-color: var(--ink-amber, #B8651B);
+    background: rgba(184,101,27,0.06);
+  }
+
+  :root[data-theme='dark'] .bld-view-btn--active {
+    color: var(--ink-amber, #E68A2E);
+    border-color: var(--ink-amber, #E68A2E);
+    background: rgba(230,138,46,0.08);
+  }
+
+  .bld-size {
+    font-family: var(--sl-font-system-mono, monospace);
+    font-size: 0.68rem;
+    letter-spacing: 0.04em;
+    color: var(--ink-text-soft, #8A837D);
+    margin-left: auto;
+    height: 30px;
+    line-height: 28px;
+    padding: 0 0.5rem;
+    border: 1px solid var(--ink-hairline, #E7E3DC);
+    border-radius: 4px;
+    box-sizing: border-box;
+    display: inline-block;
+  }
+
+  :root[data-theme='dark'] .bld-size {
+    border-color: var(--ink-hairline, #1A1815);
+  }
+
+  .bld-size--warn { color: #C9A06B; border-color: #C9A06B; }
+  .bld-size--danger { color: #C9665B; border-color: #C9665B; }
+
+  .bld-preview-container {
+    flex: 1;
+    background: #ffffff;
+    overflow: auto;
+    display: flex;
+    justify-content: center;
+    padding: 0;
+  }
+
+  .bld-preview-container iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: #ffffff;
+    transition: max-width 300ms ease;
+  }
+
+  /* ---- Toast ---- */
+  .bld-toast {
+    position: fixed;
+    bottom: 1.5rem;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--ink-bg-elevated, #FFFFFF);
+    border: 1px solid var(--ink-amber, #B8651B);
+    color: var(--ink-text, #14110F);
+    font-family: var(--sl-font, sans-serif);
+    font-size: 0.85rem;
+    padding: 0.5rem 1.2rem;
+    border-radius: 4px;
+    opacity: 0;
+    transition: opacity 200ms ease, transform 200ms ease;
+    z-index: 100;
+    pointer-events: none;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+
+  :root[data-theme='dark'] .bld-toast {
+    background: var(--ink-bg-elevated, #14110F);
+    border-color: var(--ink-amber, #E68A2E);
+    color: var(--ink-text, #E8E4DD);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  }
+
+  .bld-toast--visible {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* ---- Mobile ---- */
+  @media (max-width: 768px) {
+    .builder { height: auto; min-height: auto; flex-direction: column; margin: 0 !important; }
+    .bld-form-panel { width: 100%; min-width: 0; border-right: none; border-bottom: 1px solid var(--ink-hairline, #E7E3DC); }
+    :root[data-theme='dark'] .bld-form-panel { border-bottom-color: var(--ink-hairline-strong, #2A2724); }
+    .bld-form-scroll { max-height: 50vh; }
+    .bld-preview-panel { height: 400px; }
+  }
+</style>
+
+<script>
+  // ---- Types & Constants ----
+
+  const FONT_URLS: Record<string, string> = {
+    'Open Sans': 'Open+Sans:wght@400;600;700',
+    'Roboto': 'Roboto:wght@400;500;700',
+    'Lato': 'Lato:wght@400;700',
+    'Poppins': 'Poppins:wght@400;600;700',
+    'Montserrat': 'Montserrat:wght@400;600;700',
+  };
+
+  interface Config {
+    template: string;
+    companyName: string;
+    logoUrl: string;
+    primaryColor: string;
+    accentColor: string;
+    fontFamily: string;
+    direction: 'ltr' | 'rtl';
+    heading: string;
+    bodyText: string;
+    buttonText: string;
+    buttonUrl: string;
+    address: string;
+    unsubscribeUrl: string;
+  }
+
+  interface TemplateDefaults {
+    heading: string;
+    bodyText: string;
+    buttonText: string;
+  }
+
+  const DEFAULTS: Record<string, TemplateDefaults> = {
+    welcome: {
+      heading: 'Welcome aboard!',
+      bodyText: 'Thanks for signing up. We\'re excited to have you on board. Get started by exploring your dashboard and setting up your profile.',
+      buttonText: 'Go to Dashboard',
+    },
+    newsletter: {
+      heading: 'This month\'s highlights',
+      bodyText: 'A quick roundup of what shipped, what\'s coming, and what you should know.',
+      buttonText: 'Read More',
+    },
+    promotional: {
+      heading: 'Limited time offer',
+      bodyText: 'Don\'t miss out on our exclusive deal. This offer is available for a limited time only.',
+      buttonText: 'Shop Now',
+    },
+    transactional: {
+      heading: 'Your order is confirmed',
+      bodyText: 'We\'ve received your order and it\'s being processed. You\'ll receive a shipping confirmation when your order is on its way.',
+      buttonText: 'View Order',
+    },
+  };
+
+  // ---- State ----
+
+  let currentTemplate = 'welcome';
+  let currentDirection: 'ltr' | 'rtl' = 'ltr';
+  let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+  let toastTimer: ReturnType<typeof setTimeout> | null = null;
+  let previousDefaults: TemplateDefaults = DEFAULTS.welcome;
+
+  // ---- Helpers ----
+
+  function esc(s: string): string {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function textOnBg(hex: string): string {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.5 ? '#1a1a1a' : '#ffffff';
+  }
+
+  function nl2br(s: string): string {
+    return esc(s).replace(/\n/g, '<br />');
+  }
+
+  // ---- Shared HTML Generators ----
+
+  function genHead(c: Config): string {
+    const fontUrl = FONT_URLS[c.fontFamily] || FONT_URLS['Open Sans'];
+    const dirAttr = c.direction === 'rtl' ? ' dir="rtl"' : '';
+    return `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office"${dirAttr}>
+<head>
+  <!--[if gte mso 9]>
+  <xml>
+    <o:OfficeDocumentSettings>
+      <o:AllowPNG/>
+      <o:PixelsPerInch>96</o:PixelsPerInch>
+    </o:OfficeDocumentSettings>
+  </xml>
+  <![endif]-->
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="format-detection" content="date=no" />
+  <meta name="format-detection" content="address=no" />
+  <meta name="format-detection" content="telephone=no" />
+  <meta name="x-apple-disable-message-reformatting" />
+
+  <!--[if !mso]><!-->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=${fontUrl}&display=swap" rel="stylesheet" />
+  <!--<![endif]-->
+
+  <title>${esc(c.companyName)}</title>
+
+  <!--[if gte mso 9]>
+  <style type="text/css" media="all">
+    sup { font-size: 100% !important; }
+  </style>
+  <![endif]-->
+
+  <style type="text/css" media="screen">
+    body { margin:0; padding:0; width:100% !important; -webkit-text-size-adjust:none; }
+    table, td, div, p { font-family: '${c.fontFamily}', Arial, Helvetica, sans-serif; }
+    table, td { border-collapse:collapse; }
+    a { text-decoration:none; }
+    p { padding:0 !important; margin:0 !important; }
+    img { border:0; -ms-interpolation-mode:bicubic; }
+    @media only screen and (max-width: 480px) {
+      .container { width:100% !important; }
+      .mobile-pad { padding-left:20px !important; padding-right:20px !important; }
+      .column { display:block !important; width:100% !important; }
+      .mobile-img { width:100% !important; height:auto !important; }
+      .mobile-center { text-align:center !important; }
+    }
+  </style>
+</head>`;
+  }
+
+  function genBodyOpen(c: Config): string {
+    const dirStyle = c.direction === 'rtl' ? ' direction:rtl;' : '';
+    return `
+<body style="margin:0; padding:0; background-color:#f4f4f4;${dirStyle}">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#f4f4f4">
+    <tr>
+      <td style="line-height:40px; height:40px; mso-line-height-rule:exactly;">&nbsp;</td>
+    </tr>
+    <tr>
+      <td align="center" style="padding:0 10px;">
+        <!--[if mso]><table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0"><tr><td><![endif]-->
+        <table role="presentation" class="container" width="600" cellpadding="0" cellspacing="0" border="0" style="background-color:#ffffff;">`;
+  }
+
+  function genBodyClose(): string {
+    return `
+        </table>
+        <!--[if mso]></td></tr></table><![endif]-->
+      </td>
+    </tr>
+    <tr>
+      <td style="line-height:80px; height:80px; mso-line-height-rule:exactly;">&nbsp;</td>
+    </tr>
+  </table>
+</body>
+</html>`;
+  }
+
+  function genSpacer(h: number): string {
+    return `
+          <tr>
+            <td style="line-height:${h}px; height:${h}px; mso-line-height-rule:exactly;">&nbsp;</td>
+          </tr>`;
+  }
+
+  function genHeader(c: Config): string {
+    const txtColor = textOnBg(c.primaryColor);
+    const align = c.direction === 'rtl' ? 'right' : 'left';
+    const logoHtml = c.logoUrl
+      ? `<img src="${esc(c.logoUrl)}" height="32" alt="${esc(c.companyName)}" style="display:inline-block; height:32px; width:auto; vertical-align:middle;" />`
+      : esc(c.companyName);
+
+    return `
+          <tr>
+            <td style="background-color:${c.primaryColor}; padding:24px 32px;" class="mobile-pad">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td align="${align}" style="font-family:'${c.fontFamily}', Arial, sans-serif; font-size:16px; font-weight:600; color:${txtColor};">
+                    ${logoHtml}
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>`;
+  }
+
+  function genButton(text: string, url: string, color: string, font: string): string {
+    const txtColor = textOnBg(color);
+    return `<!--[if mso]>
+              <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${esc(url)}" style="height:44px;v-text-anchor:middle;width:200px;" arcsize="10%" stroke="f" fillcolor="${color}">
+                <w:anchorlock/>
+                <center>
+              <![endif]-->
+              <a href="${esc(url)}" style="background-color:${color}; border:1px solid ${color}; border-radius:4px; color:${txtColor}; display:inline-block; font-family:'${font}', Arial, sans-serif; font-size:15px; font-weight:600; line-height:44px; text-align:center; text-decoration:none; width:200px; -webkit-text-size-adjust:none;">
+                ${esc(text)}
+              </a>
+              <!--[if mso]>
+                </center>
+              </v:roundrect>
+              <![endif]-->`;
+  }
+
+  function genFooter(c: Config): string {
+    const align = c.direction === 'rtl' ? 'right' : 'left';
+    return `
+          <tr>
+            <td style="background-color:#f0f3fa; padding:24px 32px;" class="mobile-pad">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td align="${align}" style="font-family:'${c.fontFamily}', Arial, sans-serif; font-size:13px; line-height:20px; color:#6a7c94;">
+                    ${esc(c.companyName)} &middot; ${esc(c.address)}<br />
+                    <a href="${esc(c.unsubscribeUrl)}" style="color:#6a7c94; text-decoration:underline;">Unsubscribe</a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>`;
+  }
+
+  function genDivider(pad: string): string {
+    return `
+          <tr>
+            <td style="padding:0 ${pad};">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr><td style="border-bottom:1px solid #eeeeee; line-height:1px; height:1px; mso-line-height-rule:exactly;">&nbsp;</td></tr>
+              </table>
+            </td>
+          </tr>`;
+  }
+
+  // ---- Template: Welcome ----
+
+  function tplWelcome(c: Config): string {
+    const align = c.direction === 'rtl' ? 'right' : 'left';
+    const f = c.fontFamily;
+    return genHead(c) + genBodyOpen(c) + genHeader(c) + genSpacer(40) + `
+          <tr>
+            <td style="padding:0 32px;" class="mobile-pad">
+              <p style="font-family:'${f}', Arial, sans-serif; font-size:24px; font-weight:700; line-height:32px; color:#1a1a1a; text-align:${align};">
+                ${esc(c.heading)}
+              </p>
+            </td>
+          </tr>` + genSpacer(20) + `
+          <tr>
+            <td style="padding:0 32px;" class="mobile-pad">
+              <p style="font-family:'${f}', Arial, sans-serif; font-size:16px; line-height:26px; color:#555555; text-align:${align};">
+                ${nl2br(c.bodyText)}
+              </p>
+            </td>
+          </tr>` + genSpacer(32) + `
+          <tr>
+            <td style="padding:0 32px;" class="mobile-pad" align="${align}">
+              ${genButton(c.buttonText, c.buttonUrl, c.accentColor, f)}
+            </td>
+          </tr>` + genSpacer(48) + genFooter(c) + genBodyClose();
+  }
+
+  // ---- Template: Newsletter ----
+
+  function tplNewsletter(c: Config): string {
+    const align = c.direction === 'rtl' ? 'right' : 'left';
+    const alignOpp = c.direction === 'rtl' ? 'left' : 'right';
+    const f = c.fontFamily;
+    const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    const d = new Date();
+    const dateStr = months[d.getMonth()] + ' ' + d.getFullYear();
+    const headerTxt = textOnBg(c.primaryColor);
+
+    return genHead(c) + genBodyOpen(c) + `
+          <tr>
+            <td style="background-color:${c.primaryColor}; padding:24px 32px;" class="mobile-pad">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td align="${align}" style="font-family:'${f}', Arial, sans-serif; font-size:18px; font-weight:700; color:${headerTxt};">
+                    ${c.logoUrl ? `<img src="${esc(c.logoUrl)}" height="28" alt="${esc(c.companyName)}" style="display:inline-block; height:28px; width:auto; vertical-align:middle;" />` : esc(c.companyName)}
+                  </td>
+                  <td align="${alignOpp}" style="font-family:'${f}', Arial, sans-serif; font-size:13px; color:${headerTxt}; opacity:0.7;">
+                    ${dateStr}
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>` + genSpacer(40) + `
+          <tr>
+            <td style="padding:0 32px;" class="mobile-pad">
+              <p style="font-family:'${f}', Arial, sans-serif; font-size:22px; font-weight:700; line-height:30px; color:#1a1a1a; text-align:${align};">
+                ${esc(c.heading)}
+              </p>
+            </td>
+          </tr>` + genSpacer(12) + `
+          <tr>
+            <td style="padding:0 32px;" class="mobile-pad">
+              <p style="font-family:'${f}', Arial, sans-serif; font-size:16px; line-height:26px; color:#555555; text-align:${align};">
+                ${nl2br(c.bodyText)}
+              </p>
+            </td>
+          </tr>` + genSpacer(24) + genDivider('32px') + genSpacer(24) + `
+          <tr>
+            <td style="padding:0 32px;" class="mobile-pad">
+              <!--[if mso]><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td width="250" valign="top"><![endif]-->
+              <div style="display:inline-block; width:100%; max-width:250px; vertical-align:top;">
+                <table role="presentation" class="column" width="250" cellpadding="0" cellspacing="0" border="0">
+                  <tr>
+                    <td>
+                      <img src="https://placehold.co/250x170/e8e8e8/999999?text=Feature+Image" width="250" height="170" alt="Feature" style="display:block; width:250px; height:auto;" class="mobile-img" />
+                    </td>
+                  </tr>
+                </table>
+              </div>
+              <!--[if mso]></td><td width="20"></td><td width="250" valign="top"><![endif]-->
+              <div style="display:inline-block; width:100%; max-width:250px; vertical-align:top;">
+                <table role="presentation" class="column" width="250" cellpadding="0" cellspacing="0" border="0">
+                  <tr>
+                    <td style="padding-top:8px; font-family:'${f}', Arial, sans-serif;">
+                      <p style="margin:0; font-size:18px; font-weight:700; line-height:24px; color:#1a1a1a;">Feature Highlight</p>
+                      <p style="margin:10px 0 0; font-size:14px; line-height:22px; color:#555555;">
+                        Replace this with your featured content. Describe the key update, article, or announcement.
+                      </p>
+                    </td>
+                  </tr>
+                </table>
+              </div>
+              <!--[if mso]></td></tr></table><![endif]-->
+            </td>
+          </tr>` + genSpacer(24) + `
+          <tr>
+            <td align="center" style="padding:0 32px 40px;" class="mobile-pad">
+              ${genButton(c.buttonText, c.buttonUrl, c.accentColor, f)}
+            </td>
+          </tr>` + genFooter(c) + genBodyClose();
+  }
+
+  // ---- Template: Promotional ----
+
+  function tplPromotional(c: Config): string {
+    const f = c.fontFamily;
+    const heroTxt = textOnBg(c.primaryColor);
+    const heroTxtSoft = heroTxt === '#ffffff' ? 'rgba(255,255,255,0.8)' : 'rgba(26,26,26,0.7)';
+    const align = c.direction === 'rtl' ? 'right' : 'left';
+
+    return genHead(c) + genBodyOpen(c) + `
+          <tr>
+            <td style="background-color:${c.primaryColor}; padding:60px 32px; text-align:center;" class="mobile-pad">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                ${c.logoUrl ? `<tr>
+                  <td align="center" style="padding-bottom:20px;">
+                    <img src="${esc(c.logoUrl)}" height="36" alt="${esc(c.companyName)}" style="display:inline-block; height:36px; width:auto;" />
+                  </td>
+                </tr>` : ''}
+                <tr>
+                  <td align="center" style="font-family:'${f}', Arial, sans-serif; font-size:30px; font-weight:700; line-height:38px; color:${heroTxt};">
+                    ${esc(c.heading)}
+                  </td>
+                </tr>` + genSpacer(16) + `
+                <tr>
+                  <td align="center" style="font-family:'${f}', Arial, sans-serif; font-size:16px; line-height:26px; color:${heroTxtSoft};">
+                    ${nl2br(c.bodyText)}
+                  </td>
+                </tr>` + genSpacer(24) + `
+                <tr>
+                  <td align="center">
+                    ${genButton(c.buttonText, c.buttonUrl, c.accentColor, f)}
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>` + genSpacer(32) + `
+          <tr>
+            <td style="padding:0 24px;" class="mobile-pad">
+              <!--[if mso]><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td width="170" valign="top"><![endif]-->
+              <div style="display:inline-block; width:100%; max-width:170px; vertical-align:top; text-align:center;">
+                <table role="presentation" class="column" width="170" cellpadding="0" cellspacing="0" border="0">
+                  <tr>
+                    <td align="center" style="padding:16px 8px; font-family:'${f}', Arial, sans-serif;">
+                      <p style="margin:0; font-size:28px; line-height:32px;">&#9889;</p>
+                      <p style="margin:8px 0 0; font-size:15px; font-weight:600; line-height:20px; color:#1a1a1a;">Fast Setup</p>
+                      <p style="margin:6px 0 0; font-size:13px; line-height:20px; color:#777777;">Get started in under 5 minutes.</p>
+                    </td>
+                  </tr>
+                </table>
+              </div>
+              <!--[if mso]></td><td width="10"></td><td width="170" valign="top"><![endif]-->
+              <div style="display:inline-block; width:100%; max-width:170px; vertical-align:top; text-align:center;">
+                <table role="presentation" class="column" width="170" cellpadding="0" cellspacing="0" border="0">
+                  <tr>
+                    <td align="center" style="padding:16px 8px; font-family:'${f}', Arial, sans-serif;">
+                      <p style="margin:0; font-size:28px; line-height:32px;">&#128274;</p>
+                      <p style="margin:8px 0 0; font-size:15px; font-weight:600; line-height:20px; color:#1a1a1a;">Secure</p>
+                      <p style="margin:6px 0 0; font-size:13px; line-height:20px; color:#777777;">Enterprise-grade security built in.</p>
+                    </td>
+                  </tr>
+                </table>
+              </div>
+              <!--[if mso]></td><td width="10"></td><td width="170" valign="top"><![endif]-->
+              <div style="display:inline-block; width:100%; max-width:170px; vertical-align:top; text-align:center;">
+                <table role="presentation" class="column" width="170" cellpadding="0" cellspacing="0" border="0">
+                  <tr>
+                    <td align="center" style="padding:16px 8px; font-family:'${f}', Arial, sans-serif;">
+                      <p style="margin:0; font-size:28px; line-height:32px;">&#127775;</p>
+                      <p style="margin:8px 0 0; font-size:15px; font-weight:600; line-height:20px; color:#1a1a1a;">Premium</p>
+                      <p style="margin:6px 0 0; font-size:13px; line-height:20px; color:#777777;">Quality tools for professionals.</p>
+                    </td>
+                  </tr>
+                </table>
+              </div>
+              <!--[if mso]></td></tr></table><![endif]-->
+            </td>
+          </tr>` + genSpacer(32) + genFooter(c) + genBodyClose();
+  }
+
+  // ---- Template: Transactional ----
+
+  function tplTransactional(c: Config): string {
+    const align = c.direction === 'rtl' ? 'right' : 'left';
+    const alignOpp = c.direction === 'rtl' ? 'left' : 'right';
+    const f = c.fontFamily;
+    const d = new Date();
+    const dateStr = d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+    return genHead(c) + genBodyOpen(c) + genHeader(c) + genSpacer(40) + `
+          <tr>
+            <td style="padding:0 32px;" class="mobile-pad">
+              <p style="font-family:'${f}', Arial, sans-serif; font-size:24px; font-weight:700; line-height:32px; color:#1a1a1a; text-align:${align};">
+                ${esc(c.heading)}
+              </p>
+            </td>
+          </tr>` + genSpacer(16) + `
+          <tr>
+            <td style="padding:0 32px;" class="mobile-pad">
+              <p style="font-family:'${f}', Arial, sans-serif; font-size:16px; line-height:26px; color:#555555; text-align:${align};">
+                ${nl2br(c.bodyText)}
+              </p>
+            </td>
+          </tr>` + genSpacer(24) + `
+          <tr>
+            <td style="padding:0 32px;" class="mobile-pad">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #e0e0e0;">
+                <tr>
+                  <td style="padding:14px 20px; border-bottom:1px solid #e0e0e0;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td align="${align}" style="font-family:'${f}', Arial, sans-serif; font-size:12px; color:#999999; text-transform:uppercase; letter-spacing:0.5px;">Order Number</td>
+                        <td align="${alignOpp}" style="font-family:'${f}', Arial, sans-serif; font-size:15px; font-weight:600; color:#1a1a1a;">#ORD-12345</td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:14px 20px; border-bottom:1px solid #e0e0e0;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td align="${align}" style="font-family:'${f}', Arial, sans-serif; font-size:12px; color:#999999; text-transform:uppercase; letter-spacing:0.5px;">Date</td>
+                        <td align="${alignOpp}" style="font-family:'${f}', Arial, sans-serif; font-size:15px; color:#333333;">${dateStr}</td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:14px 20px;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td align="${align}" style="font-family:'${f}', Arial, sans-serif; font-size:12px; color:#999999; text-transform:uppercase; letter-spacing:0.5px;">Total</td>
+                        <td align="${alignOpp}" style="font-family:'${f}', Arial, sans-serif; font-size:18px; font-weight:700; color:#1a1a1a;">$99.00</td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>` + genSpacer(32) + `
+          <tr>
+            <td style="padding:0 32px;" class="mobile-pad" align="${align}">
+              ${genButton(c.buttonText, c.buttonUrl, c.accentColor, f)}
+            </td>
+          </tr>` + genSpacer(48) + genFooter(c) + genBodyClose();
+  }
+
+  // ---- Template Router ----
+
+  function generate(c: Config): string {
+    switch (c.template) {
+      case 'newsletter': return tplNewsletter(c);
+      case 'promotional': return tplPromotional(c);
+      case 'transactional': return tplTransactional(c);
+      default: return tplWelcome(c);
+    }
+  }
+
+  // ---- Form Reading ----
+
+  function val(id: string): string {
+    return (document.getElementById(id) as HTMLInputElement)?.value || '';
+  }
+
+  function readForm(): Config {
+    return {
+      template: currentTemplate,
+      companyName: val('bld-company') || 'YourBrand',
+      logoUrl: val('bld-logo'),
+      primaryColor: val('bld-primary') || '#2d3036',
+      accentColor: val('bld-accent') || '#389bcd',
+      fontFamily: val('bld-font') || 'Open Sans',
+      direction: currentDirection,
+      heading: val('bld-heading') || 'Heading',
+      bodyText: val('bld-body') || '',
+      buttonText: val('bld-btn-text') || 'Click Here',
+      buttonUrl: val('bld-btn-url') || 'https://example.com',
+      address: val('bld-address') || '',
+      unsubscribeUrl: val('bld-unsub') || 'https://example.com/unsubscribe',
+    };
+  }
+
+  // ---- Preview ----
+
+  function updatePreview() {
+    const config = readForm();
+    const html = generate(config);
+    const iframe = document.getElementById('bld-preview') as HTMLIFrameElement;
+    if (iframe) iframe.srcdoc = html;
+    updateSize(html);
+  }
+
+  function updateSize(html: string) {
+    const sizeEl = document.getElementById('bld-size');
+    if (!sizeEl) return;
+    const bytes = new Blob([html]).size;
+    const kb = (bytes / 1024).toFixed(1);
+    sizeEl.textContent = `${kb} KB`;
+    sizeEl.className = 'bld-size';
+    if (bytes > 102400) {
+      sizeEl.classList.add('bld-size--danger');
+      sizeEl.title = 'Over 102 KB — Gmail will clip this email';
+    } else if (bytes > 80000) {
+      sizeEl.classList.add('bld-size--warn');
+      sizeEl.title = 'Approaching Gmail 102 KB clip limit';
+    } else {
+      sizeEl.title = 'HTML file size';
+    }
+  }
+
+  function scheduleUpdate() {
+    if (debounceTimer) clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(updatePreview, 200);
+  }
+
+  // ---- Toast ----
+
+  function showToast(msg: string) {
+    let toast = document.querySelector('.bld-toast') as HTMLElement | null;
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.className = 'bld-toast';
+      document.body.appendChild(toast);
+    }
+    if (toastTimer) clearTimeout(toastTimer);
+    toast.textContent = msg;
+    toast.classList.add('bld-toast--visible');
+    toastTimer = setTimeout(() => toast!.classList.remove('bld-toast--visible'), 2000);
+  }
+
+  // ---- Init ----
+
+  function init() {
+    updatePreview();
+
+    // Form inputs -> live preview
+    const formInputs = document.querySelectorAll<HTMLElement>('.bld-form-scroll input[type="text"], .bld-form-scroll input[type="url"], .bld-form-scroll textarea, .bld-form-scroll select');
+    formInputs.forEach(el => {
+      el.addEventListener('input', scheduleUpdate);
+      el.addEventListener('change', scheduleUpdate);
+    });
+
+    // Color inputs
+    const primaryInput = document.getElementById('bld-primary') as HTMLInputElement;
+    const accentInput = document.getElementById('bld-accent') as HTMLInputElement;
+    const primaryHex = document.getElementById('bld-primary-hex');
+    const accentHex = document.getElementById('bld-accent-hex');
+
+    primaryInput?.addEventListener('input', () => {
+      if (primaryHex) primaryHex.textContent = primaryInput.value;
+      scheduleUpdate();
+    });
+    accentInput?.addEventListener('input', () => {
+      if (accentHex) accentHex.textContent = accentInput.value;
+      scheduleUpdate();
+    });
+
+    // Template cards
+    const tplGrid = document.getElementById('bld-tpl-grid');
+    const cards = tplGrid?.querySelectorAll<HTMLButtonElement>('.bld-tpl-card');
+    cards?.forEach(card => {
+      card.addEventListener('click', () => {
+        const tpl = card.dataset.template;
+        if (!tpl || tpl === currentTemplate) return;
+
+        cards.forEach(c => c.classList.remove('bld-tpl-card--active'));
+        card.classList.add('bld-tpl-card--active');
+
+        const oldDefaults = DEFAULTS[currentTemplate];
+        const newDefaults = DEFAULTS[tpl];
+        currentTemplate = tpl;
+
+        // Update content fields if they still have the old template's defaults
+        const headingEl = document.getElementById('bld-heading') as HTMLInputElement;
+        const bodyEl = document.getElementById('bld-body') as HTMLTextAreaElement;
+        const btnTextEl = document.getElementById('bld-btn-text') as HTMLInputElement;
+
+        if (headingEl && headingEl.value === oldDefaults.heading) headingEl.value = newDefaults.heading;
+        if (bodyEl && bodyEl.value === oldDefaults.bodyText) bodyEl.value = newDefaults.bodyText;
+        if (btnTextEl && btnTextEl.value === oldDefaults.buttonText) btnTextEl.value = newDefaults.buttonText;
+
+        previousDefaults = newDefaults;
+        updatePreview();
+      });
+    });
+
+    // Direction toggle
+    const dirToggle = document.getElementById('bld-dir-toggle');
+    dirToggle?.querySelectorAll<HTMLButtonElement>('.bld-toggle').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const dir = btn.dataset.dir as 'ltr' | 'rtl';
+        if (dir === currentDirection) return;
+        currentDirection = dir;
+        dirToggle.querySelectorAll('.bld-toggle').forEach(b => b.classList.remove('bld-toggle--active'));
+        btn.classList.add('bld-toggle--active');
+        updatePreview();
+      });
+    });
+
+    // Desktop / Mobile toggle
+    const viewBtns = document.querySelectorAll<HTMLButtonElement>('.bld-view-btn');
+    const iframe = document.getElementById('bld-preview') as HTMLIFrameElement;
+    viewBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        viewBtns.forEach(b => b.classList.remove('bld-view-btn--active'));
+        btn.classList.add('bld-view-btn--active');
+        const width = btn.dataset.width || '100%';
+        if (iframe) iframe.style.maxWidth = width;
+      });
+    });
+
+    // Open in Playground
+    document.getElementById('bld-to-playground')?.addEventListener('click', () => {
+      const config = readForm();
+      const html = generate(config);
+      try {
+        sessionStorage.setItem('email-builder-html', html);
+      } catch { /* quota exceeded - unlikely for email HTML */ }
+      window.location.href = '/email-playbook/playground/';
+    });
+
+    // Download
+    document.getElementById('bld-download')?.addEventListener('click', () => {
+      const config = readForm();
+      const html = generate(config);
+      const blob = new Blob([html], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `email-${currentTemplate}.html`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('Downloaded');
+    });
+
+    // Copy
+    document.getElementById('bld-copy')?.addEventListener('click', async () => {
+      const config = readForm();
+      const html = generate(config);
+      try {
+        await navigator.clipboard.writeText(html);
+        showToast('Copied to clipboard');
+      } catch {
+        showToast('Copy failed');
+      }
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+</script>
