@@ -45,10 +45,14 @@ Other MCP-aware clients (Cline, Continue, Windsurf) — same shape.
 
 | Tool | Purpose |
 |---|---|
-| `list_categories` | List rule categories: structure, components, compatibility, production. |
+| `list_categories` | List rule categories: `structure`, `components`, `compatibility`, `production`, `ai-generation`. |
 | `get_playbook_rules` | Return full rule pages for one category — text + code examples. |
-| `list_components` | List components (button, spacer, image, background-image, text) with metadata. |
+| `list_components` | List components (`buttons`, `spacing`, `images`, `inline-icon`, `background-images`, `text`) with metadata. |
 | `get_component` | Return full component record — HTML pattern, slots, VML/responsive flags. |
+
+### `ai-generation` category
+
+In addition to the email-engineering rules, the playbook ships a category dedicated to AI-generation conventions: `absolute-rules`, `asset-policy`, `content-fidelity`, `image-placeholders`, `link-tokens`, `output-format`, `handoff-checklist`. These are the rules that the Phase 1 Gemini system prompt embeds. AI clients should call `get_playbook_rules` with `category: "ai-generation"` first when bootstrapping an image-to-email task.
 
 ## CLI
 
@@ -56,10 +60,12 @@ Other MCP-aware clients (Cline, Continue, Windsurf) — same shape.
 email-playbook --help
 
 email-playbook list-categories
-email-playbook get-rules structure
+email-playbook get-rules ai-generation
 email-playbook list-components
 email-playbook get-component buttons | jq '.slots'
 ```
+
+The `--help` output is generated dynamically from the bundled spec — when the package bumps version, the help text always lists the actual available categories and components, never stale literals.
 
 Output is pretty-printed JSON to stdout. Exit codes: `0` success, `1` runtime error, `2` usage error.
 

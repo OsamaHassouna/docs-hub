@@ -16,12 +16,26 @@ import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { runTool } from './tools.mjs';
+import { loadSpec, runTool } from './tools.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PKG = JSON.parse(readFileSync(join(__dirname, '..', 'package.json'), 'utf8'));
 
-const HELP = `email-playbook v${PKG.version}
+function buildHelp() {
+  let spec;
+  try {
+    spec = loadSpec();
+  } catch {
+    spec = { categories: [], components: [] };
+  }
+  // Only categories with at least one rule are valid for get-rules.
+  const ruleCats = spec.categories
+    .filter(c => c.slug !== 'components' && c.page_count > 0)
+    .map(c => c.slug)
+    .join(' | ');
+  const compNames = spec.components.map(c => c.name).join(' | ');
+
+  return `email-playbook v${PKG.version}  ·  ${spec.categories.length} categories  ·  ${spec.components.length} components
 
 Usage:
   email-playbook <command> [args]
@@ -29,10 +43,10 @@ Usage:
 Commands:
   list-categories                List all rule categories with page counts.
   get-rules <category>           Print all rules in one category.
-                                   category: structure | compatibility | production
+                                   category: ${ruleCats}
   list-components                List all reusable email components with metadata.
   get-component <name>           Print the full record for one component.
-                                   name: spacing | images | background-images | buttons | text
+                                   name: ${compNames}
 
 Options:
   -h, --help                     Show this help.
@@ -40,12 +54,15 @@ Options:
 
 Examples:
   email-playbook list-categories
-  email-playbook get-rules structure
+  email-playbook get-rules ai-generation
   email-playbook get-component buttons | jq '.slots'
 
 Same content as the MCP server (email-playbook-mcp) and the hosted endpoint at
 https://docs.osamahassouna.com/api/mcp. Source of truth: the HTML Email Playbook
 at https://docs.osamahassouna.com/email-playbook/`;
+}
+
+const HELP = buildHelp();
 
 function fail(msg, code = 2) {
   process.stderr.write(`email-playbook: ${msg}\n`);

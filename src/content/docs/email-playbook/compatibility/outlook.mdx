@@ -86,14 +86,14 @@ See [Background Images](/email-playbook/components/background-images/) for the f
 
 ```html
 <!--[if mso]>
-<v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" href="https://example.com"
+<v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" href="{{cta_url}}"
              style="v-text-anchor:middle; width:200px; height:40px;"
              arcsize="10%" stroke="f" fillcolor="#222222">
   <w:anchorlock/>
   <center>
 <![endif]-->
 
-  <a href="..." style="...">Button Text</a>
+  <a href="{{cta_url}}" style="...">Button Text</a>
 
 <!--[if mso]>
   </center>

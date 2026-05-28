@@ -20,6 +20,9 @@ export function loadSpec() {
   return cachedSpec;
 }
 
+// Re-export so CLI/server can read the spec for dynamic help and listings.
+// (loadSpec is already exported above.)
+
 /**
  * MCP tool definitions. Schema follows JSON Schema draft-07.
  */

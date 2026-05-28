@@ -14,7 +14,7 @@ Buttons in email are not real `<button>` elements. They are styled `<a>` anchors
   <!--[if mso]>
   <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml"
                xmlns:w="urn:schemas-microsoft-com:office:word"
-               href="https://example.com/sale"
+               href="{{cta_url}}"
                style="v-text-anchor:middle; width:200px; height:40px;"
                arcsize="10%"
                stroke="f"
@@ -23,7 +23,7 @@ Buttons in email are not real `<button>` elements. They are styled `<a>` anchors
     <center>
   <![endif]-->
 
-  <a href="https://example.com/sale" target="_blank"
+  <a href="{{cta_url}}" target="_blank"
      style="-webkit-text-size-adjust:none;
             display:inline-block;
             text-decoration:none;

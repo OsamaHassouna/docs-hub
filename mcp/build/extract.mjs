@@ -62,8 +62,10 @@ function parseFrontmatter(raw) {
 }
 
 function extractCodeBlocks(body) {
+  // ```lang[ tab/space + meta]\n  <-- meta is OPTIONAL and must NOT eat the next line
+  // Using [ \t]+ explicitly (not \s+) so the regex never consumes a newline.
   const blocks = [];
-  const re = /```(\w+)(?:\s+([^\n]+))?\n([\s\S]*?)\n```/g;
+  const re = /```(\w+)(?:[ \t]+([^\n]*))?\n([\s\S]*?)\n```/g;
   let m;
   while ((m = re.exec(body)) !== null) {
     const language = m[1];

@@ -223,6 +223,25 @@ Codex review of the Phase 2.7 ship found three real gaps + four ideas worth logg
 
 ---
 
+## Phase 2.9 — Codex repo audit fixes (2026-05-29)
+
+Codex ran a static audit of the whole repo and found three real bugs + two housekeeping items. All fixed in v0.5.0.
+
+### Shipped this round
+
+- **Extractor regex bug fix** — `extractCodeBlocks` regex used `\s+` for code-fence metadata, which matched newlines and ate the first line of code as "title metadata" when no explicit `title="..."` attribute was present. Effect: `images` component opened at `<a>` (no `<td>`), `spacing` and `text` opened mid-row. Fix: `\s+` → `[ \t]+`. Verified post-fix: every component HTML now has balanced opening/closing wrapper tags.
+- **Per-IP daily quota on `/api/generate-email`** — public endpoint was exposed to cost abuse (anyone could hammer it and burn the Gemini free tier). Added KV-backed rate limit: per-IP daily cap (default 10/day, configurable via `GENERATE_DAILY_LIMIT_PER_IP`) + global daily cap (default 200/day, `GENERATE_DAILY_LIMIT_GLOBAL`). IP is SHA-256 hashed before storage (no raw IPs). Both caps fail open if KV is unreachable — never block on infrastructure errors.
+- **Token convention propagated through all code examples** — components/buttons.mdx, components/images.mdx, components/text.mdx, structure/header.mdx, structure/footer.mdx, compatibility/outlook.mdx, compatibility/responsive.mdx, compatibility/rtl.mdx, production/bulletproof-buttons.mdx all updated. `https://example.com/...` (link) → `{{cta_url}}`. `https://i.example.com/foo.png` (image) → `https://placehold.co/{W}x{H}/E0E0E0/E0E0E0`. The only remaining `example.com` references are in `ai-generation/*` pages where they're used deliberately as "don't do this" anti-examples.
+- **CLI `--help` derives from spec at runtime** — `buildHelp()` reads `playbook-spec.json` and dynamically lists actual categories + component names. No more drift between published version and help text.
+- **README.md (mcp/) tool table updated** with all 5 categories, all 6 components, and a paragraph explaining the new `ai-generation` category.
+- **Root README.md replaced** — was still the Starlight starter README. Now explains: docs site + Playground + MCP/CLI + hosted endpoint, the build-time canonical spec architecture, common commands, repo layout, phases shipped, deployment, env vars.
+
+### Bumped to v0.5.0
+
+Additive content + non-breaking rate limit + dynamic help. Server, CLI, hosted endpoint, npm package all report `0.5.0` (version sync from Phase 2.8 holds).
+
+---
+
 ## Phase 3 — Full Visual Editor
 
 **Goal:** Section/row/component editor that merges Builder UX with Playground. The current locked Builder becomes the real Playground.

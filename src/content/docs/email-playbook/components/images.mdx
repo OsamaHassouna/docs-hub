@@ -11,7 +11,7 @@ Images in HTML email need explicit dimensions, hard-coded styling, alt text, and
 
 ```html
 <td colspan="99" align="center" style="padding:0;">
-  <img src="https://i.example.com/hero.png"
+  <img src="https://placehold.co/600x300/E0E0E0/E0E0E0"
        width="600"
        height="auto"
        alt="Spring sale — 30% off everything"
@@ -35,8 +35,8 @@ Wrap the `<img>` in an `<a>` with the same `style="display:block;"` on the ancho
 
 ```html
 <td colspan="99" align="center" style="padding:0;">
-  <a href="https://example.com/sale" target="_blank" style="display:block; text-decoration:none;">
-    <img src="https://i.example.com/hero.png"
+  <a href="{{cta_url}}" target="_blank" style="display:block; text-decoration:none;">
+    <img src="https://placehold.co/600x300/E0E0E0/E0E0E0"
          width="600"
          height="auto"
          alt="Spring sale — 30% off everything"

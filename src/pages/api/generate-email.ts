@@ -1,4 +1,5 @@
 import type { APIRoute } from 'astro';
+import { createHash } from 'node:crypto';
 import { getRedis, todayKey } from '../../lib/kv';
 import { SYSTEM_PROMPT } from '../../lib/gemini-prompt';
 
@@ -11,6 +12,22 @@ const ALLOWED_MIME = new Set(['image/png', 'image/jpeg', 'image/webp', 'image/gi
 const MAX_ATTEMPTS = 3;
 const RETRY_BACKOFF_MS = [600, 1400];
 const RETRYABLE_HTTP = new Set([408, 425, 429, 500, 502, 503, 504]);
+
+const DAILY_LIMIT_PER_IP = Number(process.env.GENERATE_DAILY_LIMIT_PER_IP ?? '10');
+const DAILY_LIMIT_GLOBAL = Number(process.env.GENERATE_DAILY_LIMIT_GLOBAL ?? '200');
+const QUOTA_TTL_SECONDS = 60 * 60 * 26;
+
+function clientIpHash(request: Request): string {
+  const fwd = request.headers.get('x-forwarded-for') ?? '';
+  const real = request.headers.get('x-real-ip') ?? '';
+  const vercel = request.headers.get('x-vercel-forwarded-for') ?? '';
+  const raw = (fwd.split(',')[0] || real || vercel || 'unknown').trim();
+  return createHash('sha256').update(raw).digest('hex').slice(0, 16);
+}
+
+function todayDate(): string {
+  return new Date().toISOString().slice(0, 10);
+}
 
 interface RequestBody {
   image?: string;
@@ -135,6 +152,47 @@ export const POST: APIRoute = async ({ request }) => {
     );
   }
 
+  // ── Quota gate (per-IP + global daily) ───────────────────────
+  const redis = getRedis();
+  if (redis) {
+    const date = todayDate();
+    const ipHash = clientIpHash(request);
+    const ipKey = `quota:ip:${ipHash}:${date}`;
+    const globalKey = `quota:global:${date}`;
+
+    try {
+      const [ipUsedRaw, globalUsedRaw] = await Promise.all([
+        redis.get(ipKey),
+        redis.get(globalKey),
+      ]);
+      const ipUsed = Number(ipUsedRaw ?? 0);
+      const globalUsed = Number(globalUsedRaw ?? 0);
+
+      if (ipUsed >= DAILY_LIMIT_PER_IP) {
+        return jsonResponse(
+          {
+            error: `Daily limit reached for this client (${DAILY_LIMIT_PER_IP}/day). Try again tomorrow.`,
+            limit: DAILY_LIMIT_PER_IP,
+            scope: 'per-ip',
+          },
+          429,
+        );
+      }
+      if (globalUsed >= DAILY_LIMIT_GLOBAL) {
+        return jsonResponse(
+          {
+            error: `Service has reached its daily total cap. Try again tomorrow.`,
+            limit: DAILY_LIMIT_GLOBAL,
+            scope: 'global',
+          },
+          429,
+        );
+      }
+    } catch {
+      /* if KV read fails, fail open — never block on infrastructure errors */
+    }
+  }
+
   const payload = {
     systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
     contents: [
@@ -216,9 +274,18 @@ export const POST: APIRoute = async ({ request }) => {
 
   const generationId = `gen-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
 
-  const redis = getRedis();
   if (redis) {
-    redis.incr(todayKey()).catch(() => { /* counter is best-effort */ });
+    const date = todayDate();
+    const ipHash = clientIpHash(request);
+    Promise.all([
+      redis.incr(todayKey()),
+      redis.incr(`quota:ip:${ipHash}:${date}`).then(() =>
+        redis.expire(`quota:ip:${ipHash}:${date}`, QUOTA_TTL_SECONDS),
+      ),
+      redis.incr(`quota:global:${date}`).then(() =>
+        redis.expire(`quota:global:${date}`, QUOTA_TTL_SECONDS),
+      ),
+    ]).catch(() => { /* counter writes are best-effort */ });
   }
 
   return jsonResponse({ html: cleaned, attempts, generation_id: generationId }, 200);
