@@ -60,7 +60,15 @@ Adding a compliant footer (sender address, unsubscribe) is a downstream concern.
 
 Before treating a generation as "done", overlay the generated render on the source image. Every distinct block, color, container, and CTA in the source should map to a generated element. Extra elements (no match in the source) are fidelity violations.
 
+## Personalization placeholders are an exception
+
+Personalization fields like `Dear [Name]`, `[اسم الموظف]`, or `Hi {first_name}` from the source design are reproduced as `{{token}}` placeholders, not as literal text. See [Link Tokens](/email-playbook/ai-generation/link-tokens/) for the standard vocabulary (`{{employee_name}}`, `{{recipient_name}}`, etc.).
+
+This is the only "content transformation" the generator does, and it's only for clearly-marked placeholder fields — not for rewriting actual content.
+
 ## Related
 
 - [Absolute Rules](/email-playbook/ai-generation/absolute-rules/) — the top-level constraint set
+- [Asset Policy](/email-playbook/ai-generation/asset-policy/) — unified placeholder strategy
+- [Link Tokens](/email-playbook/ai-generation/link-tokens/) — the `{{token}}` vocabulary
 - [Output Format](/email-playbook/ai-generation/output-format/) — what success and error look like on the wire

@@ -7,6 +7,10 @@
  * playbook tools.
  */
 
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import {
@@ -16,8 +20,11 @@ import {
 
 import { getTools, runTool } from './tools.mjs';
 
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const PKG = JSON.parse(readFileSync(join(__dirname, '..', 'package.json'), 'utf8'));
+
 const server = new Server(
-  { name: 'email-playbook', version: '0.1.0' },
+  { name: 'email-playbook', version: PKG.version },
   { capabilities: { tools: {} } },
 );
 

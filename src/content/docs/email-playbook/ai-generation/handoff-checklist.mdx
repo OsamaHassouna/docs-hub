@@ -1,0 +1,131 @@
+---
+title: Handoff Checklist
+description: Pre-send checklist for the human after an AI-generated email. Replace placeholders, swap assets, confirm dimensions, test clients, verify size. Run through every time.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+AI generation produces a first draft. The first draft is never sendable as-is. Before the email goes through your sending platform, walk this list end to end. Every item exists because skipping it has shipped a broken email at least once.
+
+## 1. Replace `{{token}}` placeholders
+
+Grep for `{{` in the HTML. Every match is a value the AI couldn't fill in. Replace each one.
+
+```bash
+grep -oE '\{\{[a-z_]+\}\}' email.html | sort -u
+```
+
+Expected output is empty before send. If anything matches, you haven't finished. See [Link Tokens](/email-playbook/ai-generation/link-tokens/) for the standard vocabulary.
+
+## 2. Replace `placehold.co` images
+
+Grep for the placeholder URL pattern. Every match is an image that needs a real asset.
+
+```bash
+grep -oE 'https://placehold\.co/[^"]+' email.html | sort -u
+```
+
+Swap each one for a hosted asset URL (CDN, S3, your image host of choice). The placeholder dimensions in the URL (`600x300`) tell you what size the real asset should be.
+
+<Aside type="caution" title="Don't change dimensions">
+The placeholder URL was sized from the source design. Use the same `width` × `height` for the real asset, or the email layout shifts. If you need a different size, edit the layout too.
+</Aside>
+
+## 3. Confirm image dimensions
+
+Every `<img>` should have explicit `width` and `height` attributes matching the actual image bytes. Outlook ignores `max-width` and renders at the declared `width`. If the attributes don't match the asset, the image distorts on Outlook desktop.
+
+Check each `<img>`:
+- `width="…"` attribute present
+- `height="…"` attribute present
+- Actual image is `2×` the declared dimensions for Retina sharpness
+
+## 4. Confirm CTA links resolve
+
+Open each link target in a browser. Confirm:
+- It loads (no 404, no certificate error, no parked domain)
+- It opens in the right context (anchor `target="_blank"` for external CTAs)
+- Tracking parameters are correct if your platform uses them (e.g., `?utm_source=…`)
+
+## 5. Add or confirm preheader
+
+The preheader is the first ~85 characters Gmail and Apple Mail show as preview text after the subject line. If your AI generation didn't include one, add the hidden preheader row from [Preheader Text](/email-playbook/production/preheader/).
+
+A missing preheader means clients use the first visible text content — often "View this email in your browser" or your invisible spacer — which looks broken in the inbox.
+
+## 6. Check total HTML size
+
+```bash
+wc -c email.html
+```
+
+If the result is over 102,400 bytes, Gmail will clip the email mid-render and show a "View full message" link. See [Gmail 102KB Clipping](/email-playbook/production/gmail-clipping/) for the size optimizations.
+
+Common bloat sources: tracking pixel sets, base64-embedded images (don't do this), redundant inline styles. Re-extract repeated styles into a single `<style>` block in `<head>` only if you're under the limit otherwise.
+
+## 7. Send a test to a real Outlook desktop
+
+Litmus and Email on Acid help, but always send at least one test to a real Outlook 2019 or 365 client. The Word renderer's quirks are non-deterministic enough that automated previews miss real bugs.
+
+Check the test render for:
+- Container width is 600px (not stretching to reading-pane width)
+- VML buttons render — the CTA shouldn't look like raw text
+- Background images appear via VML — the [Background Images](/email-playbook/components/background-images/) fallback
+- RTL layout (if applicable) — direction is right-to-left from header down
+
+## 8. Test mobile
+
+Open the email in:
+- Gmail iOS app
+- Gmail Android app
+- Apple Mail iOS
+- Outlook Mobile
+
+Specifically check:
+- No horizontal scroll at any width
+- Tappable areas are ≥44×44 pt (touch target accessibility)
+- Stacked columns are actually stacking, not crammed at 50% width
+- Images aren't blown up beyond the viewport
+
+## 9. Verify dark mode (if relevant)
+
+If recipients use Gmail Dark, Apple Mail Dark, or Outlook Dark, check the render. Most common breakage:
+- White logos disappear on dark background — provide a dark variant or add a hairline outline
+- Buttons with `background-color` get inverted unexpectedly
+- Text on coloured panels loses contrast
+
+See [Dark Mode](/email-playbook/production/dark-mode/) for the patterns.
+
+## 10. Required regulatory elements
+
+For marketing-class email, every send needs:
+- Sender's physical address in the footer
+- Unsubscribe mechanism (typically `{{unsubscribe_url}}` resolved)
+- Identifies the sender clearly
+
+For transactional-class email (order receipts, password resets, etc.), the regulatory bar is lower but the bar for clarity isn't — the recipient should know exactly why this email arrived.
+
+## Quick reference
+
+```
+[ ] No {{tokens}} remain
+[ ] No placehold.co URLs remain
+[ ] Every <img> has width / height
+[ ] Every CTA href resolves
+[ ] Preheader text set
+[ ] Total HTML ≤ 102KB
+[ ] Outlook 2019/365 render checked
+[ ] Mobile render checked (iOS + Android)
+[ ] Dark mode checked (if applicable)
+[ ] Sender address + unsubscribe present (marketing)
+```
+
+Print it, paste it into your team's review template, automate it as a pre-send gate. Whatever works — the cost of skipping is shipping a broken send to thousands of recipients.
+
+## Related
+
+- [Link Tokens](/email-playbook/ai-generation/link-tokens/) — the `{{token}}` convention
+- [Image Placeholders](/email-playbook/ai-generation/image-placeholders/) — the `placehold.co` URL contract
+- [Asset Policy](/email-playbook/ai-generation/asset-policy/) — unified placeholder strategy
+- [Gmail 102KB Clipping](/email-playbook/production/gmail-clipping/) — what gets clipped and how to fit
+- [Preheader Text](/email-playbook/production/preheader/) — inbox preview line

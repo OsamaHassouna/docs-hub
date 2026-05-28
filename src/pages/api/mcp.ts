@@ -1,10 +1,13 @@
 import type { APIRoute } from 'astro';
 // @ts-expect-error  JS module sibling of the published mcp package
 import { getTools, runTool } from '../../../mcp/src/tools.mjs';
+import MCP_PKG from '../../../mcp/package.json';
+import PLAYBOOK_SPEC from '../../../mcp/data/playbook-spec.json';
 
 export const prerender = false;
 
-const SERVER_INFO = { name: 'email-playbook', version: '0.1.0' };
+const SERVER_INFO = { name: 'email-playbook', version: MCP_PKG.version };
+const SPEC_VERSION = PLAYBOOK_SPEC.version;
 const PROTOCOL_VERSION = '2024-11-05';
 
 interface JsonRpcRequest {
@@ -34,6 +37,7 @@ function infoResponse(): Response {
   return new Response(
     JSON.stringify({
       server: SERVER_INFO,
+      spec_version: SPEC_VERSION,
       protocol: PROTOCOL_VERSION,
       transport: 'http-jsonrpc',
       methods: ['initialize', 'tools/list', 'tools/call'],
@@ -64,7 +68,7 @@ export const POST: APIRoute = async ({ request }) => {
       return jsonRpcResult(id, {
         protocolVersion: PROTOCOL_VERSION,
         capabilities: { tools: {} },
-        serverInfo: SERVER_INFO,
+        serverInfo: { ...SERVER_INFO, spec_version: SPEC_VERSION },
       });
 
     case 'tools/list':

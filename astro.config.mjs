@@ -115,9 +115,12 @@ export default defineConfig({
 							label: 'AI Generation',
 							items: [
 								{ label: 'Absolute Rules', slug: 'email-playbook/ai-generation/absolute-rules' },
+								{ label: 'Asset Policy', slug: 'email-playbook/ai-generation/asset-policy' },
 								{ label: 'Content Fidelity', slug: 'email-playbook/ai-generation/content-fidelity' },
 								{ label: 'Image Placeholders', slug: 'email-playbook/ai-generation/image-placeholders' },
+								{ label: 'Link Tokens', slug: 'email-playbook/ai-generation/link-tokens' },
 								{ label: 'Output Format', slug: 'email-playbook/ai-generation/output-format' },
+								{ label: 'Handoff Checklist', slug: 'email-playbook/ai-generation/handoff-checklist' },
 							],
 						},
 						{ label: 'Templates', slug: 'email-playbook/templates' },

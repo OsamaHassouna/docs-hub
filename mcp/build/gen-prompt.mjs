@@ -114,8 +114,11 @@ function build() {
   out.push('# FINAL REMINDERS');
   out.push('');
   out.push('- Reproduce ONLY what is visible in the source image. No invented footers, no boilerplate, no rearrangement.');
-  out.push('- All images are placehold.co solid color blocks at the source dimensions. No external URLs.');
-  out.push('- Use the 3-table-level wrapper. Inner tables are ALWAYS width="100%" — never width="600".');
+  out.push('- All images are placehold.co solid color blocks at the source dimensions (https://placehold.co/{W}x{H}/E0E0E0/E0E0E0). NEVER use example.com, NEVER invent CDN URLs.');
+  out.push('- All link href targets use {{token}} placeholders, NEVER https://example.com/... and NEVER invented real URLs. Standard tokens: {{cta_url}}, {{unsubscribe_url}}, {{preferences_url}}, {{view_in_browser_url}}, {{logo_url}}. Use the vocabulary from ai-generation/link-tokens.');
+  out.push('- Personalization fields visible in the source (e.g. [Name], {first_name}) are reproduced as {{employee_name}} / {{recipient_name}} / equivalent token, not as literal text.');
+  out.push('- Use the 3-table-level wrapper from compatibility/responsive. Inner tables are ALWAYS width="100%" — never width="600".');
+  out.push('- Wrap the container in an MSO ghost-table for Outlook (compatibility/outlook).');
   out.push('- Return ONLY the raw HTML document. No markdown fences, no commentary.');
   out.push('- If the source is not an email design, return: {"error":"This does not appear to be an email design. Upload a screenshot of an email."}');
 

@@ -1,0 +1,101 @@
+---
+title: Asset Policy
+description: One-page reference for every placeholder strategy in generated email HTML — images, links, text fields, dynamic personalization. Why we use these conventions and how the human swaps them at handoff.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+Three principles drive everything on this page:
+
+1. **Generated emails are first drafts, not sendable artifacts.** The AI doesn't have your CDN, your CRM tokens, your authenticated tracking infrastructure. It can't and shouldn't try to invent them.
+2. **Every placeholder must fail loud, not silent.** A placeholder that looks like a real URL ships to production. A placeholder that's obviously not real gets fixed.
+3. **One convention per asset type, not five.** Tooling, code reviews, and downstream platforms all benefit from a single consistent pattern.
+
+## The policy at a glance
+
+| Asset type | Convention | Replaced by |
+|---|---|---|
+| Images (logos, hero, icons, photos) | `https://placehold.co/{W}x{H}/E0E0E0/E0E0E0` | Hosted image URL — CDN, S3, ImgBB, CID, or whatever your platform uses |
+| Link targets (href) | `{{cta_url}}`, `{{unsubscribe_url}}`, etc. | Real URL with your tracking parameters |
+| Text personalization | `{{employee_name}}`, `{{company_name}}`, etc. | Mail-merge token from your sending platform |
+| Source text content | Reproduced verbatim from the design image | Edited only if the source itself is a wireframe placeholder |
+
+## Images
+
+Every `<img>` in the generated output uses the `placehold.co` solid-color URL pattern at the source dimensions. Why:
+
+- **No invented CDN URLs.** Models will happily emit `https://cdn.healthholding.sa/logo.png` from a design image. The URL doesn't exist. The image is broken at send.
+- **Visible placeholder.** A grey block at the right dimensions is impossible to confuse with the real asset. Reviewers and tools both catch it.
+- **No `?text=...` overlay.** Text labels look acceptable at hero sizes but break visually at icon sizes. The convention is solid color blocks across the board.
+
+Full pattern: see [Image Placeholders](/email-playbook/ai-generation/image-placeholders/).
+
+```html
+<img src="https://placehold.co/600x300/E0E0E0/E0E0E0"
+     alt="Hero illustration of person at desk"
+     width="600" height="300"
+     style="display:block;max-width:100%;height:auto;border:0;-ms-interpolation-mode:bicubic;" />
+```
+
+Replace by:
+1. Hosting the real asset somewhere reliable (CDN, S3, your platform's asset manager).
+2. Swapping the URL in `src`.
+3. Confirming `width` × `height` attributes match the new asset.
+4. Keeping the rest of the inline style verbatim.
+
+## Link targets (href)
+
+Every link target uses a `{{token}}` placeholder. Never `https://example.com/...`, never an invented real-looking URL, never a guess from the source design's visible text.
+
+Full pattern: see [Link Tokens](/email-playbook/ai-generation/link-tokens/).
+
+```html
+<a href="{{cta_url}}" target="_blank" style="…">View the offer</a>
+<a href="{{unsubscribe_url}}" style="…">Unsubscribe</a>
+```
+
+Replace by:
+1. Finding every `{{token}}` (`grep -oE '\{\{[a-z_]+\}\}' email.html | sort -u`).
+2. Substituting the real URL, including tracking parameters.
+3. Re-grepping to confirm zero `{{...}}` remain.
+
+The standard vocabulary (`cta_url`, `unsubscribe_url`, `preferences_url`, etc.) is listed on the Link Tokens page. Custom token names are fine when the field is genuinely specific to the template; stay in `{{...}}` syntax for tooling compatibility.
+
+## Text personalization fields
+
+When the source design shows a mail-merge personalization field — `Dear [Name]`, `Hi {first_name}`, `[اسم الموظف]` — reproduce it as a `{{token}}` of the corresponding standard name.
+
+```html
+<td>عزيزي/تي {{employee_name}}،</td>
+<td>Order #{{order_number}} confirmed.</td>
+```
+
+If the source shows a literal value that the human will keep as-is (a company name, a price, an actual date), reproduce it verbatim — that's content fidelity, not a placeholder. See [Content Fidelity](/email-playbook/ai-generation/content-fidelity/) for the rule on what counts as source content vs. what's a placeholder slot.
+
+## Source text content
+
+Plain narrative text from the source design is reproduced verbatim. The model is reading visuals, not transforming text. Translation, tone adjustment, content rewriting are out of scope for image-to-email generation — they're downstream tasks the human or another tool performs.
+
+The exception is the personalization fields above. A name in brackets is a placeholder, not literal content.
+
+## Why this matters
+
+A working email pipeline needs predictable handoff. When the AI's output uses consistent placeholders, the handoff becomes a mechanical pass: grep, replace, confirm. When the AI's output looks real but is actually broken (invented CDN URLs, `example.com` links, made-up personalization), the handoff becomes detective work — and the detective often misses something.
+
+The cost asymmetry is huge:
+- A placeholder caught in review costs nothing.
+- A broken send delivered to 10,000 recipients costs your team a Friday afternoon, a customer-trust hit, and a `RE: Broken email — please respond` thread that lasts a week.
+
+Make it impossible to ship the placeholder. Use the conventions on this page.
+
+<Aside type="tip" title="Use the checklist">
+[Handoff Checklist](/email-playbook/ai-generation/handoff-checklist/) is the operational version of this page — the actual list to run through before sending.
+</Aside>
+
+## Related
+
+- [Image Placeholders](/email-playbook/ai-generation/image-placeholders/) — full `placehold.co` URL contract
+- [Link Tokens](/email-playbook/ai-generation/link-tokens/) — standard token vocabulary
+- [Content Fidelity](/email-playbook/ai-generation/content-fidelity/) — what counts as source content
+- [Handoff Checklist](/email-playbook/ai-generation/handoff-checklist/) — the pre-send pass
+- [Output Format](/email-playbook/ai-generation/output-format/) — what success and error look like

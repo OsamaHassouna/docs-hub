@@ -1,0 +1,93 @@
+---
+title: Link Tokens
+description: The placeholder convention for href targets and dynamic text fields in generated email HTML. Loud {{token}} syntax that fails fast if not swapped, instead of deceptively real example.com URLs.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+A common silent failure in image-to-email generation: the generator emits `href="https://example.com/sale"` because the link target isn't visible in the source design. The HTML looks correct, ships to production, and only fails when a recipient clicks the CTA and lands on a parked domain. The "obvious placeholder" was too obvious to the model and too invisible to the human doing the swap.
+
+The fix is a louder placeholder convention. Use `{{token}}` syntax for everything that has to be filled in before send.
+
+## The convention
+
+Wrap every value that needs human substitution in double-brace tokens. Tokens are not invented per email — they come from a fixed vocabulary so reviewers and tooling can detect and replace them programmatically.
+
+```html title="link-token-button.html"
+<a href="{{cta_url}}" target="_blank"
+   style="…">
+  View the offer
+</a>
+```
+
+```html title="link-token-unsubscribe.html"
+<a href="{{unsubscribe_url}}" style="color:#888;text-decoration:underline;">Unsubscribe</a>
+```
+
+```html title="link-token-text-field.html"
+<td>Dear {{employee_name}},</td>
+```
+
+## Standard tokens
+
+Use these names when the field matches. Use custom names (still in `{{}}`) when the field is genuinely specific to the template.
+
+| Token | Purpose |
+|---|---|
+| `{{cta_url}}` | Primary call-to-action link target. |
+| `{{secondary_cta_url}}` | Secondary CTA when an email has more than one button. |
+| `{{unsubscribe_url}}` | Required unsubscribe link for any marketing-class email. |
+| `{{preferences_url}}` | Email preferences / "manage subscriptions" link. |
+| `{{view_in_browser_url}}` | "View this email in your browser" fallback link. |
+| `{{logo_url}}` | Hyperlink on the header logo (usually the homepage). |
+| `{{preheader_text}}` | Preheader copy in the hidden preheader row. |
+| `{{employee_name}}` / `{{recipient_name}}` | Personalization fields when the source shows `[Name]` or similar. |
+| `{{support_phone}}` | Support contact number. |
+| `{{support_email}}` | Support contact email. |
+| `{{company_name}}` | Sender company name in footer. |
+| `{{company_address}}` | Required physical mailing address for marketing-class email. |
+
+## Why double braces
+
+- **Loud.** `{{cta_url}}` is impossible to miss in a code review. `https://example.com/sale` blends in.
+- **Detectable.** Tooling can grep `/\{\{[a-z_]+\}\}/g` and refuse to send an email that still has unfilled tokens.
+- **Standard.** Mailchimp, SendGrid, Postmark, Customer.io, ConvertKit, and most internal CRM systems use `{{...}}` (Mustache / Handlebars syntax). Generated tokens map directly to merge tags downstream.
+
+## Don't use example.com or made-up URLs
+
+Codex review found this was the single highest-impact addition for generation quality. Some examples of what NOT to emit:
+
+```html
+<!-- ❌ Looks real, will not fail fast -->
+<a href="https://example.com/job-offer">…</a>
+<a href="https://example.com/unsubscribe">…</a>
+
+<!-- ❌ Invented CDN URL — broken image guaranteed -->
+<img src="https://cdn.example.com/logo.png" … />
+
+<!-- ❌ Random-looking real URL — same problem -->
+<a href="https://hr.healthholding.sa/offer/abc123">…</a>
+```
+
+All four examples ship as "working HTML" and silently break when delivered.
+
+```html
+<!-- ✅ Loud, replaceable, won't go to production by accident -->
+<a href="{{cta_url}}">…</a>
+<a href="{{unsubscribe_url}}">…</a>
+```
+
+## Interaction with image placeholders
+
+Tokens are for href targets and text values. **Images stay on the `placehold.co` convention** ([Image Placeholders](/email-playbook/ai-generation/image-placeholders/)) — that pattern already provides the same fail-fast property for `<img src>` because `placehold.co` URLs are obviously grey blocks, not invented CDN URLs. Two different conventions, same goal: nothing real-looking that the human might forget to swap.
+
+<Aside type="tip" title="One reference page">
+For the unified picture — images, links, text, why we use these conventions — see [Asset Policy](/email-playbook/ai-generation/asset-policy/).
+</Aside>
+
+## Related
+
+- [Asset Policy](/email-playbook/ai-generation/asset-policy/) — consolidated placeholder strategy
+- [Image Placeholders](/email-playbook/ai-generation/image-placeholders/) — the `placehold.co` URL contract
+- [Content Fidelity](/email-playbook/ai-generation/content-fidelity/) — reproduce only what's in the source
+- [Handoff Checklist](/email-playbook/ai-generation/handoff-checklist/) — pre-send replacement pass

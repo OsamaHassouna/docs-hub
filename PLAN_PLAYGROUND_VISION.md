@@ -202,6 +202,27 @@ User suggested: capture failed attempts → deduce errors → add as edge cases 
 
 ---
 
+## Phase 2.8 — Codex review patches (2026-05-28)
+
+Codex review of the Phase 2.7 ship found three real gaps + four ideas worth logging but not shipping yet.
+
+### Shipped this round (additive content, v0.4.0)
+
+- **Link tokens** (`ai-generation/link-tokens.mdx`) — `{{cta_url}}`, `{{unsubscribe_url}}`, etc. instead of `https://example.com/...`. Fail-loud convention so review and tooling catch unfilled placeholders before send.
+- **Handoff checklist** (`ai-generation/handoff-checklist.mdx`) — pre-send checklist for the human: grep `{{`, grep `placehold.co`, confirm dimensions, test clients, 102KB check.
+- **Asset Policy** (`ai-generation/asset-policy.mdx`) — single page covering images + links + text personalization + why we use these conventions.
+- **Version sync fix** — MCP server and hosted `/api/mcp` now read version from `mcp/package.json` instead of hardcoding (was reporting 0.1.0 when npm package was 0.2.0). Spec version (`playbook-spec.json`) also surfaced separately in the `serverInfo`.
+- **Prompt header updated** — `gen-prompt.mjs` final reminders now emphasize `{{token}}` for hrefs and MSO ghost-table for the container.
+
+### Logged for later (deferred from Codex review — pick up when usage justifies)
+
+- **Generation modes** (editable-template / visual-fidelity / production-ready / strict-outlook / debuggable). The current implicit mode is "editable template" which is right for now. Adding 5 modes is premature scope explosion without traffic signal. Revisit when real users request specific other behaviors.
+- **AI asks for image links and patches them in (conversational UX)** — adds conversational complexity. The MCP server is tool-based; the conversation about asset substitution belongs in the AI client's UX, not in the playbook spec. Revisit if multiple clients ask for it.
+- **600-680px flexibility note in `compatibility/responsive`** — fair point that some designs are 640 wide. Current dogmatic 600 isn't causing any failure mode. One-sentence note next time we touch the page.
+- **"Known compromises" section in `compatibility/outlook`** — `border-radius` on panels OK as graceful degradation, on buttons needs VML. Useful but better as inline asides on existing pages than a new section. Drop in next time we're touching outlook.mdx.
+
+---
+
 ## Phase 3 — Full Visual Editor
 
 **Goal:** Section/row/component editor that merges Builder UX with Playground. The current locked Builder becomes the real Playground.
