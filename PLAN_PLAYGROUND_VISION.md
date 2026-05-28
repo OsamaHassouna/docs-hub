@@ -171,10 +171,34 @@ The actual system prompt should be assembled by concatenating the relevant playb
 
 **Phase 2.5 also SHIPPED 2026-05-28 — CLI wrapper.** Same npm package (`email-playbook-mcp@0.2.0`) now ships a second bin `email-playbook` for terminal usage. Commands match MCP tool names 1:1 (`list-categories`, `get-rules <category>`, `list-components`, `get-component <name>`). Shared `tools.mjs` core, no duplication.
 
-**Deferred to follow-ups (when real usage justifies):**
-- `get_layout` — discrete named layouts (two-column-hero, centered-CTA, sidebar-with-content). Requires `layouts/` content section in the playbook first — this is a content problem, not a code problem.
-- `analyze_html` (NOT `validate_email_html`) — return issues ("possible Outlook issue / missing VML fallback / Gmail clipping risk") instead of binary pass/fail. Less brittle than strict validation.
-- `supported_clients` field on components — defer until a component exists with narrower-than-all support.
+---
+
+## Phase 2.7 — Playbook completeness + single source of truth (2026-05-28)
+
+**Driver:** smoke-testing the CLI by hand-assembling an Arabic RTL email surfaced four content gaps in the playbook AND one architectural smell — the Phase 1 Gemini system prompt was duplicating rules that should live in the playbook MDX, guaranteeing drift.
+
+**Goal:** every rule lives in playbook MDX → spec → MCP/CLI/hosted/Gemini prompt. Zero duplication.
+
+### Steps (executing now)
+
+1. **Enhance `compatibility/responsive.mdx`** — name the "hybrid 3-table-level wrapper" pattern (outer 100% → container 600+max-width → inner 100%). Document the `.stack` padding gotcha: setting `display:block;width:100%` on a `<td>` with padding causes content-box overflow. Canonical fix is to put padding on an inner `<div>`, not the cell itself. `width:calc(100% - 80px)` works only when padding is fixed.
+2. **Enhance `compatibility/outlook.mdx`** — add MSO ghost-table for fixed-width containers (the `<!--[if mso | IE]><table width="600">…<![endif]-->` wrapper).
+3. **New `components/inline-icon.mdx`** — small icon component (phone, social) using `placehold.co` + `inline-block` + `vertical-align:middle`. Components-meta entry.
+4. **New `ai-generation/` category** — top-level category for AI-meta rules currently only in the Phase 1 Gemini prompt: content fidelity (no invented footers), image placeholders (placehold.co solid blocks), output format (HTML only, error JSON shape), absolute rules (use only playbook patterns). Extend extractor + sidebar.
+5. **Build-time prompt synthesis** — `mcp/build/gen-prompt.mjs` reads `playbook-spec.json` → emits `src/lib/gemini-prompt.ts` (a `SYSTEM_PROMPT` const). Phase 1 endpoint imports it. Old hardcoded prompt deleted. Hooked into `prebuild` so playbook MDX edits auto-update the prompt.
+6. **Feedback endpoint** — `/api/feedback` POST stores `{ generation_id, rating: 'good' | 'bad', notes? }` to KV. Phase 1 endpoint returns a `generation_id` in the response. Playground shows thumbs up/down after generation. Foundation for future automated edge-case extraction.
+7. **Verify locally + publish v0.3.0** — re-run probe + curl + screenshot. Bump mcp/package.json to 0.3.0 (additive content + new category). User runs `npm publish`.
+
+### Decisions made this round
+
+- **`.stack` padding fix**: use inner `<div>` wrapper for padding, NOT `width: calc(100% - Xpx)`. Cleaner, works in all clients, no client-specific quirks.
+- **AI-meta rules get their own playbook category (`ai-generation`)** rather than being mixed into existing categories. Keeps email-engineering rules separate from AI-generation-conventions.
+- **Prompt synthesis at build time** (not runtime). Faster, simpler, cacheable. Old `SYSTEM_PROMPT` constant in `generate-email.ts` gets replaced by import.
+- **Feedback loop is 1-bit thumbs up/down** stored to KV. Pattern extraction deferred — defer until ~50+ thumbs-down examples accumulated. Captures the data so future automation has signal to learn from.
+
+### Open question deferred — automated edge-case extraction from failed attempts
+
+User suggested: capture failed attempts → deduce errors → add as edge cases automatically. **Defer.** Reasons: zero traffic to learn from, single failure ≠ generalizable rule, noisy rules contradict each other. Current plan: collect 1-bit feedback now (step 6), revisit pattern extraction once ~50+ thumbs-downs exist. Cheap data foundation that future automation can use.
 
 ---
 

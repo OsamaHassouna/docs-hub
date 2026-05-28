@@ -24,5 +24,11 @@ pnpm-debug.log*
 # Local screenshots / Stitch design references (not for repo)
 __screenshots__/
 
+# Local scratch (probes, test renders, hand-assembled emails)
+__scratch__/
+
+# npm pack tarballs
+*.tgz
+
 # Vercel link
 .vercel/

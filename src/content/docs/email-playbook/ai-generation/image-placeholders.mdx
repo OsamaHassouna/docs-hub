@@ -1,0 +1,86 @@
+---
+title: Image Placeholders
+description: How to emit images when generating email HTML from a source design. Use placehold.co solid color blocks at the source dimensions — no external hosts, no text labels at icon sizes.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+When the playbook is used as a generation target (image-to-email, scaffolding, AI assistants), the generator never inlines real image URLs. Every `<img>` becomes a `placehold.co` URL at the source dimensions. The consumer of the generated output swaps the placeholders for real assets after editing.
+
+## The URL pattern
+
+```
+https://placehold.co/{W}x{H}/E0E0E0/E0E0E0
+```
+
+- `{W}` and `{H}` — pixel width and height as they appear in the source design.
+- `/E0E0E0/E0E0E0` — background color and text color set to the same value, so no text label renders inside the block.
+
+Always include the matching `width`, `height`, and `alt` attributes on the `<img>` tag.
+
+```html title="image-placeholder.html"
+<img src="https://placehold.co/600x300/E0E0E0/E0E0E0"
+     alt="Hero illustration of a person at a desk"
+     width="600" height="300"
+     style="display:block;
+            max-width:100%;
+            height:auto;
+            border:0;
+            -ms-interpolation-mode:bicubic;" />
+```
+
+## Why not external URLs
+
+Image-to-email generators never reproduce the actual pixels of the source. Linking to external hosts (`https://cdn.example.com/...`) introduces several failure modes:
+
+- The host doesn't exist → broken image in delivery.
+- The host serves a different image than the source → silent visual drift.
+- The model invents a CDN URL from training data → almost always returns 404 or a wrong image.
+
+Solid placeholder blocks make the intent visible: "this is where the asset goes; swap it before sending."
+
+## Why no `?text=...`
+
+`placehold.co` supports a `?text=Label` query that overlays text on the block:
+
+```
+https://placehold.co/100x100/EFEFEF/666666?text=Image
+```
+
+For hero-sized images this can be useful in mockups. For small icons it produces visually broken output — the "Image" text gets clipped or vertically misaligned at 20×20 or 32×32 dimensions.
+
+The playbook convention is the simpler rule: never use `?text=` in generated output. Solid color blocks at exact dimensions render predictably at every size.
+
+## Sizing
+
+Always read the dimensions from the source design. Don't round, don't infer "this is probably 600 wide" — measure or count.
+
+| Source dimensions | Placeholder URL |
+|---|---|
+| Hero banner 600×300 | `https://placehold.co/600x300/E0E0E0/E0E0E0` |
+| Logo 220×60 | `https://placehold.co/220x60/E0E0E0/E0E0E0` |
+| Product card 280×180 | `https://placehold.co/280x180/E0E0E0/E0E0E0` |
+| Phone icon 20×20 | `https://placehold.co/20x20/E0E0E0/E0E0E0` |
+| Social icon 28×28 | `https://placehold.co/28x28/E0E0E0/E0E0E0` |
+| Footer mark 40×40 | `https://placehold.co/40x40/E0E0E0/E0E0E0` |
+
+## Alt text
+
+Every placeholder image still gets a descriptive `alt` attribute. The alt should describe what the image **appears to depict** in the source, not "placeholder" or "image".
+
+- `alt="Company logo"` — for a logo
+- `alt="Hero illustration of a person at a desk"` — for a hero image
+- `alt="Phone icon"` — for a small support icon
+- `alt="Twitter"` — for a social-icon link
+
+Alt text isn't optional. Screen readers, slow connections, image-blocked email clients all depend on it.
+
+<Aside type="tip" title="Inline icons get the same treatment">
+Small icons (≤32px) follow the same rule. See [Inline Icons](/email-playbook/components/inline-icon/) for the layout pattern.
+</Aside>
+
+## Related
+
+- [Absolute Rules](/email-playbook/ai-generation/absolute-rules/) — never invent external URLs
+- [Images](/email-playbook/components/images/) — the underlying `<img>` pattern
+- [Inline Icons](/email-playbook/components/inline-icon/) — small icon placement

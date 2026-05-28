@@ -4,10 +4,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "node mcp/build/extract.mjs && astro dev",
+    "dev": "node mcp/build/extract.mjs && node mcp/build/gen-prompt.mjs && astro dev",
     "start": "astro dev",
-    "build:spec": "node mcp/build/extract.mjs",
-    "prebuild": "node mcp/build/extract.mjs",
+    "build:spec": "node mcp/build/extract.mjs && node mcp/build/gen-prompt.mjs",
+    "prebuild": "node mcp/build/extract.mjs && node mcp/build/gen-prompt.mjs",
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro"

@@ -1,0 +1,66 @@
+---
+title: Content Fidelity
+description: When generating email HTML from a source design, reproduce exactly what's visible — no invented footers, no boilerplate, no rearrangement. The most common generator failure mode.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+This is the rule that catches the most common AI-generator failure mode: training data has taught the model that "real" marketing emails always end with sender addresses, unsubscribe links, social rows, and copyright lines, so it adds them — even when the source image clearly has no such footer.
+
+Don't.
+
+## Reproduce only what's visible
+
+For every section of the generated email, ask: **is this in the source?**
+
+- A greeting line is in the source → reproduce it.
+- A bold paragraph is in the source → reproduce it with the same emphasis.
+- A button with specific text is in the source → reproduce text, link placeholder, and approximate color.
+- A footer with sender info **is not** in the source → don't generate one.
+- A "© 2026 Company" line **is not** in the source → don't generate one.
+- "This email was sent to you because…" **is not** in the source → don't generate it.
+
+If the source ends at a closing paragraph, the generated email ends at that closing paragraph.
+
+## Preserve every visual container
+
+Backgrounds, panels, cards, callouts — every distinct visual container in the source becomes a corresponding structural element in the generated HTML.
+
+- A light-blue FAQ panel in the source → a `<td bgcolor="#E8F0F8" style="background-color:#E8F0F8;padding:24px;">` wrapper with the FAQ content inside.
+- A dark navy header bar → a `<td bgcolor="#2D3036" style="background-color:#2D3036;padding:24px 40px;">` row with the heading inside.
+- A cream "support" callout → a same-pattern colored cell.
+
+Don't flatten panels into plain text. The visual hierarchy is part of the message.
+
+## Preserve order
+
+Reproduce sections in the same top-to-bottom order they appear in the source. Don't move the CTA "up where it'll get more engagement" — that's a UX optimization the consumer can do after editing. The generator's job is fidelity, not improvement.
+
+## Don't invent brand identity
+
+If the source shows a logo placeholder where a real logo would go, generate a `placehold.co` block at the source dimensions. Don't:
+
+- Invent a company name to put in the alt text.
+- Invent a tagline below the logo.
+- Add a "view in browser" link the source doesn't show.
+
+The model is reading visuals, not auth'd brand data. Anything not on screen is a guess.
+
+## Don't add disclaimers
+
+A common generator instinct: emit a footer with "If you no longer wish to receive these emails, click here to unsubscribe" — even on a transactional email where unsubscribe doesn't apply, even when the source has no such line.
+
+If the source shows an unsubscribe link, reproduce it. If the source doesn't, don't add one.
+
+<Aside type="tip" title="When the consumer wants a footer added">
+Adding a compliant footer (sender address, unsubscribe) is a downstream concern. The generator stays faithful to the source; the consumer's editor or sending platform can append the regulatory boilerplate after.
+</Aside>
+
+## Test for fidelity
+
+Before treating a generation as "done", overlay the generated render on the source image. Every distinct block, color, container, and CTA in the source should map to a generated element. Extra elements (no match in the source) are fidelity violations.
+
+## Related
+
+- [Absolute Rules](/email-playbook/ai-generation/absolute-rules/) — the top-level constraint set
+- [Output Format](/email-playbook/ai-generation/output-format/) — what success and error look like on the wire

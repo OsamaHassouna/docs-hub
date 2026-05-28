@@ -88,6 +88,7 @@ export default defineConfig({
 							items: [
 								{ label: 'Spacing', slug: 'email-playbook/components/spacing' },
 								{ label: 'Images', slug: 'email-playbook/components/images' },
+								{ label: 'Inline Icons', slug: 'email-playbook/components/inline-icon' },
 								{ label: 'Background Images (VML)', slug: 'email-playbook/components/background-images' },
 								{ label: 'Buttons', slug: 'email-playbook/components/buttons' },
 								{ label: 'Text', slug: 'email-playbook/components/text' },
@@ -108,6 +109,15 @@ export default defineConfig({
 								{ label: 'Dark Mode', slug: 'email-playbook/production/dark-mode' },
 								{ label: 'Preheader Text', slug: 'email-playbook/production/preheader' },
 								{ label: 'Bulletproof Buttons', slug: 'email-playbook/production/bulletproof-buttons' },
+							],
+						},
+						{
+							label: 'AI Generation',
+							items: [
+								{ label: 'Absolute Rules', slug: 'email-playbook/ai-generation/absolute-rules' },
+								{ label: 'Content Fidelity', slug: 'email-playbook/ai-generation/content-fidelity' },
+								{ label: 'Image Placeholders', slug: 'email-playbook/ai-generation/image-placeholders' },
+								{ label: 'Output Format', slug: 'email-playbook/ai-generation/output-format' },
 							],
 						},
 						{ label: 'Templates', slug: 'email-playbook/templates' },

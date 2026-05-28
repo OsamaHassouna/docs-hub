@@ -26,9 +26,10 @@ const SKIP_SLUGS = new Set(['index', 'getting-started', 'templates', 'playground
 
 const CATEGORIES = [
   { slug: 'structure', title: 'Structure', description: 'Doctype, head, body container, header, body, and footer — the bones every email reuses.' },
-  { slug: 'components', title: 'Components', description: 'Reusable building blocks. Spacing, images, background images, buttons, and text.' },
+  { slug: 'components', title: 'Components', description: 'Reusable building blocks. Spacing, images, background images, buttons, text, and inline icons.' },
   { slug: 'compatibility', title: 'Compatibility', description: 'Where email engines diverge: Outlook MSO, RTL languages, mobile responsive.' },
   { slug: 'production', title: 'Production', description: 'Pre-send checks: Gmail 102KB clip, dark mode, preheader text, bulletproof CTAs.' },
+  { slug: 'ai-generation', title: 'AI Generation', description: 'Hard constraints any AI generator follows when emitting playbook-compliant HTML — content fidelity, image placeholders, output format, absolute rules.' },
 ];
 
 function walkMdx(dir) {

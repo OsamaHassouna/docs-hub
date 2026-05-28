@@ -1,0 +1,60 @@
+---
+title: Output Format
+description: The exact response shape a generator emits — a single raw HTML document on success, a JSON error object when the input isn't an email design.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+Generators that produce HTML email from this playbook always return one of two shapes — never both, never partial, never with framing or commentary.
+
+## Success: raw HTML document
+
+The response is the email as a complete, well-formed HTML document starting at `<!DOCTYPE html ...>` and ending at `</html>`. No prefix, no suffix.
+
+```html
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:v="urn:schemas-microsoft-com:vml"
+      xmlns:o="urn:schemas-microsoft-com:office:office"
+      lang="en">
+<head>
+  …
+</head>
+<body>
+  …
+</body>
+</html>
+```
+
+Specifically excluded from the output:
+
+- **No markdown fences.** Don't wrap in ` ```html ... ``` `. The downstream consumer is feeding the response into a renderer, an iframe `srcdoc`, or a file — markdown will corrupt the document.
+- **No commentary.** No "Here's the HTML:" prefix, no "Let me know if you'd like changes" suffix.
+- **No explanation comments.** Inline `<!-- comments -->` for MSO conditionals are required. Conversational comments like `<!-- I assumed the brand color was X -->` are forbidden.
+- **No JSON wrapping.** The success response is the HTML document directly, not `{ "html": "..." }`.
+
+## Error: JSON object
+
+If the input isn't actually an email design (a random photo, a screenshot of code, a logo by itself, an empty image), return a single JSON object instead of HTML:
+
+```json
+{ "error": "This does not appear to be an email design. Upload a screenshot of an email." }
+```
+
+The error response is plain JSON, no markdown fence, no extra fields. Downstream consumers detect "this is an error" by checking whether the response starts with `{` and contains an `error` key.
+
+<Aside type="caution" title="Don't guess">
+If the input is ambiguous (a wireframe, a brand-style sheet, a partial email screenshot), prefer the error response over guessing. The cost of a single rejection is much lower than the cost of generated HTML that misleads the consumer.
+</Aside>
+
+## Why no framing
+
+Downstream tooling — playgrounds, iframes, file downloads, MCP clients — passes the output through a pipeline that's brittle to extra characters. A leading newline or trailing "Let me know!" can break HTML parsing, mis-render the email, or fail JSON deserialization. The contract is strict for a reason.
+
+If you find yourself wanting to add explanation, put it in a separate response or a sidecar (e.g., a generator that returns both the HTML and a "review notes" stream as a structured object — but that's a different tool, not the standard image-to-email output).
+
+## Related
+
+- [Absolute Rules](/email-playbook/ai-generation/absolute-rules/) — what the generated HTML must follow
+- [Image Placeholders](/email-playbook/ai-generation/image-placeholders/) — the `placehold.co` URL contract

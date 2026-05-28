@@ -1,0 +1,120 @@
+---
+title: Inline Icons
+description: Small icons that sit beside text — phone numbers, social handles, list bullets, status badges. Inline-block sizing, vertical-align, and the placeholder pattern.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+Most email patterns assume images are block-level — full-width hero photos, centered product shots, footer logos. Inline icons are the exception: small graphics (12-32px) that need to sit on the same baseline as text. They show up in phone-number callouts, social-icon rows, bullet replacements, status badges, and inline trust marks.
+
+The trick is that emails can't use `<i class="icon-phone">` SVG-sprite patterns from web work. Each icon is a real `<img>` with a real URL.
+
+## The pattern
+
+```html title="inline-icon.html"
+<span style="font-size:18px; line-height:28px; color:#2D3036;">
+  <img src="https://placehold.co/20x20/389BCD/389BCD"
+       alt="phone"
+       width="20" height="20"
+       style="display:inline-block;
+              vertical-align:middle;
+              border:0;
+              margin:0 8px 0 0;
+              -ms-interpolation-mode:bicubic;" />
+  920009080
+</span>
+```
+
+The four required style declarations:
+
+- **`display:inline-block`** — makes the `<img>` flow with the surrounding text instead of becoming block-level.
+- **`vertical-align:middle`** — centers the icon on the text baseline. The default `baseline` puts the icon bottom on the text bottom, which looks low.
+- **`border:0`** — strips the default 1-2px image border that older Outlook renders.
+- **`-ms-interpolation-mode:bicubic`** — tells Outlook to scale smoothly when high-DPI screens enlarge. No-op everywhere else.
+
+`width` and `height` are HTML attributes AND inline styles so Outlook (which ignores `max-width`) renders at the intended size.
+
+## Spacing
+
+Use a single-side margin on the icon, not symmetric margins. For RTL layouts, mirror the margin side.
+
+```html
+<!-- LTR: margin on the right of the icon (gap before the text) -->
+<img ... style="display:inline-block;vertical-align:middle;margin:0 8px 0 0;" />Text
+
+<!-- RTL: margin on the left of the icon (gap before the Arabic text reading rightward) -->
+<img ... dir="rtl" style="display:inline-block;vertical-align:middle;margin:0 0 0 8px;" />النص
+```
+
+Avoid `padding` on the icon — Outlook treats `padding` on inline images unpredictably. Use the surrounding text container's letter-spacing or the icon margin instead.
+
+## Sizing tiers
+
+Pick a size that matches the text it sits next to. Same `line-height` as the surrounding text keeps the row from growing.
+
+| Text size | Icon size | Use case |
+|---|---|---|
+| 12-14px | 14×14 or 16×16 | Footer addresses, fine-print legal lines, tiny social icons |
+| 16-18px | 18×18 or 20×20 | Body text bullets, inline phone numbers, support callouts |
+| 20-24px | 24×24 | Header brand marks, large CTA-adjacent icons |
+| 28-32px | 32×32 | Hero callouts, social-icon rows in footers |
+
+Going larger than 32px on an inline icon usually means you want a block image — use the [Images](/email-playbook/components/images/) pattern instead.
+
+## Color blocks as placeholders
+
+In the playbook's image-placeholder convention, use a solid color block from `placehold.co` with matching foreground and background hex so no text label appears at small sizes:
+
+```html
+<!-- Small icon, no visible text label -->
+<img src="https://placehold.co/20x20/E0E0E0/E0E0E0" alt="..." width="20" height="20" ... />
+```
+
+The `?text=Image` query parameter is **not** appropriate at icon sizes — it produces visually broken labels that don't fit. Leave it off for any icon ≤32×32.
+
+## Social-icon row
+
+A common composition: a horizontal row of brand icons in a centered footer.
+
+```html title="social-row.html"
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center">
+  <tr>
+    <td style="padding:0 8px;">
+      <a href="https://twitter.com/example" target="_blank">
+        <img src="https://placehold.co/28x28/2D3036/2D3036"
+             alt="Twitter"
+             width="28" height="28"
+             style="display:block;border:0;-ms-interpolation-mode:bicubic;" />
+      </a>
+    </td>
+    <td style="padding:0 8px;">
+      <a href="https://linkedin.com/in/example" target="_blank">
+        <img src="https://placehold.co/28x28/2D3036/2D3036"
+             alt="LinkedIn"
+             width="28" height="28"
+             style="display:block;border:0;-ms-interpolation-mode:bicubic;" />
+      </a>
+    </td>
+    <td style="padding:0 8px;">
+      <a href="https://github.com/example" target="_blank">
+        <img src="https://placehold.co/28x28/2D3036/2D3036"
+             alt="GitHub"
+             width="28" height="28"
+             style="display:block;border:0;-ms-interpolation-mode:bicubic;" />
+      </a>
+    </td>
+  </tr>
+</table>
+```
+
+Note: when icons are inside `<a>` tags and laid out via `<table>` cells, switch back to `display:block` — the table cells handle the inline flow, and `block` removes the small whitespace gap that `inline-block` leaves under each image.
+
+<Aside type="caution" title="Don't use background-image">
+You might be tempted to use a CSS `background-image` to color an icon. Outlook strips `background-image`. Use a real `<img>` for every icon you want Outlook to see.
+</Aside>
+
+## Related
+
+- [Images](/email-playbook/components/images/) — block-level images and Retina sizing
+- [Background Images](/email-playbook/components/background-images/) — VML pattern for decorative backgrounds (not icons)
+- [Text](/email-playbook/components/text/) — line-height and baseline alignment

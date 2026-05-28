@@ -103,6 +103,55 @@ See [Background Images](/email-playbook/components/background-images/) for the f
 
 See [Buttons](/email-playbook/components/buttons/) and [Bulletproof Buttons](/email-playbook/production/bulletproof-buttons/) for variations.
 
+## MSO ghost-tables — give Outlook a fixed width without breaking modern clients
+
+Outlook desktop ignores `max-width:Npx`. If your container is `<table style="max-width:600px;width:100%;">`, modern clients shrink it correctly on narrow viewports — but Outlook just renders it at the full available width because it never read the CSS. The result: hero images stretch, columns blow out, text spans the whole reading pane.
+
+The fix is a **ghost-table**: an MSO-only `<table width="600">` that exists ONLY for Outlook. Modern clients see plain comments and ignore it.
+
+```html title="mso-ghost-table.html"
+<!-- OUTER wrapper (modern + Outlook) -->
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"
+       style="width:100%;background-color:#F5F5F5;">
+  <tr>
+    <td align="center" style="padding:20px 10px;">
+
+      <!--[if mso | IE]>
+      <table role="presentation" align="center" width="600" cellpadding="0" cellspacing="0" border="0">
+      <tr>
+      <td>
+      <![endif]-->
+
+      <!-- Fluid container that modern clients shrink on mobile -->
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0"
+             style="max-width:600px;width:100%;margin:0 auto;background-color:#FFFFFF;">
+        <tr>
+          <td>Email content goes here</td>
+        </tr>
+      </table>
+
+      <!--[if mso | IE]>
+      </td>
+      </tr>
+      </table>
+      <![endif]-->
+
+    </td>
+  </tr>
+</table>
+```
+
+What each client renders:
+
+- **Outlook desktop (Word renderer)** sees the `<!--[if mso | IE]>` block as instructions: opens an outer 600px-wide table, drops your fluid table inside, closes the outer. Net effect: fixed 600px wrapper.
+- **Every modern client** ignores the conditional comment. Sees only the inner `max-width:600px;width:100%` table. Shrinks fluidly on mobile.
+
+<Aside type="tip" title="Why `mso | IE`">
+The `IE` half catches a handful of legacy IE-based corporate clients that still ship with Outlook variants. The `|` is OR. Keeping both is cheap and broadens coverage.
+</Aside>
+
+This pattern combined with the [3-table-level wrapper](/email-playbook/compatibility/responsive/) is the canonical hybrid-responsive shell. Use it on every email.
+
 ## Outlook-specific CSS properties
 
 Outlook adds proprietary properties prefixed with `mso-`. These work nowhere else and don't break anywhere else — they're safe to inline:

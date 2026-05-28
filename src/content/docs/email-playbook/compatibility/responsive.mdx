@@ -7,6 +7,61 @@ import { Aside } from '@astrojs/starlight/components';
 
 About 60-70% of email opens happen on mobile. The web-style "responsive" approach — media queries that swap layouts at breakpoints — works in modern clients, but Outlook for Windows ignores media queries entirely. The reliable pattern is **hybrid responsive**: build a layout that works at any width by default, and use media queries only as enhancement.
 
+## The 3-table-level wrapper (start here)
+
+Every responsive-safe email uses the same three nested table levels. Get this right and most mobile bugs disappear before you write a media query.
+
+```html title="hybrid-3-level-wrapper.html"
+<!-- LEVEL 1: OUTER wrapper. Full viewport width. Page background goes here. -->
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"
+       style="width:100%;background-color:#F5F5F5;">
+  <tr>
+    <td align="center" style="padding:20px 10px;">
+
+      <!-- LEVEL 2: CONTAINER. 600px desktop, fluid on mobile. ONLY level with a fixed width. -->
+      <!--[if mso | IE]>
+      <table role="presentation" align="center" width="600" cellpadding="0" cellspacing="0" border="0">
+      <tr><td>
+      <![endif]-->
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0"
+             style="max-width:600px;width:100%;margin:0 auto;background-color:#FFFFFF;">
+        <tr>
+          <td>
+
+            <!-- LEVEL 3: INNER content tables. Always width="100%". NEVER 600. -->
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+              <tr>
+                <td>Header content</td>
+              </tr>
+            </table>
+
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+              <tr>
+                <td>Body content</td>
+              </tr>
+            </table>
+
+          </td>
+        </tr>
+      </table>
+      <!--[if mso | IE]>
+      </td></tr>
+      </table>
+      <![endif]-->
+
+    </td>
+  </tr>
+</table>
+```
+
+Three rules to keep in your head:
+
+- **OUTER** is `width="100%"`. It's the page background, edge-to-edge.
+- **CONTAINER** is the only place a fixed `600` shows up — and it's inside the MSO conditional. Modern clients see only `max-width:600px;width:100%`, so they shrink it on narrow viewports.
+- **INNER** content tables are `width="100%"` — never `width="600"`. Hardcoding `600` on inner tables is the #1 cause of horizontal scroll on mobile.
+
+Most of the rest of this page is variations on this base. If you're getting horizontal scroll at 320-400px, the first thing to check is whether an inner table inherited `width="600"`.
+
 ## The two strategies
 
 ### Strategy 1 — Media queries (modern clients)
@@ -196,6 +251,76 @@ Images on responsive emails need `max-width:100%` in their inline style:
 The `width="600"` attribute is what desktop clients use; `max-width:100%` lets mobile clients shrink it down without overflowing.
 
 For Retina-quality (sharp on high-DPI screens), serve images at 2× the displayed size. A 600px-wide hero should be a 1200px-wide source image, displayed at width 600.
+
+## The `.stack` padding gotcha
+
+A subtle bug that produces horizontal scroll even when your layout looks correct. The setup looks like this:
+
+```html
+<style>
+  @media only screen and (max-width: 600px) {
+    .stack { width:100% !important; display:block !important; }
+  }
+</style>
+
+<table width="600" style="max-width:600px;width:100%;">
+  <tr>
+    <!-- Two columns with padding -->
+    <td class="stack" width="50%" style="padding:20px 40px;">Column 1</td>
+    <td class="stack" width="50%" style="padding:20px 40px;">Column 2</td>
+  </tr>
+</table>
+```
+
+On mobile, the `.stack` rule kicks in: each `<td>` becomes `display:block; width:100%`. **The padding (`40px` left + `40px` right = `80px`) is added on top of the `100%` width** because the default box-sizing is `content-box`. Result: each stacked `<td>` is `100% + 80px` wide → horizontal scroll.
+
+Two fixes. Pick the right one based on whether you can rely on `box-sizing`:
+
+### Fix 1 — Padding on an inner wrapper (recommended)
+
+Move the padding off the cell. Put it on a `<div>` inside the cell:
+
+```html title="stack-fix-inner-wrapper.html"
+<style>
+  @media only screen and (max-width: 600px) {
+    .stack { width:100% !important; display:block !important; }
+  }
+</style>
+
+<table width="600" style="max-width:600px;width:100%;">
+  <tr>
+    <td class="stack" width="50%">
+      <div style="padding:20px 40px;">Column 1</div>
+    </td>
+    <td class="stack" width="50%">
+      <div style="padding:20px 40px;">Column 2</div>
+    </td>
+  </tr>
+</table>
+```
+
+Works in every client. The cell is fluid; the inner `<div>` carries the padding without inflating the cell's box. This is the canonical fix.
+
+### Fix 2 — `calc()` to subtract padding from width
+
+If you must keep padding on the cell, subtract it explicitly:
+
+```html
+<style>
+  @media only screen and (max-width: 600px) {
+    .stack {
+      width: calc(100% - 80px) !important;
+      display: block !important;
+    }
+  }
+</style>
+```
+
+Brittle — you have to recompute every time padding changes, and `calc()` is fine in modern clients but inconsistent in older ones. Use Fix 1 when you can.
+
+<Aside type="caution" title="Don't reach for box-sizing">
+`box-sizing: border-box` would also fix this but isn't reliable in Outlook desktop. Stick with the inner-wrapper pattern.
+</Aside>
 
 ## Test matrix
 

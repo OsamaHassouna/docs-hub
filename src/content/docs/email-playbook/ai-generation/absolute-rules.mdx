@@ -1,0 +1,58 @@
+---
+title: Absolute Rules
+description: Hard constraints any AI agent or generator should follow when emitting playbook-compliant HTML. Use only documented patterns; never fall back to general training-data instincts.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+These rules apply to any system that generates HTML email from this playbook — an AI model with the MCP tools attached, a CLI scaffolder, a Gemini-powered image-to-email flow, or a future visual editor. They sit above the engineering rules in the rest of the playbook.
+
+## Use only documented patterns
+
+The playbook is the complete specification. Don't apply general HTML/email knowledge from training data, blog posts, or framework conventions.
+
+- If a specific pattern is covered here, use it verbatim. Don't paraphrase, don't substitute.
+- If a pattern isn't covered, fall back to the simplest valid table: `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">`. Don't invent new approaches.
+- Modern layout primitives (`flex`, `grid`, `float`) are forbidden. Tables only.
+
+## Reproduce only what's in the source
+
+For image-to-email generation, the source image is authoritative. Don't extend it.
+
+- **No invented footers.** No sender address ("This email was sent to you because…"), no unsubscribe link, no copyright line, no social-media row — unless they are clearly visible in the source.
+- **No invented content.** No taglines, no recipient data, no brand names, no URLs that aren't shown in the source.
+- **Preserve every visual container.** If the source shows a colored panel, callout box, card, or background section, recreate it with the matching color and structure. Don't drop them as "decorative".
+- **Preserve every section, in order.** If the source ends at a closing paragraph, the generated email ends at that closing paragraph. Don't add a "see also" or "best regards" line that isn't in the source.
+
+## Use placeholder images for every image
+
+Every `<img>` in the generated output gets a `placehold.co` placeholder. Don't link to external image hosts, don't try to reproduce the visual content from the source, don't invent CDN URLs.
+
+```
+https://placehold.co/{W}x{H}/E0E0E0/E0E0E0
+```
+
+Match `{W}` and `{H}` to the pixel dimensions visible in the source. Always include `width`, `height`, and descriptive `alt` text. See [Image Placeholders](/email-playbook/ai-generation/image-placeholders/) for the full pattern.
+
+## Use the 3-table-level wrapper
+
+Every generated email starts with the [3-table-level hybrid wrapper](/email-playbook/compatibility/responsive/): outer `width="100%"` → container `max-width:600px;width:100%` (with an [MSO ghost-table](/email-playbook/compatibility/outlook/) for Outlook) → inner tables `width="100%"`.
+
+The most common failure mode is hardcoding `width="600"` on inner tables. Don't.
+
+## Output format
+
+The output is a single complete HTML document, no markdown fences, no commentary, no explanations. See [Output Format](/email-playbook/ai-generation/output-format/).
+
+If the source isn't actually an email design (a random photo, a screenshot of code, a logo by itself), return the documented error response shape instead of trying to generate.
+
+<Aside type="caution" title="The model is not the source of truth">
+When you encounter a conflict between what looks visually convenient and what the playbook says, the playbook wins. The whole point of pulling the playbook into the loop is to overrule training-data instincts that produce broken email HTML.
+</Aside>
+
+## Related
+
+- [Image Placeholders](/email-playbook/ai-generation/image-placeholders/) — the `placehold.co` URL contract
+- [Output Format](/email-playbook/ai-generation/output-format/) — HTML-only output, error response shape
+- [Responsive](/email-playbook/compatibility/responsive/) — the 3-table-level wrapper
+- [Outlook & MSO](/email-playbook/compatibility/outlook/) — MSO ghost-table

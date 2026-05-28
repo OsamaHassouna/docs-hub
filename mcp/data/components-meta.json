@@ -28,5 +28,11 @@
     "slots": ["font_family", "font_size_px", "line_height_px", "color", "body_text"],
     "requires_vml": false,
     "responsive": true
+  },
+  "inline-icon": {
+    "category": "media",
+    "slots": ["src", "alt", "width_px", "height_px", "margin_side"],
+    "requires_vml": false,
+    "responsive": true
   }
 }
