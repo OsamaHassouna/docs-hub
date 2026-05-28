@@ -3,6 +3,8 @@
 Living plan for evolving the docs-hub Email Playbook tooling.
 Last updated: 2026-05-28.
 
+**Status:** Phase 1 SHIPPED 2026-05-28. Phase 2 is next.
+
 ---
 
 ## Vision
@@ -11,9 +13,9 @@ Cover every angle of email creation:
 
 1. **Docs** (shipped 2026-05-22) — learn how to build emails
 2. **Playground** (shipped 2026-05-26) — code-first sandbox with live preview
-3. **Image to Email** (Phase 1) — paste/upload screenshot, get playbook-compliant HTML
-4. **CLI / MCP** (Phase 2) — AI clients consume the playbook as structured rules to build emails
-5. **Visual Editor** (Phase 3) — full form-driven section/row/component builder
+3. **Image to Email** (**SHIPPED 2026-05-28**) — paste/upload screenshot, get playbook-compliant HTML
+4. **CLI / MCP** (Phase 2 — next) — AI clients consume the playbook as structured rules to build emails
+5. **Visual Editor** (Phase 3 — gated on usage) — full form-driven section/row/component builder
 
 The 4 surfaces give docs + playground + AI assist + non-tech UI = every entry point covered.
 
@@ -33,11 +35,28 @@ The 4 surfaces give docs + playground + AI assist + non-tech UI = every entry po
 
 ---
 
-## Phase 1 — Image to Email
+## Phase 1 — Image to Email — SHIPPED 2026-05-28
 
 **Goal:** User pastes/uploads an image of an email design. System returns playbook-compliant HTML. Result drops into the existing Playground editor.
 
-**Estimated effort:** 2-4 focused days.
+**Actual effort:** ~1 day (7 steps + 7 sub-agent reviews + 4 post-ship polish cycles).
+
+**Live at:** https://docs.osamahassouna.com/email-playbook/playground/ "From Image" tab.
+
+**Shipped commits:** `bddba1a..720d444` on `main`. Full details + gotchas in `memory/project_docs_hub.md`.
+
+**Lessons applied / learned during ship** (see also `memory/feedback_verify_before_deploy.md`):
+- Astro 6 dropped `output: 'hybrid'`. Use default `output: 'static'` + `adapter: vercel()`, opt routes into SSR via `export const prerender = false`.
+- Starlight 0.32+ renamed sidebar wrapper class from `.sl-sidebar-content` to `.sidebar-content`. All my custom sidebar CSS using the old name had been dead since scaffold — verify rendered DOM, don't trust prior code.
+- Starlight `[hidden]` is overridden by `display: flex` on children — add scoped `[hidden] { display: none !important; }`.
+- Starlight `attrs: { 'data-locked': 'true' }` didn't reach the rendered `<a>` in 0.39. Use href-based selectors instead.
+- Starlight `badge` "default" variant inherits the theme accent color (became an amber pill here). Use `::after` pseudo for icons instead of badges.
+- `@vercel/kv` is being deprecated. Use `@upstash/redis` directly; env vars are still `KV_REST_API_URL` / `KV_REST_API_TOKEN`. Marketplace Upstash + `us-east-1` to match Vercel Hobby SSR `iad1`.
+- Gemini hardcodes `width="600"` on inner tables unless mobile-responsive is a CRITICAL section in the prompt. The right shape is OUTER `width="100%"` → CONTAINER `width="600" max-width:600px;width:100%` → INNER `width="100%"`.
+- Gemini invents footers/sender-lines unless told CRITICALLY: reproduce ONLY content visible in the source.
+- Use `placehold.co/{W}x{H}/E0E0E0/E0E0E0` solid color blocks (no `?text=` param) for image placeholders so small icons don't show garbled text.
+- Hide the AI provider name in every user-facing string (status, errors, page copy). Internal type names are fine.
+- **NEW STANDING RULE:** verify visual/CSS changes locally with curl-rendered-DOM + headless Chrome screenshot BEFORE `git push`. Build-clean is not enough.
 
 ### Steps
 
