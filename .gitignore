@@ -27,6 +27,15 @@ __screenshots__/
 # Local scratch (probes, test renders, hand-assembled emails)
 __scratch__/
 
+# Internal planning / session notes (private to working dir, not for public repo)
+PLAN_*.md
+PLAN.md
+*_PLAN.md
+HANDOFF*.md
+ROADMAP.md
+NOTES.md
+.session/
+
 # npm pack tarballs
 *.tgz
 
