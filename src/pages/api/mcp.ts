@@ -15,6 +15,19 @@ const SERVER_INFO = { name: 'email-playbook', version: MCP_PKG.version };
 const SPEC_VERSION = PLAYBOOK_SPEC.version;
 const PROTOCOL_VERSION = '2024-11-05';
 
+const CORS_HEADERS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  'Access-Control-Max-Age': '86400',
+};
+
+const JSON_HEADERS = {
+  'Content-Type': 'application/json',
+  'Cache-Control': 'no-store',
+  ...CORS_HEADERS,
+};
+
 interface JsonRpcRequest {
   jsonrpc?: '2.0';
   id?: number | string | null;
@@ -25,17 +38,14 @@ interface JsonRpcRequest {
 function jsonRpcResult(id: unknown, result: unknown): Response {
   return new Response(
     JSON.stringify({ jsonrpc: '2.0', id: id ?? null, result }),
-    { status: 200, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' } },
+    { status: 200, headers: JSON_HEADERS },
   );
 }
 
 function jsonRpcError(id: unknown, code: number, message: string, data?: unknown): Response {
   const body: Record<string, unknown> = { jsonrpc: '2.0', id: id ?? null, error: { code, message } };
   if (data !== undefined) (body.error as Record<string, unknown>).data = data;
-  return new Response(JSON.stringify(body), {
-    status: 200,
-    headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
-  });
+  return new Response(JSON.stringify(body), { status: 200, headers: JSON_HEADERS });
 }
 
 function infoResponse(): Response {
@@ -48,9 +58,14 @@ function infoResponse(): Response {
       methods: ['initialize', 'tools/list', 'tools/call'],
       docs: 'https://docs.osamahassouna.com/email-playbook/cli/',
     }, null, 2),
-    { status: 200, headers: { 'Content-Type': 'application/json' } },
+    { status: 200, headers: { 'Content-Type': 'application/json', ...CORS_HEADERS } },
   );
 }
+
+// Browser-based MCP clients send a CORS preflight before POSTing. Without
+// an explicit OPTIONS handler Astro returns 404.
+export const OPTIONS: APIRoute = () =>
+  new Response(null, { status: 204, headers: CORS_HEADERS });
 
 export const GET: APIRoute = () => infoResponse();
 
@@ -59,13 +74,13 @@ export const POST: APIRoute = async ({ request }) => {
   try {
     body = (await request.json()) as JsonRpcRequest;
   } catch {
-    return jsonRpcError(null, -32700, 'Parse error: body must be JSON-RPC 2.0.');
+    return jsonRpcError(null, -32700, 'Parse error: body must be valid JSON.');
   }
 
   const { id = null, method, params } = body;
 
-  if (!method || typeof method !== 'string') {
-    return jsonRpcError(id, -32600, 'Invalid request: missing method.');
+  if (typeof method !== 'string' || method.length === 0) {
+    return jsonRpcError(id, -32600, 'Invalid request: method must be a non-empty string.');
   }
 
   switch (method) {

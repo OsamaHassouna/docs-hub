@@ -1,6 +1,6 @@
 {
   "name": "email-playbook-mcp",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "MCP server and CLI exposing HTML email template rules for AI: Outlook/MSO, VML buttons, RTL, responsive tables, Gmail clipping, dark mode, and placeholders.",
   "type": "module",
   "bin": {

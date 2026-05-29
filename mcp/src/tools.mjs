@@ -105,6 +105,13 @@ export function getTools() {
   ];
 }
 
+// Cap user-supplied strings echoed in error messages so a 10kB
+// adversarial input doesn't bloat logs or response bodies.
+function trunc(s, n = 80) {
+  const str = String(s);
+  return str.length <= n ? str : `${str.slice(0, n)}…`;
+}
+
 /**
  * Execute a tool. Returns a JSON-serializable result.
  * Throws on unknown tool or invalid arguments.
@@ -118,11 +125,13 @@ export async function runTool(name, args = {}) {
 
     case 'get_playbook_rules': {
       const category = args?.category;
-      if (!category) throw new Error("Argument 'category' is required.");
+      if (typeof category !== 'string' || category.length === 0) {
+        throw new Error("Argument 'category' must be a non-empty string.");
+      }
       const rules = spec.rules.filter(r => r.category === category);
       if (rules.length === 0) {
         throw new Error(
-          `No rules found for category '${category}'. Available: ${Array.from(new Set(spec.rules.map(r => r.category))).join(', ')}.`,
+          `No rules found for category '${trunc(category)}'. Available: ${Array.from(new Set(spec.rules.map(r => r.category))).join(', ')}.`,
         );
       }
       return rules;
@@ -140,17 +149,19 @@ export async function runTool(name, args = {}) {
 
     case 'get_component': {
       const compName = args?.name;
-      if (!compName) throw new Error("Argument 'name' is required.");
+      if (typeof compName !== 'string' || compName.length === 0) {
+        throw new Error("Argument 'name' must be a non-empty string.");
+      }
       const comp = spec.components.find(c => c.name === compName);
       if (!comp) {
         throw new Error(
-          `Unknown component '${compName}'. Available: ${spec.components.map(c => c.name).join(', ')}.`,
+          `Unknown component '${trunc(compName)}'. Available: ${spec.components.map(c => c.name).join(', ')}.`,
         );
       }
       return comp;
     }
 
     default:
-      throw new Error(`Unknown tool '${name}'. Call tools/list to discover.`);
+      throw new Error(`Unknown tool '${trunc(name)}'. Call tools/list to discover.`);
   }
 }

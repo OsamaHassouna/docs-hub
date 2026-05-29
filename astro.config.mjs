@@ -6,6 +6,11 @@ import vercel from '@astrojs/vercel';
 export default defineConfig({
 	site: 'https://docs.osamahassouna.com',
 	adapter: vercel(),
+	// The /api/mcp JSON-RPC endpoint must accept POSTs from any origin / any
+	// Content-Type (MCP clients vary). Site has no traditional forms — Astro's
+	// CSRF check would only block legit MCP traffic that forgets to set
+	// Content-Type: application/json.
+	security: { checkOrigin: false },
 	integrations: [
 		starlight({
 			title: 'Osama Hassouna',
