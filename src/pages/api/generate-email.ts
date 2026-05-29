@@ -18,10 +18,16 @@ const DAILY_LIMIT_GLOBAL = Number(process.env.GENERATE_DAILY_LIMIT_GLOBAL ?? '20
 const QUOTA_TTL_SECONDS = 60 * 60 * 26;
 
 function clientIpHash(request: Request): string {
-  const fwd = request.headers.get('x-forwarded-for') ?? '';
-  const real = request.headers.get('x-real-ip') ?? '';
+  // Prefer Vercel's authoritative client-IP header — `x-forwarded-for` is
+  // client-spoofable on the way in, so reading [0] of it would happily quota
+  // an attacker's claimed IP instead of the real one.
   const vercel = request.headers.get('x-vercel-forwarded-for') ?? '';
-  const raw = (fwd.split(',')[0] || real || vercel || 'unknown').trim();
+  const real = request.headers.get('x-real-ip') ?? '';
+  const fwd = request.headers.get('x-forwarded-for') ?? '';
+  // From `x-forwarded-for`, the rightmost value is the closest upstream proxy
+  // (Vercel's edge in our case) — much harder to spoof than [0].
+  const fwdLast = fwd.split(',').map(s => s.trim()).filter(Boolean).pop() ?? '';
+  const raw = (vercel || real || fwdLast || 'unknown').trim();
   return createHash('sha256').update(raw).digest('hex').slice(0, 16);
 }
 
@@ -153,22 +159,26 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   // ── Quota gate (per-IP + global daily) ───────────────────────
+  // Reserve quota BEFORE the provider call so a request that reaches Gemini
+  // always consumes a slot, even if the response fails downstream validation
+  // (otherwise an attacker can spam invalid inputs that burn provider cost
+  // without ever filling the bucket).
   const redis = getRedis();
+  const date = todayDate();
+  const ipHash = clientIpHash(request);
+  const ipKey = `quota:ip:${ipHash}:${date}`;
+  const globalKey = `quota:global:${date}`;
+
   if (redis) {
-    const date = todayDate();
-    const ipHash = clientIpHash(request);
-    const ipKey = `quota:ip:${ipHash}:${date}`;
-    const globalKey = `quota:global:${date}`;
-
     try {
-      const [ipUsedRaw, globalUsedRaw] = await Promise.all([
-        redis.get(ipKey),
-        redis.get(globalKey),
-      ]);
-      const ipUsed = Number(ipUsedRaw ?? 0);
-      const globalUsed = Number(globalUsedRaw ?? 0);
+      // Atomic increment-and-check: the INCR result IS the new value, so two
+      // concurrent requests get distinct counts. Increment IP first; if the
+      // global cap rejects after, refund the IP since the system cap isn't
+      // the caller's fault.
+      const ipNewCount = await redis.incr(ipKey);
+      await redis.expire(ipKey, QUOTA_TTL_SECONDS).catch(() => {});
 
-      if (ipUsed >= DAILY_LIMIT_PER_IP) {
+      if (ipNewCount > DAILY_LIMIT_PER_IP) {
         return jsonResponse(
           {
             error: `Daily limit reached for this client (${DAILY_LIMIT_PER_IP}/day). Try again tomorrow.`,
@@ -178,7 +188,13 @@ export const POST: APIRoute = async ({ request }) => {
           429,
         );
       }
-      if (globalUsed >= DAILY_LIMIT_GLOBAL) {
+
+      const globalNewCount = await redis.incr(globalKey);
+      await redis.expire(globalKey, QUOTA_TTL_SECONDS).catch(() => {});
+
+      if (globalNewCount > DAILY_LIMIT_GLOBAL) {
+        // Refund the IP — caller didn't get to make a real request.
+        await redis.decr(ipKey).catch(() => {});
         return jsonResponse(
           {
             error: `Service has reached its daily total cap. Try again tomorrow.`,
@@ -189,7 +205,7 @@ export const POST: APIRoute = async ({ request }) => {
         );
       }
     } catch {
-      /* if KV read fails, fail open — never block on infrastructure errors */
+      /* if KV fails, fail open — never block on infrastructure errors */
     }
   }
 
@@ -274,18 +290,11 @@ export const POST: APIRoute = async ({ request }) => {
 
   const generationId = `gen-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
 
+  // Quota counters were already charged before the provider call. Bump only
+  // the success-stats counter here so the stats dashboard reflects actually
+  // successful generations, not raw attempts.
   if (redis) {
-    const date = todayDate();
-    const ipHash = clientIpHash(request);
-    Promise.all([
-      redis.incr(todayKey()),
-      redis.incr(`quota:ip:${ipHash}:${date}`).then(() =>
-        redis.expire(`quota:ip:${ipHash}:${date}`, QUOTA_TTL_SECONDS),
-      ),
-      redis.incr(`quota:global:${date}`).then(() =>
-        redis.expire(`quota:global:${date}`, QUOTA_TTL_SECONDS),
-      ),
-    ]).catch(() => { /* counter writes are best-effort */ });
+    redis.incr(todayKey()).catch(() => { /* best-effort */ });
   }
 
   return jsonResponse({ html: cleaned, attempts, generation_id: generationId }, 200);

@@ -93,20 +93,22 @@ npx -y -p email-playbook-mcp email-playbook list-categories
 
 | Tool | Returns |
 |------|---------|
-| `list_categories` | The 5 playbook categories with page counts |
+| `list_categories` | The 4 rule categories with page counts |
 | `get_playbook_rules({ category })` | All rules in one category (text + code) |
-| `list_components` | All components with metadata |
+| `list_components` | All 6 components with metadata |
 | `get_component({ name })` | One component: HTML pattern, slots, VML/responsive flags |
+
+Components live in a separate dimension — use `list_components` / `get_component`, not `get_playbook_rules`.
 
 ## What's in the playbook
 
-| Category | Pages | Covers |
-|----------|-------|--------|
-| `structure` | 5 | Doctype, head, body container, header, body, footer |
-| `components` | 6 | Buttons, spacing, images, inline icons, background images, text |
-| `compatibility` | 3 | Outlook MSO, RTL languages, responsive |
-| `production` | 4 | Gmail 102KB clip, dark mode, preheader, bulletproof buttons |
-| `ai-generation` | 7 | Absolute rules, asset policy, content fidelity, image placeholders, link tokens, output format, handoff checklist |
+| Surface | Count | Covers |
+|---------|-------|--------|
+| `structure` (rules) | 5 | Doctype, head, body container, header, body, footer |
+| `compatibility` (rules) | 3 | Outlook MSO, RTL languages, responsive |
+| `production` (rules) | 4 | Gmail 102KB clip, dark mode, preheader, bulletproof buttons |
+| `ai-generation` (rules) | 7 | Absolute rules, asset policy, content fidelity, image placeholders, link tokens, output format, handoff checklist |
+| Components | 6 | Buttons, spacing, images, inline icons, background images, text |
 
 The `ai-generation` category is the one to fetch first for image-to-email tasks. It encodes rules that override training-data instincts — use `{{cta_url}}` not `https://example.com`, reproduce only what's in the source, use `placehold.co` for every image, return HTML only.
 

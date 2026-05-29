@@ -21,12 +21,12 @@ Four tools. All read-only, all deterministic, all serving the same content you r
 
 | Tool | What it returns |
 |---|---|
-| `list_categories` | The four rule categories (structure, components, compatibility, production) with page counts. |
+| `list_categories` | The four rule categories (structure, compatibility, production, ai-generation) with page counts. |
 | `get_playbook_rules` | Full rule pages for a category — title, description, body, all code examples. |
-| `list_components` | All components (button, spacer, image, background-image, text) with metadata: subcategory, VML flag, responsive flag. |
+| `list_components` | All six components (buttons, spacing, images, inline-icon, background-images, text) with metadata: subcategory, VML flag, responsive flag. |
 | `get_component` | Full record for one component — title, description, narrative, HTML pattern, slots, examples. |
 
-The model uses these to discover and quote the exact playbook patterns instead of hallucinating its own table layout from training data.
+The model uses these to discover and quote the exact playbook patterns instead of hallucinating its own table layout from training data. Components live in their own dimension — use `list_components` / `get_component`, not `get_playbook_rules`.
 
 ## Local install (recommended)
 
