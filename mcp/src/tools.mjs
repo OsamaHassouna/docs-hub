@@ -14,6 +14,13 @@ const SPEC_PATH = join(__dirname, '..', 'data', 'playbook-spec.json');
 
 let cachedSpec = null;
 
+// Prime the spec cache from a pre-loaded object. Used by the hosted Astro
+// endpoint, where Vercel's bundler inlines the JSON import but won't ship
+// the source `data/` folder next to the bundled chunk for fs reads.
+export function setSpec(spec) {
+  cachedSpec = spec;
+}
+
 export function loadSpec() {
   if (cachedSpec) return cachedSpec;
   cachedSpec = JSON.parse(readFileSync(SPEC_PATH, 'utf8'));

@@ -1,10 +1,15 @@
 import type { APIRoute } from 'astro';
 // @ts-expect-error  JS module sibling of the published mcp package
-import { getTools, runTool } from '../../../mcp/src/tools.mjs';
+import { getTools, runTool, setSpec } from '../../../mcp/src/tools.mjs';
 import MCP_PKG from '../../../mcp/package.json';
 import PLAYBOOK_SPEC from '../../../mcp/data/playbook-spec.json';
 
 export const prerender = false;
+
+// Prime the shared tools.mjs spec cache from the bundler-inlined JSON so
+// the hosted endpoint never falls back to readFileSync (which ENOENTs on
+// Vercel because the source `data/` folder isn't shipped next to chunks).
+setSpec(PLAYBOOK_SPEC);
 
 const SERVER_INFO = { name: 'email-playbook', version: MCP_PKG.version };
 const SPEC_VERSION = PLAYBOOK_SPEC.version;
