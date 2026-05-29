@@ -41,6 +41,32 @@ export default defineConfig({
 					tag: 'script',
 					attrs: { defer: true, src: '/_vercel/insights/script.js' },
 				},
+				// Default social-card image. Per-page frontmatter can override
+				// via Starlight's `head` block if a page wants its own image.
+				{
+					tag: 'meta',
+					attrs: { property: 'og:image', content: 'https://docs.osamahassouna.com/og-default.png' },
+				},
+				{
+					tag: 'meta',
+					attrs: { property: 'og:image:width', content: '1200' },
+				},
+				{
+					tag: 'meta',
+					attrs: { property: 'og:image:height', content: '630' },
+				},
+				{
+					tag: 'meta',
+					attrs: { property: 'og:image:alt', content: 'HTML Email Playbook — MCP server + CLI that teaches AI to write email that renders in Outlook and Gmail' },
+				},
+				{
+					tag: 'meta',
+					attrs: { name: 'twitter:card', content: 'summary_large_image' },
+				},
+				{
+					tag: 'meta',
+					attrs: { name: 'twitter:image', content: 'https://docs.osamahassouna.com/og-default.png' },
+				},
 			],
 			customCss: [
 				'./src/styles/fonts.css',

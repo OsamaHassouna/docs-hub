@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0E0D0B"/>
+      <stop offset="100%" stop-color="#16140F"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#E68A2E"/>
+      <stop offset="100%" stop-color="#F2B95A"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#bg)"/>
+
+  <!-- subtle grid -->
+  <g stroke="#1A1815" stroke-width="1" opacity="0.6">
+    <line x1="0" y1="120" x2="1200" y2="120"/>
+    <line x1="0" y1="510" x2="1200" y2="510"/>
+  </g>
+
+  <!-- header strip -->
+  <text x="80" y="92" font-family="JetBrains Mono, ui-monospace, Menlo, monospace" font-size="20" fill="#9C9485" letter-spacing="2">
+    DOCS.OSAMAHASSOUNA.COM
+  </text>
+
+  <!-- accent bar -->
+  <rect x="80" y="170" width="64" height="6" fill="url(#accent)" rx="2"/>
+
+  <!-- main title -->
+  <text x="80" y="260" font-family="system-ui, -apple-system, Segoe UI, sans-serif" font-size="80" font-weight="700" fill="#F4EFE6">
+    HTML Email Playbook
+  </text>
+
+  <!-- subtitle line 1 -->
+  <text x="80" y="340" font-family="system-ui, -apple-system, Segoe UI, sans-serif" font-size="32" font-weight="400" fill="#C9C0B0">
+    MCP server + CLI that teaches Claude, Cursor,
+  </text>
+  <text x="80" y="382" font-family="system-ui, -apple-system, Segoe UI, sans-serif" font-size="32" font-weight="400" fill="#C9C0B0">
+    and Cline to write HTML email that actually
+  </text>
+  <text x="80" y="424" font-family="system-ui, -apple-system, Segoe UI, sans-serif" font-size="32" font-weight="400" fill="#C9C0B0">
+    renders in Outlook + Gmail.
+  </text>
+
+  <!-- footer chips -->
+  <g font-family="JetBrains Mono, ui-monospace, Menlo, monospace" font-size="22">
+    <rect x="80" y="540" width="200" height="44" rx="6" fill="#1A1815" stroke="#2A2724" stroke-width="1"/>
+    <text x="180" y="570" text-anchor="middle" fill="#E68A2E">npm install</text>
+
+    <rect x="300" y="540" width="280" height="44" rx="6" fill="#1A1815" stroke="#2A2724" stroke-width="1"/>
+    <text x="440" y="570" text-anchor="middle" fill="#F4EFE6">email-playbook-mcp</text>
+
+    <rect x="600" y="540" width="220" height="44" rx="6" fill="#1A1815" stroke="#2A2724" stroke-width="1"/>
+    <text x="710" y="570" text-anchor="middle" fill="#9C9485">19 rules · 6 cmps</text>
+  </g>
+</svg>

@@ -1,0 +1,59 @@
+# Engineering Hub by Osama Hassouna
+
+> Production-grade specs that turn AI clients into competent collaborators. First guide: the HTML Email Playbook + an MCP server / CLI that teaches AI clients (Claude Desktop, Cursor, Cline, Codex) to write HTML email that actually renders in Outlook, Gmail, and Apple Mail.
+
+## Email Playbook
+
+- [Overview](https://docs.osamahassouna.com/email-playbook/): What this playbook is and how to use it.
+- [Getting Started](https://docs.osamahassouna.com/email-playbook/getting-started/): Quick orientation for first-time readers.
+- [AI Integration (MCP + CLI)](https://docs.osamahassouna.com/email-playbook/cli/): Install the email-playbook-mcp server in any MCP client, use the terminal CLI, or call the hosted JSON-RPC endpoint directly.
+- [Playground](https://docs.osamahassouna.com/email-playbook/playground/): Live image-to-email demo. Drop a design screenshot, get production HTML back.
+- [Builder](https://docs.osamahassouna.com/email-playbook/builder/): Interactive builder using playbook components.
+- [Templates](https://docs.osamahassouna.com/email-playbook/templates/): Pre-built playbook-compliant templates.
+
+## Rules (4 categories, 19 pages)
+
+### Structure (5 pages)
+- [Head](https://docs.osamahassouna.com/email-playbook/structure/head/): Doctype, meta, head includes.
+- [Body Container](https://docs.osamahassouna.com/email-playbook/structure/body-container/): Outer table container pattern.
+- [Header](https://docs.osamahassouna.com/email-playbook/structure/header/): Brand row, logo placement.
+- [Body](https://docs.osamahassouna.com/email-playbook/structure/body/): Content area layout.
+- [Footer](https://docs.osamahassouna.com/email-playbook/structure/footer/): Address, unsubscribe, links.
+
+### Compatibility (3 pages)
+- [Outlook & MSO](https://docs.osamahassouna.com/email-playbook/compatibility/outlook/): MSO conditional comments and the Word rendering engine.
+- [RTL Support](https://docs.osamahassouna.com/email-playbook/compatibility/rtl/): Bidirectional layout for Arabic, Hebrew, Persian.
+- [Responsive](https://docs.osamahassouna.com/email-playbook/compatibility/responsive/): Mobile-first techniques and fallbacks.
+
+### Production (4 pages)
+- [Gmail 102KB Clipping](https://docs.osamahassouna.com/email-playbook/production/gmail-clipping/): Stay under the clip threshold.
+- [Dark Mode](https://docs.osamahassouna.com/email-playbook/production/dark-mode/): Inverted-color rendering across clients.
+- [Preheader Text](https://docs.osamahassouna.com/email-playbook/production/preheader/): The invisible-but-indexed preview text.
+- [Bulletproof Buttons](https://docs.osamahassouna.com/email-playbook/production/bulletproof-buttons/): VML-fallback CTAs that survive Outlook.
+
+### AI Generation (7 pages)
+- [Absolute Rules](https://docs.osamahassouna.com/email-playbook/ai-generation/absolute-rules/): Hard constraints any AI emitter follows.
+- [Asset Policy](https://docs.osamahassouna.com/email-playbook/ai-generation/asset-policy/): No foreign images, explicit placeholders.
+- [Content Fidelity](https://docs.osamahassouna.com/email-playbook/ai-generation/content-fidelity/): Reproduce only what's in the source.
+- [Image Placeholders](https://docs.osamahassouna.com/email-playbook/ai-generation/image-placeholders/): placehold.co conventions.
+- [Link Tokens](https://docs.osamahassouna.com/email-playbook/ai-generation/link-tokens/): {{cta_url}} pattern instead of fake hrefs.
+- [Output Format](https://docs.osamahassouna.com/email-playbook/ai-generation/output-format/): HTML only, no commentary.
+- [Handoff Checklist](https://docs.osamahassouna.com/email-playbook/ai-generation/handoff-checklist/): Manual verification before send.
+
+## Components (6)
+
+Components surface through `list_components` and `get_component` MCP tools, separate from the rule dimension.
+
+- [Buttons](https://docs.osamahassouna.com/email-playbook/components/buttons/): Bulletproof CTA pattern with VML fallback.
+- [Spacing](https://docs.osamahassouna.com/email-playbook/components/spacing/): Cross-client vertical spacing.
+- [Images](https://docs.osamahassouna.com/email-playbook/components/images/): Responsive image patterns.
+- [Inline Icons](https://docs.osamahassouna.com/email-playbook/components/inline-icon/): Small icons (phone, social).
+- [Background Images (VML)](https://docs.osamahassouna.com/email-playbook/components/background-images/): Outlook-safe backgrounds.
+- [Text](https://docs.osamahassouna.com/email-playbook/components/text/): Type, line-height, color.
+
+## Programmatic access
+
+- **npm package**: https://www.npmjs.com/package/email-playbook-mcp (`email-playbook-mcp` MCP server + `email-playbook` CLI)
+- **Hosted JSON-RPC endpoint**: https://docs.osamahassouna.com/api/mcp
+- **Source repository**: https://github.com/OsamaHassouna/docs-hub
+- **License**: MIT

@@ -3,16 +3,97 @@ title: AI Integration (MCP + CLI)
 description: Use the Email Playbook directly inside Claude Desktop, Cursor, your terminal, or any HTTP/JSON-RPC client. Three install paths from the same npm package.
 ---
 
-import { Aside } from '@astrojs/starlight/components';
+import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
 
 This playbook is published as an [MCP server](https://modelcontextprotocol.io/) + terminal CLI so AI clients and dev workflows can pull rules and components into whatever they're building. The model (or you) calls structured tools, you stay out of copy-paste hell, and the same rules ship to every surface.
 
+## Install in your client
+
+Pick your client and paste. The config uses `npx` so there's no global install step — `email-playbook-mcp@latest` is pulled on first launch and cached.
+
+<Tabs syncKey="mcp-client">
+<TabItem label="Claude Desktop">
+
+Edit `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
+
+```json
+{
+  "mcpServers": {
+    "email-playbook": {
+      "command": "npx",
+      "args": ["-y", "email-playbook-mcp@latest"]
+    }
+  }
+}
+```
+
+Restart Claude Desktop. The four tools appear in the model's tool list automatically.
+
+</TabItem>
+
+<TabItem label="Cursor">
+
+Edit `~/.cursor/mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "email-playbook": {
+      "command": "npx",
+      "args": ["-y", "email-playbook-mcp@latest"]
+    }
+  }
+}
+```
+
+Restart Cursor. Tools show up under the MCP panel.
+
+</TabItem>
+
+<TabItem label="Cline / Continue / Windsurf">
+
+Same shape, different file. Wherever the client stores MCP server config, add:
+
+```json
+{
+  "mcpServers": {
+    "email-playbook": {
+      "command": "npx",
+      "args": ["-y", "email-playbook-mcp@latest"]
+    }
+  }
+}
+```
+
+</TabItem>
+
+<TabItem label="Codex CLI">
+
+```bash
+codex mcp add email-playbook -- npx -y email-playbook-mcp@latest
+```
+
+</TabItem>
+
+<TabItem label="Hosted (no install)">
+
+Point any HTTP client at `https://docs.osamahassouna.com/api/mcp` for JSON-RPC 2.0. Useful for scripts, remote agents, or browser-based clients.
+
+```bash
+curl -X POST https://docs.osamahassouna.com/api/mcp \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
+```
+
+</TabItem>
+</Tabs>
+
 <Aside type="tip" title="Three install paths, one package">
-**MCP server (local)** — install the npm package, AI client spawns `email-playbook-mcp` via stdio. Works in Claude Desktop, Cursor, Cline, Continue, Windsurf.
+**MCP server (local)** — what the tabs above install. Client spawns `email-playbook-mcp` via stdio.
 
-**CLI (local)** — same package ships an `email-playbook` command for terminal use, piping, scripting.
+**CLI (local)** — the same npm package also ships an `email-playbook` terminal command for piping and scripting.
 
-**Hosted JSON-RPC** — point any HTTP client at `https://docs.osamahassouna.com/api/mcp`. No install. Useful for scripts or remote agents.
+**Hosted JSON-RPC** — no install at all. See the Hosted tab.
 </Aside>
 
 ## What it gives the model
@@ -27,48 +108,6 @@ Four tools. All read-only, all deterministic, all serving the same content you r
 | `get_component` | Full record for one component — title, description, narrative, HTML pattern, slots, examples. |
 
 The model uses these to discover and quote the exact playbook patterns instead of hallucinating its own table layout from training data. Components live in their own dimension — use `list_components` / `get_component`, not `get_playbook_rules`.
-
-## Local install (recommended)
-
-```bash
-npm install -g email-playbook-mcp
-```
-
-Then add it to your client config.
-
-### Claude Desktop
-
-Edit `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
-
-```json
-{
-  "mcpServers": {
-    "email-playbook": {
-      "command": "email-playbook-mcp"
-    }
-  }
-}
-```
-
-Restart Claude Desktop. The tools appear in the model's tool list automatically.
-
-### Cursor
-
-Edit `~/.cursor/mcp.json`:
-
-```json
-{
-  "mcpServers": {
-    "email-playbook": {
-      "command": "email-playbook-mcp"
-    }
-  }
-}
-```
-
-### Cline / Continue / Windsurf
-
-Same shape — point a `command` entry at `email-playbook-mcp` in the respective MCP config.
 
 ## CLI
 
