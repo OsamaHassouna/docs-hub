@@ -43,8 +43,9 @@ export function getTools() {
       name: 'list_categories',
       description:
         'List all rule categories in the Email Playbook with a one-line description and page count. ' +
-        'Categories are: structure (head/body container/header/body/footer), components (reusable blocks), ' +
-        'compatibility (Outlook MSO, RTL, responsive), production (Gmail clipping, dark mode, preheader, bulletproof buttons).',
+        'Categories are: structure (head/body container/header/body/footer), compatibility (Outlook MSO, RTL, responsive), ' +
+        'production (Gmail clipping, dark mode, preheader, bulletproof buttons), ai-generation (constraints for AI emitters). ' +
+        'For reusable components, use list_components instead — they live in a separate dimension and are not returned by get_playbook_rules.',
       inputSchema: {
         type: 'object',
         properties: {},

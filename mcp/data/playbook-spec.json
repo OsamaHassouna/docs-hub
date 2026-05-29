@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-05-28T21:55:08.630Z",
+  "generated_at": "2026-05-29T18:54:36.018Z",
   "source_url": "https://docs.osamahassouna.com/email-playbook/",
   "categories": [
     {
@@ -8,12 +8,6 @@
       "title": "Structure",
       "description": "Doctype, head, body container, header, body, and footer — the bones every email reuses.",
       "page_count": 5
-    },
-    {
-      "slug": "components",
-      "title": "Components",
-      "description": "Reusable building blocks. Spacing, images, background images, buttons, text, and inline icons.",
-      "page_count": 6
     },
     {
       "slug": "compatibility",

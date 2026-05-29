@@ -24,9 +24,12 @@ const SPEC_VERSION = '1.0.0';
 // Pages that are not content (landing/index/templates page/playground/builder).
 const SKIP_SLUGS = new Set(['index', 'getting-started', 'templates', 'playground', 'builder']);
 
+// Categories advertised by the MCP `list_categories` tool. Each one is a
+// surface that `get_playbook_rules` can fetch. Components live in their
+// own dimension (list_components / get_component) and intentionally don't
+// appear here, even though they share the components/ folder in docs.
 const CATEGORIES = [
   { slug: 'structure', title: 'Structure', description: 'Doctype, head, body container, header, body, and footer — the bones every email reuses.' },
-  { slug: 'components', title: 'Components', description: 'Reusable building blocks. Spacing, images, background images, buttons, text, and inline icons.' },
   { slug: 'compatibility', title: 'Compatibility', description: 'Where email engines diverge: Outlook MSO, RTL languages, mobile responsive.' },
   { slug: 'production', title: 'Production', description: 'Pre-send checks: Gmail 102KB clip, dark mode, preheader text, bulletproof CTAs.' },
   { slug: 'ai-generation', title: 'AI Generation', description: 'Hard constraints any AI generator follows when emitting playbook-compliant HTML — content fidelity, image placeholders, output format, absolute rules.' },
@@ -158,7 +161,7 @@ function build() {
 
   const categories = CATEGORIES.map(c => ({
     ...c,
-    page_count: c.slug === 'components' ? components.length : rules.filter(r => r.category === c.slug).length,
+    page_count: rules.filter(r => r.category === c.slug).length,
   }));
 
   const spec = {
