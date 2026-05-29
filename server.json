@@ -1,0 +1,31 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.OsamaHassouna/email-playbook-mcp",
+  "title": "HTML Email Playbook",
+  "description": "MCP server + CLI that teaches AI clients (Claude Desktop, Cursor, Cline, Codex) how to write HTML email that actually renders in Outlook, Gmail, and Apple Mail. Four tools, 19 rules across structure, compatibility, production, and AI generation, plus 6 reusable components.",
+  "version": "0.6.1",
+  "repository": {
+    "url": "https://github.com/OsamaHassouna/docs-hub",
+    "source": "github",
+    "subfolder": "mcp"
+  },
+  "websiteUrl": "https://docs.osamahassouna.com/email-playbook/",
+  "packages": [
+    {
+      "registryType": "npm",
+      "registryBaseUrl": "https://registry.npmjs.org",
+      "identifier": "email-playbook-mcp",
+      "version": "0.6.1",
+      "transport": {
+        "type": "stdio"
+      },
+      "runtimeHint": "npx"
+    }
+  ],
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://docs.osamahassouna.com/api/mcp"
+    }
+  ]
+}
