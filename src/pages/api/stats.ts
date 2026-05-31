@@ -57,5 +57,26 @@ export const GET: APIRoute = async ({ url }) => {
   }));
   const total = daily.reduce((sum, d) => sum + d.count, 0);
 
-  return jsonResponse({ days, total, daily }, 200);
+  // MCP tool-call counters (MCP-001). Best-effort: if these reads fail we
+  // still return the generate-email daily series rather than erroring.
+  const today = new Date().toISOString().slice(0, 10);
+  let mcp: Record<string, unknown>;
+  try {
+    const [callsTotal, callsToday, toolsTotal, toolsToday] = await Promise.all([
+      redis.get<number>('mcp:calls:total'),
+      redis.get<number>(`mcp:calls:${today}`),
+      redis.hgetall<Record<string, number>>('mcp:tools:total'),
+      redis.hgetall<Record<string, number>>(`mcp:tools:${today}`),
+    ]);
+    mcp = {
+      calls_total: Number(callsTotal ?? 0),
+      calls_today: Number(callsToday ?? 0),
+      tools_total: toolsTotal ?? {},
+      tools_today: toolsToday ?? {},
+    };
+  } catch {
+    mcp = { error: 'mcp counters unavailable' };
+  }
+
+  return jsonResponse({ days, total, daily, mcp }, 200);
 };

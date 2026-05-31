@@ -3,8 +3,38 @@ import type { APIRoute } from 'astro';
 import { getTools, runTool, setSpec } from '../../../mcp/src/tools.mjs';
 import MCP_PKG from '../../../mcp/package.json';
 import PLAYBOOK_SPEC from '../../../mcp/data/playbook-spec.json';
+import { getRedis } from '../../lib/kv';
 
 export const prerender = false;
+
+// ── Privacy-friendly tool-call counters (MCP-001) ───────────────────
+// The only adoption signal bots can't fake. We store nothing but the tool
+// name (our own enum) and per-day totals — no IP, no args, no PII. Mirrors
+// the gen:* counter style in generate-email.ts (INCR + dated-key expiry).
+// Fails open: a counter error must never break a tool call.
+async function countToolCall(toolName: string): Promise<void> {
+  try {
+    const redis = getRedis();
+    if (!redis) return;
+    const today = new Date().toISOString().slice(0, 10);
+    const dayKey = `mcp:calls:${today}`;
+    const toolDayKey = `mcp:tools:${today}`;
+    const [dayCount] = await Promise.all([
+      redis.incr(dayKey),
+      redis.incr('mcp:calls:total'),
+      redis.hincrby(toolDayKey, toolName, 1),
+      redis.hincrby('mcp:tools:total', toolName, 1),
+    ]);
+    if (dayCount === 1) {
+      await Promise.all([
+        redis.expire(dayKey, 60 * 60 * 24 * 32),
+        redis.expire(toolDayKey, 60 * 60 * 24 * 32),
+      ]);
+    }
+  } catch {
+    // swallow — never block a tool call on counter failure
+  }
+}
 
 // Prime the shared tools.mjs spec cache from the bundler-inlined JSON so
 // the hosted endpoint never falls back to readFileSync (which ENOENTs on
@@ -102,6 +132,7 @@ export const POST: APIRoute = async ({ request }) => {
       }
       try {
         const result = await runTool(name, args ?? {});
+        await countToolCall(name);
         return jsonRpcResult(id, {
           content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
         });
