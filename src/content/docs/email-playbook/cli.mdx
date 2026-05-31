@@ -7,6 +7,52 @@ import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
 
 This playbook is published as an [MCP server](https://modelcontextprotocol.io/) + terminal CLI so AI clients and dev workflows can pull rules and components into whatever they're building. The model (or you) calls structured tools, you stay out of copy-paste hell, and the same rules ship to every surface.
 
+**Safe by design:**
+
+- One dependency — the official MCP SDK, nothing else
+- No postinstall scripts
+- Read-only tools — it never reads or sends mail, and never touches your inbox
+- The local stdio server reads a bundled spec; it makes no outbound network calls
+
+## See it work in 10 seconds — no install
+
+One curl against the hosted endpoint returns a real, production-ready pattern. This pulls the bulletproof Outlook button straight from the playbook:
+
+```bash
+curl -s https://docs.osamahassouna.com/api/mcp \
+  -H 'Content-Type: application/json' \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"get_component","arguments":{"name":"buttons"}}}' \
+  | jq -r '.result.content[0].text | fromjson | .html'
+```
+
+Returns the actual VML-wrapped button this site documents — the `<v:roundrect>` Outlook fallback behind a styled `<a>`:
+
+```html
+<td>
+  <!--[if mso]>
+  <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml"
+               xmlns:w="urn:schemas-microsoft-com:office:word"
+               href="{{cta_url}}"
+               style="v-text-anchor:middle; width:200px; height:40px;"
+               arcsize="10%" stroke="f" fillcolor="#222222">
+    <w:anchorlock/>
+    <center>
+  <![endif]-->
+  <a href="{{cta_url}}" target="_blank"
+     style="display:inline-block; background-color:#222222; border-radius:4px;
+            color:#ffffff; font-family:sans-serif; font-size:13px; font-weight:bold;
+            line-height:40px; text-align:center; text-decoration:none; width:200px;">
+    Button Text
+  </a>
+  <!--[if mso]>
+    </center>
+  </v:roundrect>
+  <![endif]-->
+</td>
+```
+
+Your AI client gets this as a tool call instead of guessing. No key, no install. Wire it into your client below.
+
 ## Install in your client
 
 Pick your client and paste. The config uses `npx` so there's no global install step — `email-playbook-mcp@latest` is pulled on first launch and cached.
