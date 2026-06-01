@@ -11,7 +11,8 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "test": "node mcp/test/smoke.mjs"
+    "test": "node mcp/test/smoke.mjs",
+    "release": "node mcp/build/release.mjs"
   },
   "dependencies": {
     "@astrojs/starlight": "^0.39.2",
