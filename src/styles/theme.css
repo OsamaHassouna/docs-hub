@@ -697,6 +697,26 @@ header.header {
 	.recent-path { font-size: 0.65rem; }
 }
 
+/* Email-playbook landing: the splash hero reserves a 7fr/4fr grid for a
+   hero image we don't use, leaving dead space on the right and squeezing
+   the copy. Scope a full-width single-column hero to just this landing
+   (any page containing the .epb-flow strip) so the homepage is untouched. */
+body:has(.epb-flow) .hero {
+	grid-template-columns: 100%;
+}
+
+body:has(.epb-flow) .hero > .sl-flex.stack {
+	max-width: 60rem;
+}
+
+body:has(.epb-flow) .hero .copy {
+	max-width: none;
+}
+
+body:has(.epb-flow) .hero .tagline {
+	max-width: 64ch;
+}
+
 /* Email-playbook landing: image-to-email flow strip */
 .epb-flow {
 	display: grid;
