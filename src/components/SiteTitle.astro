@@ -7,12 +7,14 @@
 //
 // The `.site-title::after { content: ' / Docs' }` rule in theme.css is scoped
 // off for the product section via a body[data-section] hook set in Head.
+import { product } from '../../product.config.mjs';
+
 const { siteTitle, siteTitleHref } = Astro.locals.starlightRoute;
 const id = Astro.locals.starlightRoute.id ?? '';
 const isEmailPlaybook = id === 'email-playbook' || id.startsWith('email-playbook/');
 
-const label = isEmailPlaybook ? 'Email Playbook' : siteTitle;
-const href = isEmailPlaybook ? '/email-playbook/' : siteTitleHref;
+const label = isEmailPlaybook ? product.name : siteTitle;
+const href = isEmailPlaybook ? product.links.landing : siteTitleHref;
 ---
 
 <a href={href} class="site-title sl-flex" data-section={isEmailPlaybook ? 'email-playbook' : undefined}>

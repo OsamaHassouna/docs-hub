@@ -2,15 +2,16 @@
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 import vercel from '@astrojs/vercel';
+import { product } from './product.config.mjs';
 
 export default defineConfig({
-	site: 'https://docs.osamahassouna.com',
+	site: product.site,
 	adapter: vercel(),
 	// The MCP/CLI page moved from /email-playbook/cli/ to /email-playbook/mcp/.
 	// The published npm package + registries link to the old URL, so keep a
 	// permanent redirect.
 	redirects: {
-		'/email-playbook/cli': '/email-playbook/mcp',
+		[`${product.basePath}cli`]: product.links.mcp.replace(/\/$/, ''),
 	},
 	// The /api/mcp JSON-RPC endpoint must accept POSTs from any origin / any
 	// Content-Type (MCP clients vary). Site has no traditional forms — Astro's
@@ -19,8 +20,8 @@ export default defineConfig({
 	security: { checkOrigin: false },
 	integrations: [
 		starlight({
-			title: 'Osama Hassouna',
-			description: 'Engineering notes and practical guides by Osama Hassouna.',
+			title: product.umbrella,
+			description: `Engineering notes and practical guides by ${product.umbrella}.`,
 			defaultLocale: 'en',
 			components: {
 				// Product-aware top-bar brand: "Email Playbook" on the product
@@ -48,15 +49,17 @@ export default defineConfig({
 						})();
 					`,
 				},
-				{
-					tag: 'script',
-					attrs: { defer: true, src: '/_vercel/insights/script.js' },
-				},
+				// Vercel Web Analytics — only inject in production builds. The
+				// platform serves /_vercel/insights/script.js on Vercel; during
+				// `astro dev` that path 404s and clutters the local console.
+				...(process.argv.includes('build')
+					? [{ tag: 'script', attrs: { defer: true, src: '/_vercel/insights/script.js' } }]
+					: []),
 				// Default social-card image. Per-page frontmatter can override
 				// via Starlight's `head` block if a page wants its own image.
 				{
 					tag: 'meta',
-					attrs: { property: 'og:image', content: 'https://docs.osamahassouna.com/og-default.png' },
+					attrs: { property: 'og:image', content: product.og.image },
 				},
 				{
 					tag: 'meta',
@@ -68,7 +71,7 @@ export default defineConfig({
 				},
 				{
 					tag: 'meta',
-					attrs: { property: 'og:image:alt', content: 'HTML Email Playbook — MCP server + CLI that teaches AI to write email that renders in Outlook and Gmail' },
+					attrs: { property: 'og:image:alt', content: product.og.alt },
 				},
 				{
 					tag: 'meta',
@@ -76,7 +79,7 @@ export default defineConfig({
 				},
 				{
 					tag: 'meta',
-					attrs: { name: 'twitter:image', content: 'https://docs.osamahassouna.com/og-default.png' },
+					attrs: { name: 'twitter:image', content: product.og.image },
 				},
 			],
 			customCss: [
