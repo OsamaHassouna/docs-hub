@@ -715,20 +715,53 @@ body:has(.epb-flow) .main-frame {
 	padding-top: 0;
 }
 
-/* Float the landing chrome to the top-right corner of the page, over the hero,
-   so it reads like a minimal top bar instead of a mid-page row. The hero has
-   generous top padding, so the absolute placement clears the headline. */
+/* Landing chrome (back-link + theme toggle). On mobile it sits in normal flow
+   as a slim top row. On desktop (>=50rem) it floats over the hero's generous
+   top padding so it reads like a minimal top bar without pushing the hero down.
+   Absolute positioning is desktop-only — on mobile the hero starts near the top
+   and an absolute bar would collide with the headline. */
 body:has(.epb-flow) .epb-chrome {
-	position: absolute;
-	top: 1rem;
-	right: 1.5rem;
-	left: 1.5rem;
-	z-index: 10;
-	margin: 0;
+	margin: 0 0 1.5rem;
 }
 
-body:has(.epb-flow) .sl-container {
-	position: relative;
+@media (min-width: 50rem) {
+	body:has(.epb-flow) .epb-chrome {
+		position: absolute;
+		top: 1rem;
+		right: 1.5rem;
+		left: 1.5rem;
+		z-index: 10;
+		margin: 0;
+	}
+
+	body:has(.epb-flow) .sl-container {
+		position: relative;
+	}
+}
+
+/* Starlight's splash content column can run wider than the viewport on narrow
+   screens (the hero/markdown lack a right gutter), clipping text on the right.
+   Guard against horizontal overflow on the landing and ensure both gutters.
+   Scoped to the landing via the .epb-flow hook. */
+body:has(.epb-flow) {
+	overflow-x: hidden;
+}
+
+body:has(.epb-flow) .sl-markdown-content,
+body:has(.epb-flow) .hero {
+	max-width: 100%;
+	overflow-wrap: break-word;
+}
+
+@media (max-width: 50rem) {
+	body:has(.epb-flow) main {
+		padding-inline: 1rem;
+	}
+	/* The shared hero h1 clamp tops out ~4rem, which overflows a 390px phone.
+	   Size it down on the landing for small screens only. */
+	body:has(.epb-flow) .hero h1 {
+		font-size: clamp(1.9rem, 8vw, 2.6rem);
+	}
 }
 
 /* Email-playbook landing: the splash hero reserves a 7fr/4fr grid for a
@@ -745,6 +778,12 @@ body:has(.epb-flow) .hero > .sl-flex.stack {
 
 body:has(.epb-flow) .hero .copy {
 	max-width: none;
+}
+
+/* Starlight sets `.copy > * { max-width: 50ch }`, which at the hero font size
+   is wider than a phone viewport and overflows. Cap children to the column. */
+body:has(.epb-flow) .hero .copy > * {
+	max-width: 100%;
 }
 
 body:has(.epb-flow) .hero .tagline {
