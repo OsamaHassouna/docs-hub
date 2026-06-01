@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Email Playbook docs
+    url: https://docs.osamahassouna.com/email-playbook/
+    about: Read the playbook, try the Playground, or wire up the MCP before filing.
