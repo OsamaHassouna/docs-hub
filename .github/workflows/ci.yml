@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # The site build lives at the root; the MCP server + its SDK (needed by
+      # the smoke test) live in mcp/. Install both. No lockfiles in the repo,
+      # so use `npm install` rather than `npm ci`.
+      - name: Install root deps
+        run: npm install
+
+      - name: Install mcp deps
+        run: npm install
+        working-directory: mcp
+
+      - name: Build site (regenerates spec from MDX, then astro build)
+        run: npm run build
+
+      - name: Smoke test (MCP server + CLI)
+        run: npm test

@@ -10,7 +10,8 @@
     "prebuild": "node mcp/build/extract.mjs && node mcp/build/gen-prompt.mjs",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "test": "node mcp/test/smoke.mjs"
   },
   "dependencies": {
     "@astrojs/starlight": "^0.39.2",
