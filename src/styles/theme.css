@@ -751,13 +751,28 @@ body:has(.epb-flow) .hero .tagline {
 	max-width: 64ch;
 }
 
-/* Email-playbook landing: image-to-email flow strip */
+/* Hero line break: force the two sentences onto separate lines on desktop,
+   let them wrap naturally on narrow screens where width does the work. */
+.epb-hero-break { display: none; }
+
+@media (min-width: 50rem) {
+	.epb-hero-break { display: inline; }
+}
+
+/* Email-playbook landing: image-to-email flow strip.
+   align-items:stretch keeps the three step cards equal height regardless of
+   text length; the steps are 1fr, the arrows auto. */
 .epb-flow {
 	display: grid;
 	grid-template-columns: 1fr auto 1fr auto 1fr;
 	align-items: stretch;
 	gap: 0.75rem;
 	margin-block: 1.5rem 0;
+}
+
+.epb-flow-step {
+	display: flex;
+	flex-direction: column;
 }
 
 .epb-flow-step {
