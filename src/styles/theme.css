@@ -641,6 +641,23 @@ header.header {
 	color: var(--ink-amber);
 }
 
+/* Non-interactive "more guides in progress" note card — reads as info, not a
+   clickable guide. No hover lift, muted, dashed border to signal "not yet". */
+.guide-card--note {
+	border-style: dashed;
+	cursor: default;
+}
+
+.guide-card--note:hover {
+	border-color: var(--ink-hairline-strong);
+	background: transparent;
+	transform: none;
+}
+
+.guide-card--note .guide-card-title {
+	color: var(--ink-text-muted);
+}
+
 /* Recent updates list */
 .recent-list {
 	list-style: none;

@@ -4,6 +4,10 @@ description: Form-driven visual email builder. Coming in Phase 3 — for now, us
 tableOfContents: false
 prev: false
 next: false
+# Hidden from production (DX-002): the visual Builder is deferred to a future
+# playground model. `draft: true` excludes it from prod builds + sitemap but
+# keeps the page editable in `astro dev`. EmailBuilder.astro is kept for reuse.
+draft: true
 ---
 
 <div class="bld-soon">
