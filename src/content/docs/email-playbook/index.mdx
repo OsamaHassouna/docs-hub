@@ -1,70 +1,178 @@
 ---
 title: HTML Email Playbook
-description: Practical patterns for building email templates that render reliably across Outlook, Gmail, Apple Mail, and the long tail of clients that haven't moved past 2007.
+description: Turn an email design into production-ready HTML that renders in Outlook and Gmail. Paste a screenshot in the Playground, plug the playbook into your AI client over MCP, or read the rules yourself.
+template: splash
+hero:
+  title: |
+    Paste a screenshot.
+    Get email HTML that works.
+  tagline: The HTML Email Playbook turns a design into production-ready, Outlook-safe email — paste an image in the Playground, or plug the same rules into your AI client over MCP. Built on patterns that survive Gmail, Outlook, and dark mode.
+  actions:
+    - text: Try Image to Email
+      link: /email-playbook/playground/
+      icon: right-arrow
+      variant: primary
+    - text: Read the playbook
+      link: /email-playbook/getting-started/
+      variant: minimal
 ---
 
-import { Card, CardGrid, Aside } from '@astrojs/starlight/components';
+<div class="docs-section-head">
+  <div class="docs-section-eyebrow">The product · Image to Email</div>
+  <h2 class="docs-section-title">A design in, working HTML out</h2>
+  <p class="docs-section-dek">Email HTML is its own universe — tables, inline styles, Outlook's VML, Gmail's 102 KB clip. The Playground does the hard part. Paste a screenshot of any email design and get back HTML that follows every rule in this playbook, ready to edit and export.</p>
+</div>
 
-Email development is its own universe. The CSS rules you trust break, the HTML you stopped using a decade ago becomes essential again, and Microsoft Outlook on Windows quietly determines half of your decisions.
+<div class="epb-flow">
+  <div class="epb-flow-step">
+    <span class="epb-flow-num">01</span>
+    <h3 class="epb-flow-title">Paste or upload</h3>
+    <p class="epb-flow-dek">A screenshot of an email design — from Figma, a competitor's inbox, anywhere. Cmd/Ctrl+V works.</p>
+  </div>
+  <div class="epb-flow-arrow" aria-hidden="true">→</div>
+  <div class="epb-flow-step">
+    <span class="epb-flow-num">02</span>
+    <h3 class="epb-flow-title">Generate</h3>
+    <p class="epb-flow-dek">Playbook-compliant HTML: table layout, inline styles, VML buttons, responsive container, fill tokens for links.</p>
+  </div>
+  <div class="epb-flow-arrow" aria-hidden="true">→</div>
+  <div class="epb-flow-step">
+    <span class="epb-flow-num">03</span>
+    <h3 class="epb-flow-title">Edit &amp; export</h3>
+    <p class="epb-flow-dek">Live preview, size meter against the Gmail clip limit, snippet library. Tweak and download.</p>
+  </div>
+</div>
 
-This playbook is the working reference I keep open while building templates. It covers the boilerplate, the table architecture, the Outlook compatibility hacks, and the production checks that catch problems before send.
+<div class="epb-cta-row">
+  <a href="/email-playbook/playground/" class="epb-cta-primary">Open the Playground →</a>
+  <span class="epb-cta-note">Free. No sign-up. No install.</span>
+</div>
 
-<Aside type="tip" title="New · Paste an image, get HTML">
-Have a screenshot of an email design? Open the [Playground](/email-playbook/playground/), switch to the **From Image** tab, and it'll auto-generate playbook-compliant HTML you can edit and export.
-</Aside>
+<div class="docs-section-head">
+  <div class="docs-section-eyebrow">Three ways to use it</div>
+  <h2 class="docs-section-title">One playbook, three surfaces</h2>
+  <p class="docs-section-dek">The same body of email-rendering knowledge, delivered however you work — a visual tool, a tool your AI client calls, or a reference you read.</p>
+</div>
 
-## When to use this
+<div class="guide-grid">
+  <a href="/email-playbook/playground/" class="guide-card is-live">
+    <div class="guide-card-top">
+      <span class="guide-card-label">01 · Visual</span>
+      <span class="guide-card-chip">Playground</span>
+    </div>
+    <h3 class="guide-card-title">Playground</h3>
+    <p class="guide-card-dek">Paste a screenshot for instant image-to-email, or hand-build with a live preview, snippet library, and a Gmail-clip size meter. Edit and export.</p>
+    <div class="guide-card-foot">
+      <span>Image to Email · live editor</span>
+      <span class="read-link">Open →</span>
+    </div>
+  </a>
 
-You're hand-building HTML emails (not using MJML, Foundation for Emails, or a builder). You need them to render in:
+  <a href="/email-playbook/cli/" class="guide-card is-live">
+    <div class="guide-card-top">
+      <span class="guide-card-label">02 · Programmatic</span>
+      <span class="guide-card-chip">MCP · CLI</span>
+    </div>
+    <h3 class="guide-card-title">MCP &amp; CLI</h3>
+    <p class="guide-card-dek">Plug the playbook into Claude, Cursor, or Cline. Your AI client pulls the exact rules and component patterns as tools, so it stops generating email that breaks in Outlook.</p>
+    <div class="guide-card-foot">
+      <span>npm · hosted endpoint</span>
+      <span class="read-link">Wire it up →</span>
+    </div>
+  </a>
 
-- Microsoft Outlook (Windows desktop)
-- Outlook 365 / Outlook.com
-- Gmail (web + mobile apps)
-- Apple Mail (macOS + iOS)
-- Yahoo Mail
-- Mobile native clients
+  <a href="/email-playbook/getting-started/" class="guide-card is-live">
+    <div class="guide-card-top">
+      <span class="guide-card-label">03 · Reference</span>
+      <span class="guide-card-chip">Docs</span>
+    </div>
+    <h3 class="guide-card-title">The Playbook</h3>
+    <p class="guide-card-dek">Learn the rules yourself. Structure, components, Outlook/MSO compatibility, and the production checks (Gmail clipping, dark mode, preheaders) — each pattern inline-styled and cross-client tested.</p>
+    <div class="guide-card-foot">
+      <span>22 pages · 4 categories</span>
+      <span class="read-link">Read →</span>
+    </div>
+  </a>
+</div>
 
-If you're using a generator like MJML, most of these problems are solved for you. If you're hand-coding for control or constraints, you're in the right place.
+<div class="docs-section-head">
+  <div class="docs-section-eyebrow">What's inside the playbook</div>
+  <h2 class="docs-section-title">The reference, organized</h2>
+  <p class="docs-section-dek">If you'd rather hand-build, the playbook is structured the way you actually build an email — from the boilerplate out to the production checks.</p>
+</div>
 
-## How it's organized
+<div class="guide-grid">
+  <a href="/email-playbook/structure/head/" class="guide-card">
+    <div class="guide-card-top">
+      <span class="guide-card-label">Structure</span>
+    </div>
+    <h3 class="guide-card-title">The bones</h3>
+    <p class="guide-card-dek">Doctype, head boilerplate, the body container, and the header / body / footer table architecture.</p>
+    <div class="guide-card-foot">
+      <span class="read-link">Start with structure →</span>
+    </div>
+  </a>
 
-<CardGrid>
-	<Card title="Structure" icon="seti:html">
-		The bones of every email: doctype, head boilerplate, the body container, and the header / body / footer table architecture.
+  <a href="/email-playbook/components/spacing/" class="guide-card">
+    <div class="guide-card-top">
+      <span class="guide-card-label">Components</span>
+    </div>
+    <h3 class="guide-card-title">Building blocks</h3>
+    <p class="guide-card-dek">Spacing, images, background images (VML), bulletproof buttons, inline icons, and text — each inline-styled and tested.</p>
+    <div class="guide-card-foot">
+      <span class="read-link">See components →</span>
+    </div>
+  </a>
 
-		[Start with structure →](/email-playbook/structure/head/)
-	</Card>
-	<Card title="Components" icon="puzzle">
-		Reusable building blocks: spacing patterns, images, background images (VML), buttons, and text. Each one inline-styled and cross-client tested.
+  <a href="/email-playbook/compatibility/outlook/" class="guide-card">
+    <div class="guide-card-top">
+      <span class="guide-card-label">Compatibility</span>
+    </div>
+    <h3 class="guide-card-title">Where engines diverge</h3>
+    <p class="guide-card-dek">Outlook MSO conditional comments, RTL support, and hybrid responsive behavior on mobile clients.</p>
+    <div class="guide-card-foot">
+      <span class="read-link">Compatibility notes →</span>
+    </div>
+  </a>
 
-		[See components →](/email-playbook/components/spacing/)
-	</Card>
-	<Card title="Compatibility" icon="warning">
-		The places email engines diverge: Outlook MSO conditional comments, RTL support, and responsive behavior on mobile clients.
+  <a href="/email-playbook/production/gmail-clipping/" class="guide-card">
+    <div class="guide-card-top">
+      <span class="guide-card-label">Production</span>
+    </div>
+    <h3 class="guide-card-title">Ship checks</h3>
+    <p class="guide-card-dek">Gmail's 102 KB clip, dark mode, preheader text, and bulletproof buttons — what separates renders from performs.</p>
+    <div class="guide-card-foot">
+      <span class="read-link">Production checks →</span>
+    </div>
+  </a>
+</div>
 
-		[Compatibility notes →](/email-playbook/compatibility/outlook/)
-	</Card>
-	<Card title="Production" icon="rocket">
-		What separates an email that renders from an email that performs: Gmail's 102KB clip, dark mode, preheader text, and bulletproof buttons.
+<div class="docs-section-head">
+  <div class="docs-section-eyebrow">Conventions</div>
+  <h2 class="docs-section-title">Three rules that explain the rest</h2>
+  <p class="docs-section-dek">Everything in the playbook follows from these.</p>
+</div>
 
-		[Production checks →](/email-playbook/production/gmail-clipping/)
-	</Card>
-</CardGrid>
-
-## Conventions in this guide
-
-<Aside type="tip" title="All CSS is inline">
-Email clients strip or ignore `<style>` blocks unpredictably. Every style example here is inline on the element. Media queries are the only exception and live in the `<head>`.
-</Aside>
-
-<Aside type="caution" title="Tables, not flexbox">
-Modern layout (flexbox, grid) has no place in email templates. Everything is nested `<table role="presentation">`. This is intentional, not legacy.
-</Aside>
-
-<Aside type="note" title="Outlook is the constraint">
-If a technique works in Outlook on Windows, it almost certainly works everywhere else. Design for Outlook first, then let the modern clients render the same code beautifully.
-</Aside>
-
-## Start here
-
-If this is your first time, read [Getting Started](/email-playbook/getting-started/) for the mental model. If you already know the landscape, jump to [the head structure](/email-playbook/structure/head/).
+<ul class="recent-list">
+  <li>
+    <a href="/email-playbook/structure/head/">
+      <span class="recent-date">01</span>
+      <span class="recent-title">All CSS is inline — clients strip <code>&lt;style&gt;</code> blocks unpredictably. Media queries are the only exception.</span>
+      <span class="recent-path">Inline styles</span>
+    </a>
+  </li>
+  <li>
+    <a href="/email-playbook/structure/body-container/">
+      <span class="recent-date">02</span>
+      <span class="recent-title">Tables, not flexbox — every layout is nested <code>&lt;table role="presentation"&gt;</code>. Intentional, not legacy.</span>
+      <span class="recent-path">Table layout</span>
+    </a>
+  </li>
+  <li>
+    <a href="/email-playbook/compatibility/outlook/">
+      <span class="recent-date">03</span>
+      <span class="recent-title">Outlook is the constraint — if it works in Outlook on Windows, it works everywhere. Design for it first.</span>
+      <span class="recent-path">Outlook first</span>
+    </a>
+  </li>
+</ul>

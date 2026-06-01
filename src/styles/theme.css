@@ -697,6 +697,103 @@ header.header {
 	.recent-path { font-size: 0.65rem; }
 }
 
+/* Email-playbook landing: image-to-email flow strip */
+.epb-flow {
+	display: grid;
+	grid-template-columns: 1fr auto 1fr auto 1fr;
+	align-items: stretch;
+	gap: 0.75rem;
+	margin-block: 1.5rem 0;
+}
+
+.epb-flow-step {
+	border: 1px solid var(--ink-hairline-strong);
+	border-radius: 4px;
+	background: transparent;
+	padding: 1.4rem 1.3rem;
+}
+
+.epb-flow-num {
+	font-family: var(--sl-font-system-mono);
+	font-weight: 500;
+	letter-spacing: 0.1em;
+	font-size: 0.72rem;
+	color: var(--ink-amber);
+	display: block;
+	margin-bottom: 0.7rem;
+}
+
+.epb-flow-title {
+	font-size: 1.05rem;
+	font-weight: 600;
+	letter-spacing: -0.015em;
+	margin: 0 0 0.4rem;
+	color: var(--ink-text);
+}
+
+.epb-flow-dek {
+	font-size: 0.9rem;
+	line-height: 1.5;
+	color: var(--ink-text-muted);
+	margin: 0;
+}
+
+.epb-flow-arrow {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-family: var(--sl-font-system-mono);
+	color: var(--ink-text-soft);
+	font-size: 1.2rem;
+}
+
+@media (max-width: 720px) {
+	.epb-flow {
+		grid-template-columns: 1fr;
+	}
+	.epb-flow-arrow {
+		transform: rotate(90deg);
+		padding-block: 0.2rem;
+	}
+}
+
+/* Email-playbook landing: primary CTA row under the flow */
+.epb-cta-row {
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+	flex-wrap: wrap;
+	margin-top: 1.5rem;
+}
+
+.epb-cta-primary {
+	display: inline-block;
+	border: 1px solid var(--ink-amber);
+	border-radius: 4px;
+	background: var(--ink-amber-tint);
+	color: var(--ink-amber);
+	font-weight: 600;
+	padding: 0.7rem 1.3rem;
+	text-decoration: none;
+	transition: background 160ms ease, color 160ms ease, border-color 160ms ease;
+}
+
+.epb-cta-primary:hover {
+	background: var(--ink-amber);
+	color: var(--ink-bg);
+	border-color: var(--ink-amber);
+	text-decoration: none;
+}
+
+.epb-cta-note {
+	font-family: var(--sl-font-system-mono);
+	font-weight: 500;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	font-size: 0.72rem;
+	color: var(--ink-text-soft);
+}
+
 @media (min-width: 72rem) {
 	.right-sidebar-container:where(.astro-67yu43on){
 		width: var(--sl-right-sidebar-width, 18rem);
