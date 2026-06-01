@@ -35,7 +35,7 @@ npm install -g email-playbook-mcp
 ```
 
 Setup, tool reference, and Claude Desktop / Cursor config snippets:
-[`docs.osamahassouna.com/email-playbook/cli/`](https://docs.osamahassouna.com/email-playbook/cli/)
+[`docs.osamahassouna.com/email-playbook/mcp/`](https://docs.osamahassouna.com/email-playbook/mcp/)
 
 There's also a hosted JSON-RPC endpoint at [`docs.osamahassouna.com/api/mcp`](https://docs.osamahassouna.com/api/mcp) if you'd rather not install anything.
 

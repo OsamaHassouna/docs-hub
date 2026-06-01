@@ -4,11 +4,10 @@
 
 ## Email Playbook
 
-- [Overview](https://docs.osamahassouna.com/email-playbook/): What this playbook is and how to use it.
+- [Overview](https://docs.osamahassouna.com/email-playbook/): The product landing — image-to-email, plus the three ways to use the playbook.
+- [Playground](https://docs.osamahassouna.com/email-playbook/playground/): Live image-to-email demo. Drop a design screenshot, get production HTML back. Also a code-first editor with live preview.
+- [MCP & CLI](https://docs.osamahassouna.com/email-playbook/mcp/): Install the email-playbook-mcp server in any MCP client, use the terminal CLI, or call the hosted JSON-RPC endpoint directly.
 - [Getting Started](https://docs.osamahassouna.com/email-playbook/getting-started/): Quick orientation for first-time readers.
-- [AI Integration (MCP + CLI)](https://docs.osamahassouna.com/email-playbook/cli/): Install the email-playbook-mcp server in any MCP client, use the terminal CLI, or call the hosted JSON-RPC endpoint directly.
-- [Playground](https://docs.osamahassouna.com/email-playbook/playground/): Live image-to-email demo. Drop a design screenshot, get production HTML back.
-- [Builder](https://docs.osamahassouna.com/email-playbook/builder/): Interactive builder using playbook components.
 - [Templates](https://docs.osamahassouna.com/email-playbook/templates/): Pre-built playbook-compliant templates.
 
 ## Rules (4 categories, 19 pages)

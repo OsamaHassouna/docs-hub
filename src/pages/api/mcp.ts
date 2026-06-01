@@ -86,7 +86,7 @@ function infoResponse(): Response {
       protocol: PROTOCOL_VERSION,
       transport: 'http-jsonrpc',
       methods: ['initialize', 'tools/list', 'tools/call'],
-      docs: 'https://docs.osamahassouna.com/email-playbook/cli/',
+      docs: 'https://docs.osamahassouna.com/email-playbook/mcp/',
     }, null, 2),
     { status: 200, headers: { 'Content-Type': 'application/json', ...CORS_HEADERS } },
   );

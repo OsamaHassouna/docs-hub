@@ -6,6 +6,12 @@ import vercel from '@astrojs/vercel';
 export default defineConfig({
 	site: 'https://docs.osamahassouna.com',
 	adapter: vercel(),
+	// The MCP/CLI page moved from /email-playbook/cli/ to /email-playbook/mcp/.
+	// The published npm package + registries link to the old URL, so keep a
+	// permanent redirect.
+	redirects: {
+		'/email-playbook/cli': '/email-playbook/mcp',
+	},
 	// The /api/mcp JSON-RPC endpoint must accept POSTs from any origin / any
 	// Content-Type (MCP clients vary). Site has no traditional forms — Astro's
 	// CSRF check would only block legit MCP traffic that forgets to set
@@ -99,10 +105,19 @@ export default defineConfig({
 			lastUpdated: false,
 			tableOfContents: { minHeadingLevel: 2, maxHeadingLevel: 3 },
 			sidebar: [
+				// Overview = the product landing (splash page; sidebar hidden there,
+				// but the link anchors the section and shows on inner pages).
+				{ label: 'Overview', link: '/email-playbook/' },
 				{
-					label: 'HTML Email Playbook',
+					label: 'Tools',
 					items: [
-						{ label: 'Overview', slug: 'email-playbook' },
+						{ label: 'Playground', slug: 'email-playbook/playground' },
+						{ label: 'MCP & CLI', slug: 'email-playbook/mcp' },
+					],
+				},
+				{
+					label: 'Reference',
+					items: [
 						{ label: 'Getting Started', slug: 'email-playbook/getting-started' },
 						{
 							label: 'Structure',
@@ -155,9 +170,6 @@ export default defineConfig({
 							],
 						},
 						{ label: 'Templates', slug: 'email-playbook/templates' },
-						{ label: 'Playground', slug: 'email-playbook/playground' },
-						{ label: 'MCP', slug: 'email-playbook/cli' },
-						{ label: 'Builder', slug: 'email-playbook/builder' },
 					],
 				},
 			],

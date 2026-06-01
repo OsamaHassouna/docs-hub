@@ -133,5 +133,5 @@ curl -X POST https://docs.osamahassouna.com/api/mcp \
 MIT © [Osama Hassouna](https://osamahassouna.com)
 
 - [HTML Email Playbook](https://docs.osamahassouna.com/email-playbook/)
-- [Install + config docs](https://docs.osamahassouna.com/email-playbook/cli/)
+- [Install + config docs](https://docs.osamahassouna.com/email-playbook/mcp/)
 - [Source](https://github.com/OsamaHassouna/docs-hub) (`mcp/` directory)
