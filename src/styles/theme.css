@@ -809,12 +809,20 @@ body:has(.epb-flow) .hero .tagline {
 	margin-block: 1.5rem 0;
 }
 
-.epb-flow-step {
-	display: flex;
-	flex-direction: column;
+/* Neutralize Starlight's adjacent-sibling margin-top on the flow strip's
+   direct children. The strip lives in .sl-markdown-content where the rule
+   `:not(...) + :not(...) { margin-top: var(--sl-content-gap-y) }` fires on
+   each grid child preceded by another (steps 2/3 follow an arrow div), which
+   pushed cards 2 and 3 down relative to card 1. Scoped to .epb-flow > * only,
+   so the global rule and the inner num/title/dek spacing are untouched.
+   Specificity (0,2,0) beats the Starlight rule's (0,1,2). */
+.sl-markdown-content .epb-flow > * {
+	margin-top: 0;
 }
 
 .epb-flow-step {
+	display: flex;
+	flex-direction: column;
 	border: 1px solid var(--ink-hairline-strong);
 	border-radius: 4px;
 	background: transparent;
