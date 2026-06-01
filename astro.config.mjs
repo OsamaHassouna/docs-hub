@@ -22,6 +22,11 @@ export default defineConfig({
 			title: 'Osama Hassouna',
 			description: 'Engineering notes and practical guides by Osama Hassouna.',
 			defaultLocale: 'en',
+			components: {
+				// Product-aware top-bar brand: "Email Playbook" on the product
+				// pages, "Osama Hassouna" elsewhere.
+				SiteTitle: './src/components/SiteTitle.astro',
+			},
 			social: [
 				{ icon: 'github', label: 'GitHub', href: 'https://github.com/OsamaHassouna' },
 			],

@@ -1,0 +1,36 @@
+---
+// Custom SiteTitle override.
+//
+// On the email-playbook product pages, the top-bar brand is the PRODUCT name
+// ("Email Playbook"), not "Osama Hassouna" — the product stands on its own.
+// Everywhere else, fall back to the configured site title.
+//
+// The `.site-title::after { content: ' / Docs' }` rule in theme.css is scoped
+// off for the product section via a body[data-section] hook set in Head.
+const { siteTitle, siteTitleHref } = Astro.locals.starlightRoute;
+const id = Astro.locals.starlightRoute.id ?? '';
+const isEmailPlaybook = id === 'email-playbook' || id.startsWith('email-playbook/');
+
+const label = isEmailPlaybook ? 'Email Playbook' : siteTitle;
+const href = isEmailPlaybook ? '/email-playbook/' : siteTitleHref;
+---
+
+<a href={href} class="site-title sl-flex" data-section={isEmailPlaybook ? 'email-playbook' : undefined}>
+	<span translate="no">{label}</span>
+</a>
+
+<style>
+	.site-title {
+		align-items: center;
+		gap: var(--sl-nav-gap);
+		font-size: var(--sl-text-h4);
+		font-weight: 600;
+		color: var(--sl-color-text-accent);
+		text-decoration: none;
+		white-space: nowrap;
+		min-width: 0;
+	}
+	span {
+		overflow: hidden;
+	}
+</style>

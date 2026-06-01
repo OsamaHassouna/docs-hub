@@ -311,6 +311,11 @@ header.header {
 	font-weight: 400;
 }
 
+/* Product pages brand by the product name alone — no " / Docs" suffix. */
+.site-title[data-section='email-playbook']::after {
+	content: none;
+}
+
 /* Tables, callouts */
 .sl-markdown-content table {
 	font-size: 0.95rem;
@@ -695,6 +700,35 @@ header.header {
 		gap: 0.3rem;
 	}
 	.recent-path { font-size: 0.65rem; }
+}
+
+/* Email-playbook landing: drop the global header entirely — there's nothing
+   to search there. The landing provides its own minimal chrome (back link +
+   theme toggle) via LandingChrome.astro. Scoped to the landing only via the
+   .epb-flow hook so every other page keeps its header. */
+body:has(.epb-flow) header.header {
+	display: none;
+}
+
+/* Reclaim the vertical space the fixed header used to hold. */
+body:has(.epb-flow) .main-frame {
+	padding-top: 0;
+}
+
+/* Float the landing chrome to the top-right corner of the page, over the hero,
+   so it reads like a minimal top bar instead of a mid-page row. The hero has
+   generous top padding, so the absolute placement clears the headline. */
+body:has(.epb-flow) .epb-chrome {
+	position: absolute;
+	top: 1rem;
+	right: 1.5rem;
+	left: 1.5rem;
+	z-index: 10;
+	margin: 0;
+}
+
+body:has(.epb-flow) .sl-container {
+	position: relative;
 }
 
 /* Email-playbook landing: the splash hero reserves a 7fr/4fr grid for a

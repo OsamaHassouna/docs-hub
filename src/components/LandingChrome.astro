@@ -1,0 +1,99 @@
+---
+// Minimal chrome for the email-playbook landing, which hides the global
+// Starlight header (no search to show there). Provides:
+//   - a small "back to docs.osamahassouna.com" link (left)
+//   - a floating light/dark theme toggle (right)
+// The toggle writes the same `starlight-theme` localStorage key the rest of
+// the site uses, so the choice persists across pages.
+---
+
+<div class="epb-chrome">
+	<a class="epb-chrome-home" href="/">‹ osamahassouna.com</a>
+	<button
+		type="button"
+		class="epb-theme-toggle"
+		aria-label="Toggle light and dark theme"
+		title="Toggle theme"
+	>
+		<svg class="epb-icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+			<circle cx="12" cy="12" r="4"></circle>
+			<path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path>
+		</svg>
+		<svg class="epb-icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+			<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+		</svg>
+	</button>
+</div>
+
+<script is:inline>
+	(function () {
+		var btn = document.currentScript.previousElementSibling.querySelector('.epb-theme-toggle');
+		if (!btn) return;
+		var KEY = 'starlight-theme';
+		function preferred() {
+			return matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+		}
+		function current() {
+			var stored = '';
+			try { stored = localStorage.getItem(KEY) || ''; } catch (e) {}
+			return stored === 'dark' || stored === 'light' ? stored : preferred();
+		}
+		function apply(theme) {
+			document.documentElement.dataset.theme = theme;
+			document.documentElement.style.colorScheme = theme;
+			try { localStorage.setItem(KEY, theme); } catch (e) {}
+		}
+		apply(current());
+		btn.addEventListener('click', function () {
+			apply(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+		});
+	})();
+</script>
+
+<style>
+	.epb-chrome {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		margin: 0 0 1.5rem;
+	}
+
+	.epb-chrome-home {
+		font-family: var(--sl-font-system-mono, monospace);
+		font-size: 0.78rem;
+		letter-spacing: 0.04em;
+		color: var(--ink-text-soft, #8A837D);
+		text-decoration: none;
+		transition: color 160ms ease;
+	}
+
+	.epb-chrome-home:hover {
+		color: var(--ink-amber, #B8651B);
+	}
+
+	.epb-theme-toggle {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 38px;
+		height: 38px;
+		padding: 0;
+		border: 1px solid var(--ink-hairline-strong, #D6D0C7);
+		border-radius: 4px;
+		background: transparent;
+		color: var(--ink-text-muted, #5F5853);
+		cursor: pointer;
+		transition: border-color 160ms ease, color 160ms ease;
+	}
+
+	.epb-theme-toggle:hover {
+		border-color: var(--ink-amber, #B8651B);
+		color: var(--ink-amber, #B8651B);
+	}
+
+	/* Show the icon for the theme you'd switch TO. */
+	.epb-icon-moon { display: none; }
+	.epb-icon-sun { display: block; }
+	:global(:root[data-theme='dark']) .epb-icon-moon { display: block; }
+	:global(:root[data-theme='dark']) .epb-icon-sun { display: none; }
+</style>
