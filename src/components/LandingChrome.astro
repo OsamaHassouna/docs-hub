@@ -72,9 +72,10 @@
 	}
 
 	.epb-theme-toggle {
-		display: inline-flex;
+		display: flex;
 		align-items: center;
 		justify-content: center;
+		line-height: 0;
 		width: 38px;
 		height: 38px;
 		padding: 0;
@@ -91,9 +92,16 @@
 		color: var(--ink-amber, #B8651B);
 	}
 
-	/* Show the icon for the theme you'd switch TO. */
+	/* Exactly one icon is shown at a time (the other is display:none). Force
+	   display:block on the visible one so it has no inline baseline gap — that
+	   gap was making the moon sit low. No stacking, so no collapse on toggle. */
+	/* The moon is the 2nd <svg> in the button, so Starlight's adjacent-sibling
+	   rule (svg + svg) gave it margin-top, pushing it down in dark mode (light
+	   shows the 1st svg, the sun, which has none). Zero it on both icons. */
+	.epb-theme-toggle svg { margin-top: 0; }
+	.epb-icon-sun,
 	.epb-icon-moon { display: none; }
-	.epb-icon-sun { display: block; }
-	:global(:root[data-theme='dark']) .epb-icon-moon { display: block; }
-	:global(:root[data-theme='dark']) .epb-icon-sun { display: none; }
+	.epb-theme-toggle .epb-icon-sun { display: block; }
+	:global(:root[data-theme='dark']) .epb-theme-toggle .epb-icon-moon { display: block; }
+	:global(:root[data-theme='dark']) .epb-theme-toggle .epb-icon-sun { display: none; }
 </style>
