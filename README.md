@@ -1,5 +1,6 @@
 # Osama Hassouna · Docs
 
+[![CI](https://github.com/OsamaHassouna/docs-hub/actions/workflows/ci.yml/badge.svg)](https://github.com/OsamaHassouna/docs-hub/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/email-playbook-mcp.svg?label=email-playbook-mcp&color=cb3837)](https://www.npmjs.com/package/email-playbook-mcp)
 [![license](https://img.shields.io/npm/l/email-playbook-mcp.svg)](#license)
 [![MCP](https://img.shields.io/badge/MCP-2024--11--05-blue.svg)](https://modelcontextprotocol.io/)
