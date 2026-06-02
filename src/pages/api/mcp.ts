@@ -3,6 +3,8 @@ import type { APIRoute } from 'astro';
 import { getTools, runTool, setSpec } from '../../../mcp/src/tools.mjs';
 import MCP_PKG from '../../../mcp/package.json';
 import PLAYBOOK_SPEC from '../../../mcp/data/playbook-spec.json';
+// @ts-expect-error  JS config module at repo root, no type declarations
+import { product } from '../../../product.config.mjs';
 import { getRedis } from '../../lib/kv';
 
 export const prerender = false;
@@ -43,7 +45,9 @@ setSpec(PLAYBOOK_SPEC);
 
 const SERVER_INFO = { name: 'email-playbook', version: MCP_PKG.version };
 const SPEC_VERSION = PLAYBOOK_SPEC.version;
-const PROTOCOL_VERSION = '2024-11-05';
+// Sourced from product.config.mjs so the endpoint and the README badge
+// can't silently drift apart (MCP-002).
+const PROTOCOL_VERSION = product.protocolVersion;
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',

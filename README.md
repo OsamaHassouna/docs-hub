@@ -1,5 +1,6 @@
 # Osama Hassouna · Docs
 
+<!-- The MCP protocol-version badge below mirrors `protocolVersion` in product.config.mjs — update both together. -->
 [![CI](https://github.com/OsamaHassouna/docs-hub/actions/workflows/ci.yml/badge.svg)](https://github.com/OsamaHassouna/docs-hub/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/email-playbook-mcp.svg?label=email-playbook-mcp&color=cb3837)](https://www.npmjs.com/package/email-playbook-mcp)
 [![license](https://img.shields.io/npm/l/email-playbook-mcp.svg)](#license)

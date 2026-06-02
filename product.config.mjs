@@ -64,6 +64,9 @@ export const product = {
 	// Identity
 	npmName: 'email-playbook-mcp',
 	mcpName: mcpPkg.mcpName || 'io.github.OsamaHassouna/email-playbook-mcp',
+	// MCP spec revision the server implements. Single source: the hosted
+	// endpoint (src/pages/api/mcp.ts) reads this; the README badge mirrors it.
+	protocolVersion: '2024-11-05',
 	repoUrl: 'https://github.com/OsamaHassouna/docs-hub',
 	repoSubfolder: 'mcp',
 	author: 'Osama Hassouna <eng.osama2021@gmail.com>',

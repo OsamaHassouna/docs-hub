@@ -1,5 +1,6 @@
 # email-playbook-mcp
 
+<!-- The MCP protocol-version badge below mirrors `protocolVersion` in product.config.mjs — update both together. -->
 [![npm](https://img.shields.io/npm/v/email-playbook-mcp.svg)](https://www.npmjs.com/package/email-playbook-mcp)
 [![license](https://img.shields.io/npm/l/email-playbook-mcp.svg)](#license)
 [![MCP](https://img.shields.io/badge/MCP-2024--11--05-blue.svg)](https://modelcontextprotocol.io/)
