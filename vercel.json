@@ -1,0 +1,9 @@
+{
+  "redirects": [
+    {
+      "source": "/email-playbook/cli/",
+      "destination": "/email-playbook/mcp/",
+      "permanent": true
+    }
+  ]
+}

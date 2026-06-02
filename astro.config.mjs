@@ -11,6 +11,9 @@ export default defineConfig({
 	// The published npm package + registries link to the old URL, so keep a
 	// permanent redirect.
 	redirects: {
+		// No-slash form. The trailing-slash form (/cli/, which is what the
+		// published npm READMEs actually link to) is handled in vercel.json —
+		// Astro strips trailing slashes from redirect keys so it can't match here.
 		[`${product.basePath}cli`]: product.links.mcp.replace(/\/$/, ''),
 	},
 	// The /api/mcp JSON-RPC endpoint must accept POSTs from any origin / any
