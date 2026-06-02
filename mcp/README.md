@@ -23,6 +23,12 @@ npm install -g email-playbook-mcp
 npx -y email-playbook-mcp@latest
 ```
 
+## Safe to install
+
+- **One dependency** — the official MCP SDK (`@modelcontextprotocol/sdk`), nothing else.
+- **No postinstall scripts** — installing runs no arbitrary code.
+- **Read-only, no inbox** — the tools only return playbook content. It never reads, sends, or touches email, never opens your inbox, and makes no network calls of its own.
+
 ## Use it in Claude Desktop
 
 Edit `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows):

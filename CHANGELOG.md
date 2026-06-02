@@ -8,14 +8,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 - Privacy-friendly tool-call counters on the hosted `/api/mcp` endpoint (per-tool totals + per-day rollups, no PII), surfaced through the token-gated `/api/stats` route.
-- "See it work in 10 seconds" no-install curl demo and a "Safe by design" trust block on the MCP/CLI page.
+- "See it work in 10 seconds" no-install curl demo and a "Safe by design" trust block on the MCP page.
+- "Safe to install" trust block in the npm README — one dependency, no postinstall scripts, read-only, no inbox, no network calls of its own.
+- Author-credibility section on the playbook landing.
+- Community scaffolding: CHANGELOG, CONTRIBUTING, issue/PR templates, smoke tests, and CI.
 
 ### Changed
 - Homepage `<title>` / `og:title` / description now lead with the product ("HTML Email Playbook + MCP for AI Clients") instead of "Docs".
 - Builder page copy corrected (image-to-email is live in the Playground, not "coming in Phase 1") and removed from the sidebar nav.
+- `/email-playbook/` rebuilt as a product landing; the CLI page moved to `/email-playbook/mcp/` (old `/cli/` URLs redirect), and the sidebar was regrouped into Overview / Tools / Reference.
+- Cross-surface product strings centralized in `product.config.mjs`; the MCP protocol version is now single-sourced there so the hosted endpoint and the README badge can't drift.
 
 ### Security
 - Playground preview iframe no longer runs with `allow-scripts` (it renders static email HTML via `srcdoc`).
+- Per-route Origin (CSRF) guard on the cost-bearing `/api/generate-email` and `/api/feedback` routes; `/api/mcp` intentionally stays open to all clients.
+
+### Fixed
+- `/email-playbook/cli/` (trailing slash) returned 404; it now redirects to `/email-playbook/mcp/`.
+- CI workflow ran on Node 20, which Astro rejects (requires ≥ 22.12); bumped to Node 22.
 
 ## [0.6.2] — 2026-05-30
 
