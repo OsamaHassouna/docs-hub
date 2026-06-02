@@ -16,10 +16,11 @@ export default defineConfig({
 		// Astro strips trailing slashes from redirect keys so it can't match here.
 		[`${product.basePath}cli`]: product.links.mcp.replace(/\/$/, ''),
 	},
-	// The /api/mcp JSON-RPC endpoint must accept POSTs from any origin / any
-	// Content-Type (MCP clients vary). Site has no traditional forms — Astro's
-	// CSRF check would only block legit MCP traffic that forgets to set
-	// Content-Type: application/json.
+	// checkOrigin stays OFF here on purpose (TECH-003). Astro's CSRF check is
+	// global and all-or-nothing; turning it on would 403 MCP clients on
+	// /api/mcp that send a non-JSON Content-Type. Instead, the only
+	// state-changing / cost-bearing routes (generate-email, feedback) carry a
+	// per-route origin guard (src/lib/origin.ts), leaving /api/mcp fully open.
 	security: { checkOrigin: false },
 	integrations: [
 		starlight({

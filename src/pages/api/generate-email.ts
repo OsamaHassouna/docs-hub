@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { createHash } from 'node:crypto';
 import { getRedis, todayKey } from '../../lib/kv';
 import { SYSTEM_PROMPT } from '../../lib/gemini-prompt';
+import { blockCrossOrigin } from '../../lib/origin';
 
 export const prerender = false;
 
@@ -124,6 +125,9 @@ function looksLikeEmailHtml(text: string): boolean {
 }
 
 export const POST: APIRoute = async ({ request }) => {
+  const blocked = blockCrossOrigin(request);
+  if (blocked) return blocked;
+
   const apiKey = import.meta.env.GEMINI_API_KEY ?? process.env.GEMINI_API_KEY;
   if (!apiKey) {
     return jsonResponse(

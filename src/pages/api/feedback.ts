@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getRedis } from '../../lib/kv';
+import { blockCrossOrigin } from '../../lib/origin';
 
 export const prerender = false;
 
@@ -25,6 +26,9 @@ function isValidId(id: string): boolean {
 }
 
 export const POST: APIRoute = async ({ request }) => {
+  const blocked = blockCrossOrigin(request);
+  if (blocked) return blocked;
+
   let body: FeedbackBody;
   try {
     body = (await request.json()) as FeedbackBody;
