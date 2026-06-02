@@ -13,7 +13,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       # The site build lives at the root; the MCP server + its SDK (needed by
       # the smoke test) live in mcp/. Install both. No lockfiles in the repo,
