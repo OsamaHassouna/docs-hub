@@ -73,7 +73,7 @@ if (!changelog.includes('## [Unreleased]')) {
 }
 const freshUnreleased = '## [Unreleased]\n\n';
 const newChangelog = changelog
-	.replace('## [Unreleased]\n', `${freshUnreleased}## [${next}] — ${today}\n`)
+	.replace(/## \[Unreleased\]\r?\n/, `${freshUnreleased}## [${next}] — ${today}\n`)
 	// Update / insert the compare links at the bottom.
 	.replace(
 		/\[Unreleased\]: .*$/m,
