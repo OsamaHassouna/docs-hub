@@ -1,6 +1,6 @@
 {
   "name": "email-playbook-mcp",
-  "version": "0.6.2",
+  "version": "0.6.3",
   "mcpName": "io.github.OsamaHassouna/email-playbook-mcp",
   "description": "MCP server and CLI exposing HTML email template rules for AI: Outlook/MSO, VML buttons, RTL, responsive tables, Gmail clipping, dark mode, and placeholders.",
   "type": "module",

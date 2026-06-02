@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.6.3] — 2026-06-02
+
 ### Added
 - Privacy-friendly tool-call counters on the hosted `/api/mcp` endpoint (per-tool totals + per-day rollups, no PII), surfaced through the token-gated `/api/stats` route.
 - "See it work in 10 seconds" no-install curl demo and a "Safe by design" trust block on the MCP page.
@@ -84,7 +86,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Added
 - Initial release: MCP server exposing four read-only tools (`list_categories`, `get_playbook_rules`, `list_components`, `get_component`) generated from the playbook MDX via a canonical `playbook-spec.json`.
 
-[Unreleased]: https://github.com/OsamaHassouna/docs-hub/compare/v0.6.2...HEAD
+[Unreleased]: https://github.com/OsamaHassouna/docs-hub/compare/v0.6.3...HEAD
+[0.6.3]: https://github.com/OsamaHassouna/docs-hub/compare/v0.6.2...v0.6.3
 [0.6.2]: https://github.com/OsamaHassouna/docs-hub/compare/v0.6.1...v0.6.2
 [0.6.1]: https://github.com/OsamaHassouna/docs-hub/compare/v0.6.0...v0.6.1
 [0.6.0]: https://github.com/OsamaHassouna/docs-hub/compare/v0.5.0...v0.6.0

@@ -3,7 +3,7 @@
   "name": "io.github.OsamaHassouna/email-playbook-mcp",
   "title": "HTML Email Playbook",
   "description": "Teaches AI to write HTML email that renders in Outlook, Gmail, and Apple Mail. 19 rules, 6 comps.",
-  "version": "0.6.2",
+  "version": "0.6.3",
   "repository": {
     "url": "https://github.com/OsamaHassouna/docs-hub",
     "source": "github",
@@ -15,7 +15,7 @@
       "registryType": "npm",
       "registryBaseUrl": "https://registry.npmjs.org",
       "identifier": "email-playbook-mcp",
-      "version": "0.6.2",
+      "version": "0.6.3",
       "transport": {
         "type": "stdio"
       },
