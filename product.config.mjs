@@ -64,9 +64,8 @@ export const product = {
 	// Identity
 	npmName: 'email-playbook-mcp',
 	mcpName: mcpPkg.mcpName || 'io.github.OsamaHassouna/email-playbook-mcp',
-	// MCP spec revision the hosted endpoint (src/pages/api/mcp.ts) advertises in
-	// its initialize handshake. Single source for that value. The README badge
-	// is version-less, so nothing else needs to stay in sync with this.
+	// MCP spec revision the server implements. Single source: the hosted
+	// endpoint (src/pages/api/mcp.ts) reads this; the README badge mirrors it.
 	protocolVersion: '2024-11-05',
 	repoUrl: 'https://github.com/OsamaHassouna/docs-hub',
 	repoSubfolder: 'mcp',

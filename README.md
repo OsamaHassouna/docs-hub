@@ -1,9 +1,10 @@
 # Osama Hassouna · Docs
 
+<!-- The MCP protocol-version badge below mirrors `protocolVersion` in product.config.mjs — update both together. -->
 [![CI](https://github.com/OsamaHassouna/docs-hub/actions/workflows/ci.yml/badge.svg)](https://github.com/OsamaHassouna/docs-hub/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/email-playbook-mcp.svg?label=email-playbook-mcp&color=cb3837)](https://www.npmjs.com/package/email-playbook-mcp)
 [![license](https://img.shields.io/npm/l/email-playbook-mcp.svg)](#license)
-[![MCP](https://img.shields.io/badge/MCP-compatible-blue.svg)](https://modelcontextprotocol.io/)
+[![MCP](https://img.shields.io/badge/MCP-2024--11--05-blue.svg)](https://modelcontextprotocol.io/)
 [![docs](https://img.shields.io/badge/docs-osamahassouna.com-14110F.svg)](https://docs.osamahassouna.com)
 
 Source for [`docs.osamahassouna.com`](https://docs.osamahassouna.com) — an engineering reference hub I keep open while building. Currently one guide is live, with more landing as I write them.
