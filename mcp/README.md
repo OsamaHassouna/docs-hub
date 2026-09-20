@@ -4,6 +4,8 @@
 [![npm](https://img.shields.io/npm/v/email-playbook-mcp.svg)](https://www.npmjs.com/package/email-playbook-mcp)
 [![license](https://img.shields.io/npm/l/email-playbook-mcp.svg)](#license)
 [![MCP](https://img.shields.io/badge/MCP-2024--11--05-blue.svg)](https://modelcontextprotocol.io/)
+<!-- Live status from wellknown.network, an independent index that calls this server on a schedule. It renders their current observation, not a fixed claim. -->
+[![wellknown status](https://wellknown.network/agents/email-playbook-mcp/badge.svg)](https://wellknown.network/agents/email-playbook-mcp)
 
 > **Stop AI models from generating broken HTML email.** This MCP server + CLI feeds them the patterns that actually render in Outlook 2007+, Gmail, and Apple Mail — drawn from the [HTML Email Playbook](https://docs.osamahassouna.com/email-playbook/).
 
