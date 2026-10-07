@@ -52,7 +52,9 @@ const PROTOCOL_VERSION = product.protocolVersion;
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  // The MCP-* headers are sent by Streamable HTTP clients on every request
+  // after initialize; a browser client's preflight fails without them here.
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, Accept, Mcp-Protocol-Version, Mcp-Session-Id, Last-Event-ID',
   'Access-Control-Max-Age': '86400',
 };
 
@@ -92,7 +94,7 @@ function infoResponse(): Response {
       methods: ['initialize', 'tools/list', 'tools/call'],
       docs: 'https://docs.osamahassouna.com/email-playbook/mcp/',
     }, null, 2),
-    { status: 200, headers: { 'Content-Type': 'application/json', ...CORS_HEADERS } },
+    { status: 200, headers: { 'Content-Type': 'application/json', Vary: 'Accept', ...CORS_HEADERS } },
   );
 }
 
@@ -101,7 +103,22 @@ function infoResponse(): Response {
 export const OPTIONS: APIRoute = () =>
   new Response(null, { status: 204, headers: CORS_HEADERS });
 
-export const GET: APIRoute = () => infoResponse();
+// A GET that asks for an event stream is an MCP client trying to open the
+// server-to-client channel. This endpoint is request/response only, and the
+// Streamable HTTP transport requires 405 for that, not a 200 with a body.
+// A plain GET (curl, a browser) still gets the discovery document.
+export const GET: APIRoute = ({ request }) => {
+  // Media types are case-insensitive. The response depends on Accept, so
+  // both branches carry Vary to keep a shared cache from mixing them up.
+  const accept = (request.headers.get('accept') ?? '').toLowerCase();
+  if (accept.includes('text/event-stream')) {
+    return new Response(null, {
+      status: 405,
+      headers: { Allow: 'POST, OPTIONS', Vary: 'Accept', 'Cache-Control': 'no-store', ...CORS_HEADERS },
+    });
+  }
+  return infoResponse();
+};
 
 export const POST: APIRoute = async ({ request }) => {
   let body: JsonRpcRequest;
@@ -111,10 +128,22 @@ export const POST: APIRoute = async ({ request }) => {
     return jsonRpcError(null, -32700, 'Parse error: body must be valid JSON.');
   }
 
+  // Valid JSON that is not an object (`null`, a number, a string) would throw
+  // on the destructure below and surface as a 500.
+  if (body === null || typeof body !== 'object') {
+    return jsonRpcError(null, -32600, 'Invalid request: body must be a JSON-RPC object.');
+  }
+
   const { id = null, method, params } = body;
 
   if (typeof method !== 'string' || method.length === 0) {
     return jsonRpcError(id, -32600, 'Invalid request: method must be a non-empty string.');
+  }
+
+  // Notifications expect no reply. The transport requires 202 with an empty
+  // body; a JSON-RPC result here makes strict clients fail the handshake.
+  if (method.startsWith('notifications/')) {
+    return new Response(null, { status: 202, headers: CORS_HEADERS });
   }
 
   switch (method) {
@@ -148,7 +177,6 @@ export const POST: APIRoute = async ({ request }) => {
       }
     }
 
-    case 'notifications/initialized':
     case 'ping':
       return jsonRpcResult(id, {});
 

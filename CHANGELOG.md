@@ -13,6 +13,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Fixed
 - Playbook: placeholder images now use `placehold.co` PNG URLs (`/png`). The default SVG doesn't render in Gmail's mobile apps or older desktop Outlook, so generated emails could show broken images there. The Playground also corrects any placeholder URL that comes back without it.
 - Playbook: the hybrid two-column pattern keeps its columns side by side. The space between the inline-block columns pushed the second one onto a new line; the pattern now wraps them in a `font-size:0` div, makes the widths add up exactly, and puts padding on table cells, which Outlook respects, instead of `<div>`s.
+- Hosted `/api/mcp` endpoint now follows the Streamable HTTP transport for the cases strict MCP clients check: notifications are answered with `202` and an empty body (was `200` with a JSON-RPC result), and a `GET` that asks for `text/event-stream` gets `405` (was `200` with the discovery JSON). A plain `GET` still returns the discovery document.
+- CORS preflight on `/api/mcp` now allows the `Mcp-Protocol-Version`, `Mcp-Session-Id`, `Last-Event-ID` and `Accept` request headers, so browser-based MCP clients can connect.
 
 ## [0.6.3] — 2026-06-02
 
