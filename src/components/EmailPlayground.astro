@@ -1421,6 +1421,13 @@
 
     if (!drop || !empty || !filled || !thumb || !fileInput || !generateBtn) return;
 
+    // A generation runs for minutes. Swapping or clearing the image meanwhile
+    // must not re-enable Generate (a second paid request) or wipe the status.
+    let generating = false;
+    // Status line for the current image. Held while a generation owns the
+    // status, and restored when that generation fails.
+    let imageStatus = '';
+
     function showError(msg: string) {
       if (!errorBox) return;
       errorBox.textContent = msg;
@@ -1437,9 +1444,14 @@
       if (status) status.textContent = msg;
     }
 
+    function setImageStatus(msg: string) {
+      imageStatus = msg;
+      if (!generating) setStatus(msg);
+    }
+
     function setImageFromFile(file: File) {
       clearError();
-      setStatus('');
+      setImageStatus('');
 
       if (!IMAGE_ALLOWED.has(file.type)) {
         showError(`Unsupported file type: ${file.type || 'unknown'}. Use PNG, JPG, WebP, or GIF.`);
@@ -1463,8 +1475,8 @@
         if (thumb) thumb.src = dataUrl;
         empty!.hidden = true;
         filled!.hidden = false;
-        generateBtn!.disabled = false;
-        setStatus(`${file.name || 'Image'} · ${(file.size / 1024).toFixed(0)}KB`);
+        generateBtn!.disabled = generating;
+        setImageStatus(`${file.name || 'Image'} · ${(file.size / 1024).toFixed(0)}KB`);
       };
       reader.onerror = () => showError('Could not read image.');
       reader.readAsDataURL(file);
@@ -1478,7 +1490,7 @@
       empty!.hidden = false;
       filled!.hidden = true;
       generateBtn!.disabled = true;
-      setStatus('');
+      setImageStatus('');
       clearError();
     }
 
@@ -1597,13 +1609,15 @@
 
     // ── Generate ──
     generateBtn.addEventListener('click', async () => {
-      if (!currentImageBase64 || !currentImageMime) return;
+      if (!currentImageBase64 || !currentImageMime || generating) return;
+      generating = true;
       clearError();
       resetFeedback();
       generateBtn.disabled = true;
       if (generateLabel) generateLabel.hidden = true;
       if (generateSpinner) generateSpinner.hidden = false;
-      setStatus('Generating · this can take 10-30s');
+      setStatus('Generating · usually 1-2 minutes');
+      let succeeded = false;
 
       try {
         const res = await fetch('/api/generate-email', {
@@ -1633,9 +1647,13 @@
         schedulePreview();
         showToast('Email generated · review and edit in HTML tab');
         setStatus('Done. Switched to HTML tab.');
+        succeeded = true;
       } catch (err) {
         showError(`Network error: ${(err as Error).message}`);
       } finally {
+        generating = false;
+        // A failure must not leave "Generating..." next to an idle button.
+        if (!succeeded) setStatus(imageStatus);
         if (generateLabel) generateLabel.hidden = false;
         if (generateSpinner) generateSpinner.hidden = true;
         if (currentImageBase64) generateBtn.disabled = false;
