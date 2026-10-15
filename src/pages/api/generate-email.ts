@@ -6,17 +6,52 @@ import { blockCrossOrigin } from '../../lib/origin';
 
 export const prerender = false;
 
-const GEMINI_MODEL = 'gemini-2.5-flash';
-const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
+// Primary: 3.6 Flash. In side-by-side tests vs 2.5 Flash (2026-10-15) it kept
+// layout and content close to the design, answering in 40-70s on the free tier.
+// 3.8 Flash matched it on quality but kept returning 503 "high demand" or
+// running past 220s, so it is one env change away, not the default.
+// Fallback: much faster Flash-Lite, used when the primary is overloaded, out
+// of quota, timed out, truncated, or gone. Both overridable from Vercel env
+// with no code change (Vercel applies env changes on the next deploy only).
+const PRIMARY_MODEL = modelFromEnv('GENERATE_MODEL_PRIMARY', 'gemini-3.6-flash');
+const FALLBACK_MODEL = modelFromEnv('GENERATE_MODEL_FALLBACK', 'gemini-3.5-flash-lite');
+const GEMINI_API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
 const MAX_IMAGE_BYTES = 4 * 1024 * 1024;
 const ALLOWED_MIME = new Set(['image/png', 'image/jpeg', 'image/webp', 'image/gif']);
-const MAX_ATTEMPTS = 3;
-const RETRY_BACKOFF_MS = [600, 1400];
 const RETRYABLE_HTTP = new Set([408, 425, 429, 500, 502, 503, 504]);
 
-const DAILY_LIMIT_PER_IP = Number(process.env.GENERATE_DAILY_LIMIT_PER_IP ?? '10');
-const DAILY_LIMIT_GLOBAL = Number(process.env.GENERATE_DAILY_LIMIT_GLOBAL ?? '200');
+// Vercel kills the function at maxDuration (300s, astro.config.mjs). Every
+// provider call gets its timeout from one request-wide deadline, and the
+// primary never eats the slice reserved for the fallback.
+const REQUEST_DEADLINE_MS = 280_000;
+// A primary call past 150s is stuck in a queue, not thinking. Cut it so the
+// user gets the fallback at ~3 minutes instead of ~4.
+const PRIMARY_TIMEOUT_MS = 150_000;
+const FALLBACK_RESERVE_MS = 60_000;
+const MIN_PRIMARY_WINDOW_MS = 30_000;
+// Retry the primary only after a fast failure (an instant 503 "high demand").
+// A slow failure means another long wait, so go straight to the fallback.
+const QUICK_FAILURE_MS = 20_000;
+const RETRY_BACKOFF_MS = 1500;
+const PRIMARY_MAX_ATTEMPTS = 2;
+
+const DAILY_LIMIT_PER_IP = numberFromEnv('GENERATE_DAILY_LIMIT_PER_IP', 10);
+const DAILY_LIMIT_GLOBAL = numberFromEnv('GENERATE_DAILY_LIMIT_GLOBAL', 200);
 const QUOTA_TTL_SECONDS = 60 * 60 * 26;
+
+// A blank env value means "use the default", and a pasted `models/` prefix
+// (how the models.list API names them) is dropped so the URL doesn't double it.
+function modelFromEnv(name: string, fallback: string): string {
+  return process.env[name]?.trim().replace(/^models\//, '') || fallback;
+}
+
+// Same rule for the limits: a blank value would be Number('') = 0 and 429
+// every request, and a typo would be NaN and disable the cap.
+function numberFromEnv(name: string, fallback: number): number {
+  const raw = process.env[name]?.trim();
+  const value = raw ? Number(raw) : fallback;
+  return Number.isFinite(value) ? value : fallback;
+}
 
 function clientIpHash(request: Request): string {
   // Prefer Vercel's authoritative client-IP header — `x-forwarded-for` is
@@ -43,6 +78,7 @@ interface RequestBody {
 
 interface GeminiPart {
   text?: string;
+  thought?: boolean;
 }
 
 interface GeminiCandidate {
@@ -62,22 +98,67 @@ type ProviderOutcome =
   | { kind: 'fatal'; status: number; message: string; providerStatus?: string }
   | { kind: 'blocked'; reason: string };
 
-async function callProvider(payload: unknown, apiKey: string): Promise<ProviderOutcome> {
+// Candidate-level blocks come back with one of these finish reasons instead of
+// promptFeedback, sometimes with the partial answer written before the stop.
+// Retrying or falling back won't help.
+const BLOCK_FINISH_REASONS = new Set(['SAFETY', 'BLOCKLIST', 'PROHIBITED_CONTENT', 'SPII', 'IMAGE_SAFETY']);
+
+// An answer that stopped for any reason but STOP (MAX_TOKENS, RECITATION,
+// OTHER...) is cut short, so it is a failure, not a result.
+function isIncomplete(outcome: ProviderOutcome): boolean {
+  return outcome.kind === 'ok' && outcome.finishReason !== undefined && outcome.finishReason !== 'STOP';
+}
+
+// Anything but a complete answer or a safety block. A blocked image would be
+// blocked by the fallback too; a cut-short answer is a failure.
+function isFailure(outcome: ProviderOutcome): boolean {
+  return outcome.kind === 'retryable' || outcome.kind === 'fatal' || isIncomplete(outcome);
+}
+
+function isTimeout(err: unknown): boolean {
+  const name = (err as Error)?.name;
+  return name === 'TimeoutError' || name === 'AbortError';
+}
+
+// For the fallback log line: enough to tell "high demand" from "model gone".
+function describeOutcome(outcome: ProviderOutcome | null): string {
+  if (!outcome) return 'no window';
+  if (outcome.kind === 'ok') return `incomplete (${outcome.finishReason})`;
+  if (outcome.kind === 'blocked') return `blocked (${outcome.reason})`;
+  const providerStatus = outcome.kind === 'fatal' && outcome.providerStatus ? ` ${outcome.providerStatus}` : '';
+  return `${outcome.kind} ${outcome.status}${providerStatus}: ${outcome.message}`;
+}
+
+async function callProvider(
+  model: string,
+  body: string,
+  apiKey: string,
+  timeoutMs: number,
+  clientSignal: AbortSignal,
+): Promise<ProviderOutcome> {
+  // One signal covers the request and the body read below, and also fires if
+  // the browser disconnects. Clamped because timeout() throws on a negative
+  // value, and an exhausted budget should read as a timeout, not a 500.
+  const signal = AbortSignal.any([AbortSignal.timeout(Math.max(0, timeoutMs)), clientSignal]);
   let res: Response;
   try {
-    res = await fetch(`${GEMINI_ENDPOINT}?key=${apiKey}`, {
+    // Key in a header, not the query string, so it stays out of URL logs.
+    res = await fetch(`${GEMINI_API_BASE}/${model}:generateContent`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
+      body,
+      signal,
     });
   } catch (err) {
+    if (isTimeout(err)) return { kind: 'retryable', status: 504, message: 'Timed out' };
     return { kind: 'retryable', status: 0, message: (err as Error).message || 'Network error' };
   }
 
   let data: GeminiResponse;
   try {
     data = (await res.json()) as GeminiResponse;
-  } catch {
+  } catch (err) {
+    if (isTimeout(err)) return { kind: 'retryable', status: 504, message: 'Timed out' };
     return RETRYABLE_HTTP.has(res.status)
       ? { kind: 'retryable', status: res.status, message: 'Non-JSON response' }
       : { kind: 'fatal', status: res.status, message: `Generation service returned an unexpected response (${res.status}).` };
@@ -96,7 +177,11 @@ async function callProvider(payload: unknown, apiKey: string): Promise<ProviderO
   }
 
   const candidate = data.candidates?.[0];
-  const text = candidate?.content?.parts?.map((p) => p.text ?? '').join('') ?? '';
+  // Before the text check: a safety stop can still carry a partial answer.
+  if (candidate?.finishReason && BLOCK_FINISH_REASONS.has(candidate.finishReason)) {
+    return { kind: 'blocked', reason: candidate.finishReason };
+  }
+  const text = candidate?.content?.parts?.filter((p) => !p.thought).map((p) => p.text ?? '').join('') ?? '';
   if (!text) {
     return { kind: 'retryable', status: res.status, message: 'Empty response' };
   }
@@ -125,6 +210,11 @@ function looksLikeEmailHtml(text: string): boolean {
 }
 
 export const POST: APIRoute = async ({ request }) => {
+  // The deadline counts from here: body parsing and the quota round-trips
+  // below also run inside Vercel's maxDuration.
+  const startedAt = Date.now();
+  const remainingMs = () => REQUEST_DEADLINE_MS - (Date.now() - startedAt);
+
   const blocked = blockCrossOrigin(request);
   if (blocked) return blocked;
 
@@ -224,27 +314,56 @@ export const POST: APIRoute = async ({ request }) => {
         ],
       },
     ],
+    // No temperature/topP: Gemini 3.x is tuned for its defaults, and the old
+    // 0.2 was set for 2.5 Flash. Default thinking level on purpose: medium and
+    // low both lost layout fidelity in testing (on 3.8) and were not faster.
+    // Thinking tokens count against maxOutputTokens, so use the full 65536
+    // both default models allow (models.get, 2026-10-15), not the old 32768.
     generationConfig: {
-      temperature: 0.2,
-      topP: 0.9,
-      maxOutputTokens: 32768,
+      maxOutputTokens: 65536,
       responseMimeType: 'text/plain',
     },
   };
 
+  // Serialized once: it carries the base64 image and is sent up to 3 times.
+  const providerBody = JSON.stringify(payload);
+
   let outcome: ProviderOutcome | null = null;
   let attempts = 0;
-  for (let i = 0; i < MAX_ATTEMPTS; i++) {
-    attempts = i + 1;
-    outcome = await callProvider(payload, apiKey);
-    if (outcome.kind !== 'retryable') break;
-    if (i < MAX_ATTEMPTS - 1) {
-      await sleep(RETRY_BACKOFF_MS[i] ?? 1400);
-    }
+  for (let i = 0; i < PRIMARY_MAX_ATTEMPTS; i++) {
+    const windowMs = Math.min(PRIMARY_TIMEOUT_MS, remainingMs() - FALLBACK_RESERVE_MS);
+    if (windowMs < MIN_PRIMARY_WINDOW_MS) break;
+    attempts++;
+    const callStartedAt = Date.now();
+    outcome = await callProvider(PRIMARY_MODEL, providerBody, apiKey, windowMs, request.signal);
+    const quickFailure = Date.now() - callStartedAt < QUICK_FAILURE_MS;
+    if (request.signal.aborted) break;
+    // 429 is quota: the same model won't recover within this request.
+    if (outcome.kind !== 'retryable' || outcome.status === 429 || !quickFailure) break;
+    if (i < PRIMARY_MAX_ATTEMPTS - 1) await sleep(RETRY_BACKOFF_MS);
   }
 
-  if (!outcome) {
-    return jsonResponse({ error: 'Unknown error after retries.' }, 502);
+  // The browser left mid-wait: nobody will read an answer, so skip the fallback.
+  // Only fires where the runtime propagates disconnects: local dev today. On
+  // Vercel request.signal needs `supportsCancellation` (not enabled), so there
+  // these checks are inert and the request runs to completion as before.
+  if (request.signal.aborted) {
+    return jsonResponse({ error: 'Client disconnected.', attempts }, 499);
+  }
+
+  if (!outcome || isFailure(outcome)) {
+    console.warn(`[generate-email] ${PRIMARY_MODEL} failed (${describeOutcome(outcome)}), using ${FALLBACK_MODEL}`);
+    attempts++;
+    outcome = await callProvider(FALLBACK_MODEL, providerBody, apiKey, remainingMs(), request.signal);
+    // A disconnect aborts the call too; don't log it as a fallback timeout.
+    if (request.signal.aborted) {
+      return jsonResponse({ error: 'Client disconnected.', attempts }, 499);
+    }
+    // The client only gets a generic message, so this is the one record of why
+    // the fallback failed too (e.g. a retired model id returning 404).
+    if (isFailure(outcome)) {
+      console.warn(`[generate-email] ${FALLBACK_MODEL} failed too (${describeOutcome(outcome)})`);
+    }
   }
 
   if (outcome.kind === 'blocked') {
@@ -264,11 +383,13 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   const cleaned = stripCodeFence(outcome.text);
-  if (outcome.finishReason === 'MAX_TOKENS') {
-    return jsonResponse(
-      { error: 'Response was truncated. Try a simpler image.', raw: cleaned.slice(0, 500), attempts },
-      422,
-    );
+  // Only a fallback answer can reach here cut short (the primary's went to the
+  // fallback). Any stop but STOP is partial output, not a result.
+  if (isIncomplete(outcome)) {
+    const error = outcome.finishReason === 'MAX_TOKENS'
+      ? 'Response was truncated. Try a simpler image.'
+      : `Response was cut short (${outcome.finishReason}). Try again or use a different image.`;
+    return jsonResponse({ error, raw: cleaned.slice(0, 500), attempts }, 422);
   }
 
   if (cleaned.startsWith('{') && cleaned.includes('"error"')) {

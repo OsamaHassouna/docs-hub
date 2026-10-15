@@ -6,7 +6,9 @@ import { product } from './product.config.mjs';
 
 export default defineConfig({
 	site: product.site,
-	adapter: vercel(),
+	// Pinned to the Hobby max (also today's Fluid default) so /api/generate-email
+	// keeps its 280s deadline if Vercel's default ever drops.
+	adapter: vercel({ maxDuration: 300 }),
 	// The MCP/CLI page moved from /email-playbook/cli/ to /email-playbook/mcp/.
 	// The published npm package + registries link to the old URL, so keep a
 	// permanent redirect.
