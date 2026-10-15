@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Changed
+- Docs site: Playground image-to-email runs on a newer model that keeps layout and content much closer to the uploaded design, with a faster fallback model when the first is busy or out of quota. Generation now takes about 1-2 minutes.
+
 ## [0.6.3] — 2026-06-02
 
 ### Added
