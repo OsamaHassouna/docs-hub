@@ -119,7 +119,9 @@ function build() {
     const slug = slugOf(file);
     if (SKIP_SLUGS.has(slug)) continue;
 
-    const raw = readFileSync(file, 'utf8');
+    // Normalized: with core.autocrlf a Windows checkout has CRLF files, the
+    // frontmatter regex never matches, and the spec loses every title and example.
+    const raw = readFileSync(file, 'utf8').replace(/\r\n/g, '\n');
     const { fm, body } = parseFrontmatter(raw);
     const blocks = extractCodeBlocks(body);
     const cleanedBody = cleanBody(body);
