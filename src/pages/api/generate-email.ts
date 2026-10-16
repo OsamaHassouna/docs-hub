@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { createHash } from 'node:crypto';
 import { getRedis, todayKey } from '../../lib/kv';
-import { SYSTEM_PROMPT } from '../../lib/gemini-prompt';
+import { EMAIL_SHELL, SYSTEM_PROMPT } from '../../lib/gemini-prompt';
 import { blockCrossOrigin } from '../../lib/origin';
 
 export const prerender = false;
@@ -15,6 +15,9 @@ export const prerender = false;
 // with no code change (Vercel applies env changes on the next deploy only).
 const PRIMARY_MODEL = modelFromEnv('GENERATE_MODEL_PRIMARY', 'gemini-3.6-flash');
 const FALLBACK_MODEL = modelFromEnv('GENERATE_MODEL_FALLBACK', 'gemini-3.5-flash-lite');
+// Last resort when the fallback fails too, if time is left. 2.5 Flash answers
+// and cites where Gemini 3.x blocks the whole answer as RECITATION (2026-10-16).
+const LAST_RESORT_MODEL = modelFromEnv('GENERATE_MODEL_LAST_RESORT', 'gemini-2.5-flash');
 const GEMINI_API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
 const MAX_IMAGE_BYTES = 4 * 1024 * 1024;
 const ALLOWED_MIME = new Set(['image/png', 'image/jpeg', 'image/webp', 'image/gif']);
@@ -28,6 +31,12 @@ const REQUEST_DEADLINE_MS = 280_000;
 // user gets the fallback at ~3 minutes instead of ~4.
 const PRIMARY_TIMEOUT_MS = 150_000;
 const FALLBACK_RESERVE_MS = 60_000;
+// Flash-Lite answers in ~15-20s, so 90s is generous and leaves room for the
+// last resort, which only runs with at least 45s (~30s per 2.5 call) left.
+// When the deadline can't leave that room anyway (after a timed-out primary:
+// 280 - 150 - 90 = 40s), the fallback gets all the time left instead.
+const FALLBACK_TIMEOUT_MS = 90_000;
+const LAST_RESORT_MIN_MS = 45_000;
 const MIN_PRIMARY_WINDOW_MS = 30_000;
 // Retry the primary only after a fast failure (an instant 503 "high demand").
 // A slow failure means another long wait, so go straight to the fallback.
@@ -94,7 +103,7 @@ interface GeminiResponse {
 
 type ProviderOutcome =
   | { kind: 'ok'; text: string; finishReason?: string }
-  | { kind: 'retryable'; status: number; message: string }
+  | { kind: 'retryable'; status: number; message: string; finishReason?: string }
   | { kind: 'fatal'; status: number; message: string; providerStatus?: string }
   | { kind: 'blocked'; reason: string };
 
@@ -126,7 +135,8 @@ function describeOutcome(outcome: ProviderOutcome | null): string {
   if (outcome.kind === 'ok') return `incomplete (${outcome.finishReason})`;
   if (outcome.kind === 'blocked') return `blocked (${outcome.reason})`;
   const providerStatus = outcome.kind === 'fatal' && outcome.providerStatus ? ` ${outcome.providerStatus}` : '';
-  return `${outcome.kind} ${outcome.status}${providerStatus}: ${outcome.message}`;
+  const finish = outcome.kind === 'retryable' && outcome.finishReason ? ` (${outcome.finishReason})` : '';
+  return `${outcome.kind} ${outcome.status}${providerStatus}: ${outcome.message}${finish}`;
 }
 
 async function callProvider(
@@ -183,7 +193,8 @@ async function callProvider(
   }
   const text = candidate?.content?.parts?.filter((p) => !p.thought).map((p) => p.text ?? '').join('') ?? '';
   if (!text) {
-    return { kind: 'retryable', status: res.status, message: 'Empty response' };
+    // RECITATION lands here: an empty answer, with the reason only in finishReason.
+    return { kind: 'retryable', status: res.status, message: 'Empty response', finishReason: candidate?.finishReason };
   }
   return { kind: 'ok', text, finishReason: candidate?.finishReason };
 }
@@ -197,16 +208,94 @@ function jsonResponse(body: Record<string, unknown>, status: number): Response {
   });
 }
 
+// The fenced blocks wherever they sit, joined: prose after a closing fence often
+// quotes tags (`<table role="presentation">`), and the chat trim in
+// wrapInShell would keep the fence and that prose up to the quoted tag. All of
+// them, not just the first: the head <style> blocks can come in a fence of
+// their own ahead of the body markup. Any info string (```css, ```json), so a
+// closing fence is never taken for an opener.
 function stripCodeFence(text: string): string {
   const trimmed = text.trim();
-  const fence = /^```(?:html?|HTML)?\s*\n([\s\S]*?)\n```\s*$/;
-  const match = trimmed.match(fence);
-  return match ? match[1].trim() : trimmed;
+  const blocks = Array.from(trimmed.matchAll(/```[^\n`]*\n([\s\S]*?)\n```/g), (m) => m[1].trim());
+  return blocks.length ? blocks.join('\n') : trimmed;
 }
 
+// A <style> block sent with the body markup, alone or wrapped whole in a
+// conditional comment: hidden (<!--[if mso]><style>...</style><![endif]-->) or
+// revealed (<!--[if !mso]><!--><style>...</style><!--<![endif]-->, which keeps
+// web-font CSS away from Outlook's Times New Roman fallback). It belongs in the
+// head. The conditional's two ends match together or not at all, so a move
+// never leaves half a comment behind (an orphan `<!--` hides everything up to
+// the next `-->` in every client but Outlook) or drops the wrapper.
+const STYLE_BLOCK = /<!--\[if [^\]]*\]>\s*<style\b(?:(?!<\/style>)[\s\S])*<\/style>\s*<!\[endif\]-->|<!--\[if [^\]]*\]><!--(?:\s*--)?>\s*<style\b(?:(?!<\/style>)[\s\S])*<\/style>\s*<!--<!\[endif\]-->|<style\b[\s\S]*?<\/style>/gi;
+
+// Splits the style blocks from the markup. A bare <style> inside a wider
+// conditional comment (other markup around it) stays where it is: moving it
+// out would change which clients see it. Hidden conditionals leave a `<!--`
+// open; a revealed one (<!--[if !mso]><!--> ... <!--<![endif]-->) closes its
+// own comment, so only an [if without its [endif] shows it is still open.
+function takeStyles(markup: string): { styles: string[]; rest: string } {
+  const styles: string[] = [];
+  const rest = markup.replace(STYLE_BLOCK, (block: string, at: number) => {
+    const before = markup.slice(0, at).toLowerCase();
+    const inComment = before.lastIndexOf('<!--') > before.lastIndexOf('-->');
+    const inConditional = before.lastIndexOf('[if ') > before.lastIndexOf('[endif]');
+    if (inComment || inConditional) return block;
+    styles.push(block);
+    return '';
+  });
+  return { styles, rest };
+}
+
+// The generator returns only what goes inside <body>, plus the head <style>
+// blocks. The server owns the doctype, head and body tag, built
+// at compile time from the playbook's structure/head and body-container pages.
+// Writing that long fixed boilerplate verbatim is what made Gemini 3.x block
+// whole answers as RECITATION (2026-10-16).
+function wrapInShell(markup: string): string {
+  // A full document anyway (e.g. from a model that ignored the scope): keep it.
+  // Comments skipped: one echoing the scope ("no <html> tag") is not a document.
+  if (/<html[\s>]/i.test(markup.replace(/<!--[\s\S]*?-->/g, ''))) return markup;
+  // Styles first, from the whole answer: one sent ahead of a stray <body> tag
+  // still belongs in the head.
+  const { styles, rest } = takeStyles(markup);
+  const body = (rest.match(/<body\b[^>]*>([\s\S]*?)<\/body>/i)?.[1] ?? rest).trim();
+  // Chat around the markup ("Here is your email:", "Let me know...") would land
+  // inside the email. Keep only the span from the first tag to the last.
+  const content = body.slice(Math.max(0, body.indexOf('<')), body.lastIndexOf('>') + 1);
+
+  // The shell says lang="en". An RTL body also gets dir="rtl" on <html>, and the
+  // lang of its script when that is clear (compatibility/rtl). RTL means the
+  // email's main language: a bilingual email with one dir="rtl" block in an
+  // English body stays LTR, so RTL letters must not be outnumbered by Latin
+  // ones in the visible text (tags, comments, entities and {{tokens}} stripped:
+  // the &nbsp; of every spacer cell would otherwise count as Latin letters).
+  let shell = EMAIL_SHELL.before;
+  if (/\bdir\s*=\s*["']?rtl/i.test(content)) {
+    const text = content.replace(/<!--[\s\S]*?-->|<[^>]*>|&#?\w+;|\{\{[^}]*\}\}/g, ' ');
+    const rtlLetters = (text.match(/[֐-׿؀-ۿ]/g) ?? []).length;
+    const latinLetters = (text.match(/[A-Za-z]/g) ?? []).length;
+    if (rtlLetters >= latinLetters) {
+      // Arabic script is shared: Urdu and Persian letters first, then Arabic.
+      const lang = /[ٹڈڑںے]/.test(text) ? 'ur'
+        : /[پچژگ]/.test(text) ? 'fa'
+        : /[؀-ۿ]/.test(text) ? 'ar'
+        : /[֐-׿]/.test(text) ? 'he'
+        : null;
+      shell = shell.replace('lang="en"', () => (lang ? `lang="${lang}" dir="rtl"` : 'lang="en" dir="rtl"'));
+    }
+  }
+  // Function replacers: a string one would treat `$&` etc. in the CSS as patterns.
+  const before = styles.length ? shell.replace('</head>', () => `${styles.join('\n')}\n</head>`) : shell;
+  return `${before}${content}${EMAIL_SHELL.after}`;
+}
+
+// Runs on the wrapped document, where the shell always supplies the doctype
+// and </html>, so the table checks are what test the model's own markup: it
+// built a table and closed one (not a refusal that mentions "<table>").
 function looksLikeEmailHtml(text: string): boolean {
   const lower = text.toLowerCase();
-  return lower.includes('<!doctype') && lower.includes('<table') && lower.includes('</html>');
+  return lower.includes('<!doctype') && lower.includes('<table') && lower.includes('</table>') && lower.includes('</html>');
 }
 
 export const POST: APIRoute = async ({ request }) => {
@@ -309,7 +398,7 @@ export const POST: APIRoute = async ({ request }) => {
       {
         role: 'user',
         parts: [
-          { text: 'Convert this email design into a production-ready HTML email per the system instructions.' },
+          { text: 'Convert this email design per the system instructions. Follow OUTPUT SCOPE: return only the markup that goes inside <body>.' },
           { inline_data: { mime_type: mimeType, data: image } },
         ],
       },
@@ -325,11 +414,13 @@ export const POST: APIRoute = async ({ request }) => {
     },
   };
 
-  // Serialized once: it carries the base64 image and is sent up to 3 times.
+  // Serialized once: it carries the base64 image and is sent up to 4 times.
   const providerBody = JSON.stringify(payload);
 
   let outcome: ProviderOutcome | null = null;
   let attempts = 0;
+  // The model behind `outcome`, for the success log.
+  let model = PRIMARY_MODEL;
   for (let i = 0; i < PRIMARY_MAX_ATTEMPTS; i++) {
     const windowMs = Math.min(PRIMARY_TIMEOUT_MS, remainingMs() - FALLBACK_RESERVE_MS);
     if (windowMs < MIN_PRIMARY_WINDOW_MS) break;
@@ -338,8 +429,9 @@ export const POST: APIRoute = async ({ request }) => {
     outcome = await callProvider(PRIMARY_MODEL, providerBody, apiKey, windowMs, request.signal);
     const quickFailure = Date.now() - callStartedAt < QUICK_FAILURE_MS;
     if (request.signal.aborted) break;
-    // 429 is quota: the same model won't recover within this request.
-    if (outcome.kind !== 'retryable' || outcome.status === 429 || !quickFailure) break;
+    // 429 is quota: the same model won't recover within this request. An empty
+    // 200 (e.g. RECITATION) is the model declining, not a transient error.
+    if (outcome.kind !== 'retryable' || outcome.status === 429 || outcome.status === 200 || !quickFailure) break;
     if (i < PRIMARY_MAX_ATTEMPTS - 1) await sleep(RETRY_BACKOFF_MS);
   }
 
@@ -351,18 +443,38 @@ export const POST: APIRoute = async ({ request }) => {
     return jsonResponse({ error: 'Client disconnected.', attempts }, 499);
   }
 
+  // One later stage (fallback, last resort). The client only gets a generic
+  // message, so the log line here is the one record of why that model failed
+  // too (e.g. a retired model id returning 404).
+  const callLaterStage = async (stageModel: string, windowMs: number): Promise<ProviderOutcome> => {
+    attempts++;
+    model = stageModel;
+    const result = await callProvider(stageModel, providerBody, apiKey, windowMs, request.signal);
+    // A disconnect aborts the call too; don't log it as a timeout.
+    if (!request.signal.aborted && isFailure(result)) {
+      console.warn(`[generate-email] ${stageModel} failed too (${describeOutcome(result)})`);
+    }
+    return result;
+  };
+
   if (!outcome || isFailure(outcome)) {
     console.warn(`[generate-email] ${PRIMARY_MODEL} failed (${describeOutcome(outcome)}), using ${FALLBACK_MODEL}`);
-    attempts++;
-    outcome = await callProvider(FALLBACK_MODEL, providerBody, apiKey, remainingMs(), request.signal);
-    // A disconnect aborts the call too; don't log it as a fallback timeout.
+    const left = remainingMs();
+    outcome = await callLaterStage(FALLBACK_MODEL, left - FALLBACK_TIMEOUT_MS >= LAST_RESORT_MIN_MS ? FALLBACK_TIMEOUT_MS : left);
     if (request.signal.aborted) {
       return jsonResponse({ error: 'Client disconnected.', attempts }, 499);
     }
-    // The client only gets a generic message, so this is the one record of why
-    // the fallback failed too (e.g. a retired model id returning 404).
-    if (isFailure(outcome)) {
-      console.warn(`[generate-email] ${FALLBACK_MODEL} failed too (${describeOutcome(outcome)})`);
+  }
+
+  // Not for request errors (bad image, bad key): a third model would only add
+  // a wait before the same answer. A 404 is different: the fallback model id is
+  // retired or mistyped, and the last resort can still answer.
+  const lastResortCanHelp = isFailure(outcome) && (outcome.kind !== 'fatal' || outcome.status === 404);
+  if (lastResortCanHelp && remainingMs() >= LAST_RESORT_MIN_MS) {
+    console.warn(`[generate-email] using last resort ${LAST_RESORT_MODEL}`);
+    outcome = await callLaterStage(LAST_RESORT_MODEL, remainingMs());
+    if (request.signal.aborted) {
+      return jsonResponse({ error: 'Client disconnected.', attempts }, 499);
     }
   }
 
@@ -383,8 +495,9 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   const cleaned = stripCodeFence(outcome.text);
-  // Only a fallback answer can reach here cut short (the primary's went to the
-  // fallback). Any stop but STOP is partial output, not a result.
+  // Only a fallback or last-resort answer can reach here cut short (the
+  // primary's went to the fallback). Any stop but STOP is partial output, not
+  // a result.
   if (isIncomplete(outcome)) {
     const error = outcome.finishReason === 'MAX_TOKENS'
       ? 'Response was truncated. Try a simpler image.'
@@ -403,7 +516,8 @@ export const POST: APIRoute = async ({ request }) => {
     }
   }
 
-  if (!looksLikeEmailHtml(cleaned)) {
+  const html = wrapInShell(cleaned);
+  if (!looksLikeEmailHtml(html)) {
     return jsonResponse(
       {
         error: 'Model output did not look like a complete HTML email. Try a clearer image.',
@@ -422,7 +536,10 @@ export const POST: APIRoute = async ({ request }) => {
     redis.incr(todayKey()).catch(() => { /* best-effort */ });
   }
 
-  return jsonResponse({ html: cleaned, attempts, generation_id: generationId }, 200);
+  // Which model answered: the record of how often the fallback chain is needed.
+  console.info(`[generate-email] answered by ${model} after ${attempts} attempt(s)`);
+
+  return jsonResponse({ html, attempts, generation_id: generationId }, 200);
 };
 
 export const GET: APIRoute = () =>

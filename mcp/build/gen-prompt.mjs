@@ -57,6 +57,31 @@ function sectionForComponent(comp) {
   return lines.join('\n');
 }
 
+// The playground generator returns only body markup; the endpoint wraps it in
+// this shell. Built from the first example of each page, so the playbook stays
+// the single source. Fails the build rather than ship a broken shell.
+function buildShell(spec) {
+  const firstExample = (slug) => spec.rules.find((r) => r.slug === slug)?.examples?.[0]?.code ?? '';
+  const head = firstExample('structure/head');
+  const headEnd = head.indexOf('</head>');
+  const bodyOpen = firstExample('structure/body-container').match(/<body\b[^>]*>/)?.[0];
+  if (!head.trimStart().startsWith('<!DOCTYPE') || headEnd === -1 || !bodyOpen) {
+    throw new Error('[gen-prompt] cannot build EMAIL_SHELL: the first example of structure/head must run from <!DOCTYPE to </head>, and structure/body-container must open with a <body> tag');
+  }
+  // The endpoint swaps the first lang="en" for the RTL lang and dir, so it must
+  // be the <html> tag's own attribute (not xml:lang, not missing).
+  const htmlTag = head.match(/<html\b[^>]*>/);
+  const langAt = head.indexOf('lang="en"');
+  const langOnHtml = htmlTag && langAt > htmlTag.index && langAt < htmlTag.index + htmlTag[0].length && /\s/.test(head[langAt - 1]);
+  if (!langOnHtml) {
+    throw new Error('[gen-prompt] cannot build EMAIL_SHELL: the <html> tag in structure/head must carry lang="en" as its first lang attribute');
+  }
+  return {
+    before: `${head.slice(0, headEnd + '</head>'.length)}\n${bodyOpen}\n`,
+    after: '\n</body>\n</html>\n',
+  };
+}
+
 function build() {
   const spec = JSON.parse(readFileSync(SPEC_PATH, 'utf8'));
 
@@ -119,16 +144,32 @@ function build() {
   out.push('- Personalization fields visible in the source (e.g. [Name], {first_name}) are reproduced as {{employee_name}} / {{recipient_name}} / equivalent token, not as literal text.');
   out.push('- Use the 3-table-level wrapper from compatibility/responsive. Inner tables are ALWAYS width="100%" — never width="600".');
   out.push('- Wrap the container in an MSO ghost-table for Outlook (compatibility/outlook).');
-  out.push('- Return ONLY the raw HTML document. No markdown fences, no commentary.');
+  out.push('- Return ONLY the markup that goes inside <body> (see OUTPUT SCOPE). No markdown fences, no commentary.');
   out.push('- If the source is not an email design, return: {"error":"This does not appear to be an email design. Upload a screenshot of an email."}');
 
+  // Last on purpose, like the reminders. Gemini 3.x blocks a whole answer as
+  // RECITATION when it reproduces the long fixed head boilerplate verbatim
+  // (2026-10-16), so the server owns that part. MCP users still follow Output
+  // Format as written; this override is only for the playground generator.
+  out.push('');
+  out.push('# OUTPUT SCOPE (this generator; overrides Output Format and every rule above that asks for a complete HTML document)');
+  out.push('');
+  out.push('Output ONLY the markup that goes inside <body>: the wrapper div and the email tables, starting with the preheader if the design has one. No <!DOCTYPE>, no <html>, no <head>, no <body> tag. The server wraps your output in the playbook head and body shell from structure/head and structure/body-container.');
+  out.push('Head CSS the playbook calls for (media queries from compatibility/responsive, dark-mode rules from production/dark-mode, MSO-only fixes from compatibility/outlook, each with its conditional comment if it has one) goes in <style> blocks before the markup. The server moves them into the head. Do not repeat CSS the playbook head already has.');
+  out.push('Everything else in Output Format still applies: no markdown fences, no commentary, and the JSON error object when the image is not an email design.');
+
   const prompt = out.join('\n');
+  const shell = buildShell(spec);
 
   const tsModule = `// AUTO-GENERATED from mcp/data/playbook-spec.json by mcp/build/gen-prompt.mjs.
 // Do not edit by hand. Re-run \`npm run build:spec\` (chains extractor + this generator).
 // Source of truth: src/content/docs/email-playbook/**/*.mdx
 
 export const SYSTEM_PROMPT = ${JSON.stringify(prompt)};
+
+// The document around the generator's body markup: structure/head up to
+// </head>, then the <body> tag from structure/body-container.
+export const EMAIL_SHELL = ${JSON.stringify(shell, null, 2)};
 
 export const PROMPT_META = {
   generated_at: ${JSON.stringify(new Date().toISOString())},
