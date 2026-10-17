@@ -16,8 +16,8 @@ jobs:
           node-version: 22
 
       # The site build lives at the root; the MCP server + its SDK (needed by
-      # the smoke test) live in mcp/. Install both. No lockfiles in the repo,
-      # so use `npm install` rather than `npm ci`.
+      # the smoke test) live in mcp/. Install both. Both have lockfiles; `npm install`
+      # (not `npm ci`) keeps CI working if one drifts from its package.json.
       - name: Install root deps
         run: npm install
 

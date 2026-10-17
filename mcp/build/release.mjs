@@ -22,7 +22,7 @@
 // happens without an explicit keystroke.
 //
 // NOTE: this bumps the PACKAGE release version only. The content-schema
-// version (SPEC_VERSION in mcp/build/extract.mjs, currently 1.0.0) is a
+// version (SPEC_VERSION in mcp/build/extract.mjs) is a
 // separate axis and is intentionally left untouched.
 
 import { readFileSync, writeFileSync } from 'node:fs';

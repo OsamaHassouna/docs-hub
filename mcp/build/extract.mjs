@@ -11,6 +11,7 @@
 import { readFileSync, writeFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { join, relative, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import yaml from 'js-yaml';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = join(__dirname, '..', '..');
@@ -19,7 +20,8 @@ const META_PATH = join(REPO_ROOT, 'mcp', 'data', 'components-meta.json');
 const OUT_PATH = join(REPO_ROOT, 'mcp', 'data', 'playbook-spec.json');
 
 const SOURCE_URL = 'https://docs.osamahassouna.com/email-playbook/';
-const SPEC_VERSION = '1.0.0';
+// 1.1.0: rule pages gained `checklist`.
+const SPEC_VERSION = '1.1.0';
 
 // Pages that are not content (landing/index/templates page/playground/builder).
 const SKIP_SLUGS = new Set(['index', 'getting-started', 'templates', 'playground', 'builder']);
@@ -49,20 +51,20 @@ function walkMdx(dir) {
   return out;
 }
 
+// Real YAML, the same parser (js-yaml) Astro uses for these files, so the spec
+// reads every frontmatter exactly as the site does. Invalid YAML throws and the
+// build stops with the page slug.
 function parseFrontmatter(raw) {
   const m = raw.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
   if (!m) return { fm: {}, body: raw };
-  const fm = {};
-  for (const line of m[1].split('\n')) {
-    const lm = line.match(/^(\w+):\s*(.*)$/);
-    if (lm) {
-      let value = lm[2].trim();
-      if (value.startsWith('"') && value.endsWith('"')) value = value.slice(1, -1);
-      fm[lm[1]] = value;
-    }
-  }
+  const fm = yaml.load(m[1]) ?? {};
+  if (typeof fm !== 'object' || Array.isArray(fm)) throw new Error('frontmatter is not a YAML mapping');
   return { fm, body: m[2] };
 }
+
+// Title and description must be plain strings for the spec and the prompt.
+// Trimmed: a YAML block scalar (`description: >`) keeps a trailing newline.
+const text = (v) => (typeof v === 'string' ? v.trim() : '');
 
 function extractCodeBlocks(body) {
   // ```lang[ tab/space + meta]\n  <-- meta is OPTIONAL and must NOT eat the next line
@@ -121,8 +123,16 @@ function build() {
 
     // Normalized: with core.autocrlf a Windows checkout has CRLF files, the
     // frontmatter regex never matches, and the spec loses every title and example.
-    const raw = readFileSync(file, 'utf8').replace(/\r\n/g, '\n');
-    const { fm, body } = parseFrontmatter(raw);
+    // A leading BOM (some Windows editors add one) does the same; Astro skips it.
+    const raw = readFileSync(file, 'utf8').replace(/^\uFEFF/, '').replace(/\r\n/g, '\n');
+    let parsed;
+    try {
+      parsed = parseFrontmatter(raw);
+    } catch (err) {
+      console.error(`[extract] ${slug}: ${err.message}`);
+      process.exit(1);
+    }
+    const { fm, body } = parsed;
     const blocks = extractCodeBlocks(body);
     const cleanedBody = cleanBody(body);
 
@@ -140,8 +150,8 @@ function build() {
         name,
         category: 'components',
         subcategory: meta.category,
-        title: fm.title || name,
-        description: fm.description || '',
+        title: text(fm.title) || name,
+        description: text(fm.description),
         body_md: cleanedBody,
         html: getPrimaryHtml(blocks),
         slots: meta.slots || [],
@@ -150,11 +160,20 @@ function build() {
         examples: blocks,
       });
     } else if (CATEGORIES.find(c => c.slug === category)) {
+      // The compact checklist mode of the MCP tools serves these. Authored in
+      // each page's frontmatter, so a page without one fails the build rather
+      // than ship an empty checklist.
+      const { checklist } = fm;
+      if (!Array.isArray(checklist) || checklist.length === 0 || checklist.some(i => typeof i !== 'string' || i.trim() === '')) {
+        console.error(`[extract] ${slug}: frontmatter needs a 'checklist' list of non-empty text items`);
+        process.exit(1);
+      }
       rules.push({
         slug,
         category,
-        title: fm.title || slug,
-        description: fm.description || '',
+        title: text(fm.title) || slug,
+        description: text(fm.description),
+        checklist: checklist.map(i => i.trim()),
         body_md: cleanedBody,
         examples: blocks,
       });
