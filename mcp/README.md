@@ -119,7 +119,7 @@ Components live in a separate dimension — use `list_components` / `get_compone
 | `ai-generation` (rules) | 7 | Absolute rules, asset policy, content fidelity, image placeholders, link tokens, output format, handoff checklist |
 | Components | 6 | Buttons, spacing, images, inline icons, background images, text |
 
-The `ai-generation` category is the one to fetch first for image-to-email tasks. It encodes rules that override training-data instincts — use `{{cta_url}}` not `https://example.com`, reproduce only what's in the source, use `placehold.co` for every image, return HTML only.
+The `ai-generation` category is the one to fetch first for image-to-email tasks. It encodes rules that override training-data instincts — use `{{cta_url}}` not `https://example.com`, reproduce only what's in the source, use `placehold.co` PNG blocks for every image you weren't given a real URL for, return HTML only.
 
 ## What it doesn't do
 

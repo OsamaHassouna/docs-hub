@@ -15,23 +15,24 @@ Three principles drive everything on this page:
 
 | Asset type | Convention | Replaced by |
 |---|---|---|
-| Images (logos, hero, icons, photos) | `https://placehold.co/{W}x{H}/E0E0E0/E0E0E0` | Hosted image URL — CDN, S3, ImgBB, CID, or whatever your platform uses |
+| Images (logos with artwork, photos, illustrations, icons) | `https://placehold.co/{W}x{H}/E0E0E0/E0E0E0/png` | Hosted image URL — CDN, S3, ImgBB, CID, or whatever your platform uses |
 | Link targets (href) | `{{cta_url}}`, `{{unsubscribe_url}}`, etc. | Real URL with your tracking parameters |
 | Text personalization | `{{employee_name}}`, `{{company_name}}`, etc. | Mail-merge token from your sending platform |
 | Source text content | Reproduced verbatim from the design image | Edited only if the source itself is a wireframe placeholder |
 
 ## Images
 
-Every `<img>` in the generated output uses the `placehold.co` solid-color URL pattern at the source dimensions. Why:
+Every `<img>` in the generated output uses the `placehold.co` solid-color URL pattern at the source dimensions, unless the request supplied the real asset URL for that image. Supplied URLs (Figma exports, CDN links, a list in the brief) are used exactly as given; anything else is a placeholder. Why:
 
 - **No invented CDN URLs.** Models will happily emit `https://cdn.healthholding.sa/logo.png` from a design image. The URL doesn't exist. The image is broken at send.
 - **Visible placeholder.** A grey block at the right dimensions is impossible to confuse with the real asset. Reviewers and tools both catch it.
 - **No `?text=...` overlay.** Text labels look acceptable at hero sizes but break visually at icon sizes. The convention is solid color blocks across the board.
+- **PNG, not SVG.** The URL ends in `/png`. `placehold.co` serves SVG by default, and Gmail's mobile apps and older desktop Outlook can't render SVG.
 
 Full pattern: see [Image Placeholders](/email-playbook/ai-generation/image-placeholders/).
 
 ```html
-<img src="https://placehold.co/600x300/E0E0E0/E0E0E0"
+<img src="https://placehold.co/600x300/E0E0E0/E0E0E0/png"
      alt="Hero illustration of person at desk"
      width="600" height="300"
      style="display:block;max-width:100%;height:auto;border:0;-ms-interpolation-mode:bicubic;" />

@@ -1,25 +1,34 @@
 ---
 title: Image Placeholders
-description: How to emit images when generating email HTML from a source design. Use placehold.co solid color blocks at the source dimensions — no external hosts, no text labels at icon sizes.
+description: How to emit images when generating email HTML from a source design. Use real asset URLs when you're given them; otherwise placehold.co PNG blocks at the source dimensions — no invented hosts, no text labels at icon sizes.
 ---
 
 import { Aside } from '@astrojs/starlight/components';
 
-When the playbook is used as a generation target (image-to-email, scaffolding, AI assistants), the generator never inlines real image URLs. Every `<img>` becomes a `placehold.co` URL at the source dimensions. The consumer of the generated output swaps the placeholders for real assets after editing.
+When the playbook is used as a generation target (image-to-email, scaffolding, AI assistants), the generator never invents image URLs. Every `<img>` without a real asset becomes a `placehold.co` URL at the source dimensions. The consumer of the generated output swaps the placeholders for real assets after editing.
+
+## When real assets are provided
+
+Placeholders are for images you don't have. If the request comes with real assets (images exported from Figma, URLs from the team's CDN, a list of hosted files in the brief), use those URLs exactly as given, with the same `width`, `height`, and `alt` rules below.
+
+- Use a real URL only when it was handed to you. Never guess one from a brand name, a domain in the design, or a file name.
+- Mixed is fine: real URLs for the assets you have, placeholders for the rest.
+- An image-to-email run from a screenshot alone has no assets, so every image is a placeholder.
 
 ## The URL pattern
 
 ```
-https://placehold.co/{W}x{H}/E0E0E0/E0E0E0
+https://placehold.co/{W}x{H}/E0E0E0/E0E0E0/png
 ```
 
 - `{W}` and `{H}` — pixel width and height as they appear in the source design.
 - `/E0E0E0/E0E0E0` — background color and text color set to the same value, so no text label renders inside the block.
+- `/png` — required. Without it `placehold.co` serves SVG, which Gmail's mobile apps and older desktop Outlook don't render, so every image shows as broken there. PNG works everywhere.
 
 Always include the matching `width`, `height`, and `alt` attributes on the `<img>` tag.
 
 ```html title="image-placeholder.html"
-<img src="https://placehold.co/600x300/E0E0E0/E0E0E0"
+<img src="https://placehold.co/600x300/E0E0E0/E0E0E0/png"
      alt="Hero illustration of a person at a desk"
      width="600" height="300"
      style="display:block;
@@ -44,7 +53,7 @@ Solid placeholder blocks make the intent visible: "this is where the asset goes;
 `placehold.co` supports a `?text=Label` query that overlays text on the block:
 
 ```
-https://placehold.co/100x100/EFEFEF/666666?text=Image
+https://placehold.co/100x100/EFEFEF/666666/png?text=Image
 ```
 
 For hero-sized images this can be useful in mockups. For small icons it produces visually broken output — the "Image" text gets clipped or vertically misaligned at 20×20 or 32×32 dimensions.
@@ -57,12 +66,12 @@ Always read the dimensions from the source design. Don't round, don't infer "thi
 
 | Source dimensions | Placeholder URL |
 |---|---|
-| Hero banner 600×300 | `https://placehold.co/600x300/E0E0E0/E0E0E0` |
-| Logo 220×60 | `https://placehold.co/220x60/E0E0E0/E0E0E0` |
-| Product card 280×180 | `https://placehold.co/280x180/E0E0E0/E0E0E0` |
-| Phone icon 20×20 | `https://placehold.co/20x20/E0E0E0/E0E0E0` |
-| Social icon 28×28 | `https://placehold.co/28x28/E0E0E0/E0E0E0` |
-| Footer mark 40×40 | `https://placehold.co/40x40/E0E0E0/E0E0E0` |
+| Hero banner 600×300 | `https://placehold.co/600x300/E0E0E0/E0E0E0/png` |
+| Logo 220×60 | `https://placehold.co/220x60/E0E0E0/E0E0E0/png` |
+| Product card 280×180 | `https://placehold.co/280x180/E0E0E0/E0E0E0/png` |
+| Phone icon 20×20 | `https://placehold.co/20x20/E0E0E0/E0E0E0/png` |
+| Social icon 28×28 | `https://placehold.co/28x28/E0E0E0/E0E0E0/png` |
+| Footer mark 40×40 | `https://placehold.co/40x40/E0E0E0/E0E0E0/png` |
 
 ## Alt text
 

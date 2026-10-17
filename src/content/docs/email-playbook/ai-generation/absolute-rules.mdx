@@ -24,15 +24,19 @@ For image-to-email generation, the source image is authoritative. Don't extend i
 - **Preserve every visual container.** If the source shows a colored panel, callout box, card, or background section, recreate it with the matching color and structure. Don't drop them as "decorative".
 - **Preserve every section, in order.** If the source ends at a closing paragraph, the generated email ends at that closing paragraph. Don't add a "see also" or "best regards" line that isn't in the source.
 
-## Use placeholder images for every image
+## Text you can read stays text
 
-Every `<img>` in the generated output gets a `placehold.co` placeholder. Don't link to external image hosts, don't try to reproduce the visual content from the source, don't invent CDN URLs.
+Every word you can read in the source is live HTML text, including headlines, buttons, and a wordmark set in a plain font on a coloured block. A coloured banner with "Acme" on it in a plain font is a cell with `bgcolor` and the word in it, not an image. Only pictures become placeholders: photos, illustrations, icons, and logos with artwork or custom lettering.
+
+## Use placeholder images unless you're given real assets
+
+Every `<img>` in the generated output gets a `placehold.co` placeholder, unless the request supplies the real asset URL for that image (Figma exports, CDN links, a list in the brief). Use supplied URLs exactly as given. Don't guess image hosts, don't try to reproduce the visual content from the source, don't invent CDN URLs.
 
 ```
-https://placehold.co/{W}x{H}/E0E0E0/E0E0E0
+https://placehold.co/{W}x{H}/E0E0E0/E0E0E0/png
 ```
 
-Match `{W}` and `{H}` to the pixel dimensions visible in the source. Always include `width`, `height`, and descriptive `alt` text. See [Image Placeholders](/email-playbook/ai-generation/image-placeholders/) for the full pattern.
+Match `{W}` and `{H}` to the pixel dimensions visible in the source. Keep the `/png` at the end: the default SVG doesn't show in Gmail's mobile apps or older desktop Outlook. Always include `width`, `height`, and descriptive `alt` text. See [Image Placeholders](/email-playbook/ai-generation/image-placeholders/) for the full pattern.
 
 ## Use the 3-table-level wrapper
 

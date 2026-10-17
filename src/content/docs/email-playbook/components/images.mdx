@@ -11,7 +11,7 @@ Images in HTML email need explicit dimensions, hard-coded styling, alt text, and
 
 ```html
 <td colspan="99" align="center" style="padding:0;">
-  <img src="https://placehold.co/600x300/E0E0E0/E0E0E0"
+  <img src="https://placehold.co/600x300/E0E0E0/E0E0E0/png"
        width="600"
        height="auto"
        alt="Spring sale — 30% off everything"
@@ -36,7 +36,7 @@ Wrap the `<img>` in an `<a>` with the same `style="display:block;"` on the ancho
 ```html
 <td colspan="99" align="center" style="padding:0;">
   <a href="{{cta_url}}" target="_blank" style="display:block; text-decoration:none;">
-    <img src="https://placehold.co/600x300/E0E0E0/E0E0E0"
+    <img src="https://placehold.co/600x300/E0E0E0/E0E0E0/png"
          width="600"
          height="auto"
          alt="Spring sale — 30% off everything"
@@ -53,6 +53,7 @@ The `target="_blank"` is optional but conventional — most recipients expect em
 - **Always host externally.** Embedded images via `cid:` references work in some clients but get stripped by Gmail's web client and most webmail. External `https://` URLs are the reliable choice.
 - **HTTPS only.** Modern clients block mixed content. An `http://` image on an HTTPS-rendered email shows as broken.
 - **CDN or stable storage.** Don't host email images on a server that might go down. Use a CDN, S3 bucket, or image-hosting service like ImgBB. The original docs used `i.ibb.co`.
+- **PNG, JPEG or GIF. Never SVG.** SVG support in email is patchy: Gmail's mobile apps don't show it, older desktop Outlook can't render it, and Outlook on the web and the new Outlook dropped inline SVG in 2025. Where it isn't supported, the image shows as broken. Watch for hosts that serve SVG by default: `placehold.co` does unless the URL ends in `/png` (see [Image Placeholders](/email-playbook/ai-generation/image-placeholders/)).
 - **Compress aggressively.** Email images should be optimized for mobile data. PNG-8 for graphics, JPEG q80 for photos, WebP only if you also serve a fallback (Outlook 2007-2019 doesn't render WebP).
 - **Don't exceed 1200px wide.** Native widths above this don't help — most email clients cap rendering at 600px desktop / 320px mobile. A 1200px image is wasted bytes that contribute to [Gmail clipping](/email-playbook/production/gmail-clipping/).
 
