@@ -150,11 +150,12 @@ async function main() {
       case 'get-rules': {
         allowFlags(['--checklist', ...MARKDOWN_FLAGS]);
         const checklist = flags.includes('--checklist');
-        if (args.length > 1 || (args.length === 0 && !checklist)) {
+        const hasCategory = args.length === 1 && args[0].trim() !== '';
+        if (args.length > 1 || (!hasCategory && !checklist)) {
           fail(`'get-rules' requires a category argument (or --checklist alone, for every page).`);
         }
         const rules = await runTool('get_playbook_rules', {
-          ...(args.length ? { category: args[0] } : {}),
+          ...(hasCategory ? { category: args[0] } : {}),
           format: checklist ? 'checklist' : 'full',
         });
         if (wantsMarkdown(flags)) printMarkdown(rules);

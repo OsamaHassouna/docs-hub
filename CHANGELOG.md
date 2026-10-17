@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.7.0] — 2026-10-17
+
 ### Added
 - MCP: `get_rule` tool returns a single rule page by slug (`compatibility/responsive`, just `responsive`, or a page link from a body) instead of the whole category. A component name or link points to `get_component`.
 - MCP: `get_playbook_rules` takes `format: "checklist"` for a compact list of the rules on each page; leave out `category` to get every page in one call (about 16 KB). Every rule page now carries an authored checklist.
@@ -15,6 +17,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 - Spec: `playbook-spec.json` version 1.1.0, with a `checklist` array on every rule page.
+- MCP: `category`, `format` and component `name` ignore case and surrounding spaces. `get_component` also takes the component links the page bodies use (`/email-playbook/components/buttons/`), and a page link passed as `category` points to `get_rule`. A blank optional argument counts as left out.
 - Docs site: Playground image-to-email runs on a newer model that keeps layout and content much closer to the uploaded design. When it's out of quota, a second model of the same quality takes over; when it's busy, a faster fallback model answers. Generation now takes about 1-2 minutes.
 - Playbook: placeholder images are for assets you don't have. When a request supplies real image URLs (Figma exports, CDN links), generators use them as given.
 
@@ -104,7 +107,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Added
 - Initial release: MCP server exposing four read-only tools (`list_categories`, `get_playbook_rules`, `list_components`, `get_component`) generated from the playbook MDX via a canonical `playbook-spec.json`.
 
-[Unreleased]: https://github.com/OsamaHassouna/docs-hub/compare/v0.6.3...HEAD
+[Unreleased]: https://github.com/OsamaHassouna/docs-hub/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/OsamaHassouna/docs-hub/compare/v0.6.3...v0.7.0
 [0.6.3]: https://github.com/OsamaHassouna/docs-hub/compare/v0.6.2...v0.6.3
 [0.6.2]: https://github.com/OsamaHassouna/docs-hub/compare/v0.6.1...v0.6.2
 [0.6.1]: https://github.com/OsamaHassouna/docs-hub/compare/v0.6.0...v0.6.1

@@ -94,6 +94,82 @@ async function main() {
     assert.equal(blankFormat.content[0].text, full.content[0].text);
   });
 
+  await check('get_playbook_rules: category and format ignore case, spaces and docs-link form', async () => {
+    const rules = (args) => client.callTool({ name: 'get_playbook_rules', arguments: args });
+    const checklist = await rules({ category: 'structure', format: 'checklist' });
+    for (const category of [' Structure ', '/email-playbook/structure/', 'docs.osamahassouna.com/email-playbook/ structure /', 'https://docs.osamahassouna.com/email-playbook/structure/']) {
+      const res = await rules({ category, format: 'Checklist' });
+      assert.ok(!res.isError, `${category}: ${res.content[0].text}`);
+      assert.equal(res.content[0].text, checklist.content[0].text, category);
+    }
+    const full = await rules({ category: 'structure' });
+    for (const format of [' FULL ', '   ']) {
+      const res = await rules({ category: 'STRUCTURE', format });
+      assert.ok(!res.isError, `${JSON.stringify(format)}: ${res.content[0].text}`);
+      assert.equal(res.content[0].text, full.content[0].text, JSON.stringify(format));
+    }
+    for (const category of ['/email-playbook/components/', '/email-playbook/components/buttons/']) {
+      const res = await rules({ category });
+      assert.ok(res.isError && res.content[0].text.includes('list_components'), `${category}: ${res.content[0].text}`);
+    }
+    const page = await rules({ category: '/email-playbook/structure/header/#background-image' });
+    assert.ok(page.isError && page.content[0].text.includes("get_rule with slug 'structure/header'"), page.content[0].text);
+    const number = await rules({ category: 5 });
+    assert.ok(number.isError && number.content[0].text.includes("'category' must be a string"), number.content[0].text);
+  });
+
+  await check('get_playbook_rules: a whitespace-only category counts as left out', async () => {
+    const all = await client.callTool({ name: 'get_playbook_rules', arguments: { format: 'checklist' } });
+    const spaces = await client.callTool({ name: 'get_playbook_rules', arguments: { category: '   ', format: 'checklist' } });
+    assert.ok(!spaces.isError, spaces.content[0].text);
+    assert.equal(spaces.content[0].text, all.content[0].text);
+    const full = await client.callTool({ name: 'get_playbook_rules', arguments: { category: '   ' } });
+    assert.equal(full.isError, true);
+    assert.ok(full.content[0].text.includes("required with format 'full'"), full.content[0].text);
+  });
+
+  await check('get_component: the name ignores case and spaces and takes a component link', async () => {
+    const plain = await client.callTool({ name: 'get_component', arguments: { name: 'buttons' } });
+    for (const name of [' Buttons ', 'components/buttons', '/email-playbook/components/buttons/']) {
+      const res = await client.callTool({ name: 'get_component', arguments: { name } });
+      assert.ok(!res.isError, `${name}: ${res.content[0].text}`);
+      assert.equal(res.content[0].text, plain.content[0].text, name);
+    }
+    const blank = await client.callTool({ name: 'get_component', arguments: { name: '   ' } });
+    assert.ok(blank.isError && blank.content[0].text.includes('non-empty'), blank.content[0].text);
+  });
+
+  await check('long or multi-line arguments stay fast and are handled', async () => {
+    // Without the length cap each of these takes over a second (quadratic regexes).
+    const huge = [
+      ['get_rule', { slug: 'a' + '/'.repeat(100000) + 'a' }, 'Unknown rule'],
+      ['get_component', { name: 'a' + ' '.repeat(100000) + 'a' }, 'Unknown component'],
+      ['get_playbook_rules', { category: 'a' + ' '.repeat(100000) + 'a' }, 'No rules found'],
+    ];
+    for (const [name, args, message] of huge) {
+      const started = Date.now();
+      const res = await client.callTool({ name, arguments: args });
+      const took = Date.now() - started;
+      assert.ok(took < 250, `${name} took ${took}ms`);
+      assert.ok(res.isError && res.content[0].text.includes(message), `${name}: ${res.content[0].text.slice(0, 80)}`);
+    }
+    // A long query or text fragment on a real link is fine: only the path counts.
+    const fragment = 'https://docs.osamahassouna.com/email-playbook/structure/header/#:~:text=' + 'background%20'.repeat(40);
+    const linked = await client.callTool({ name: 'get_rule', arguments: { slug: fragment } });
+    assert.ok(!linked.isError && JSON.parse(linked.content[0].text).slug === 'structure/header', linked.content[0].text.slice(0, 80));
+    const anchored = await client.callTool({ name: 'get_playbook_rules', arguments: { category: 'structure#a\nb', format: 'checklist' } });
+    assert.ok(!anchored.isError, anchored.content[0].text);
+  });
+
+  await check('get_rule: blank slug is an argument error, blank include_examples is left out', async () => {
+    const blank = await client.callTool({ name: 'get_rule', arguments: { slug: '   ' } });
+    assert.ok(blank.isError && blank.content[0].text.includes('non-empty'), blank.content[0].text);
+    const plain = await client.callTool({ name: 'get_rule', arguments: { slug: 'preheader' } });
+    const empty = await client.callTool({ name: 'get_rule', arguments: { slug: 'preheader', include_examples: '' } });
+    assert.ok(!empty.isError, empty.content[0].text);
+    assert.equal(empty.content[0].text, plain.content[0].text);
+  });
+
   await check('get_playbook_rules: category "components" points to list_components', async () => {
     const res = await client.callTool({ name: 'get_playbook_rules', arguments: { category: 'Components', format: 'checklist' } });
     assert.equal(res.isError, true);
@@ -270,6 +346,12 @@ async function main() {
     assert.equal(code, 0);
     const rules = JSON.parse(stdout);
     assert.ok(rules.every((r) => r.checklist.length > 0 && r.body_md === undefined));
+  });
+
+  await check('CLI: get-rules with a blank category is a usage error', async () => {
+    const { code, stderr } = await runCli(['get-rules', ' ']);
+    assert.equal(code, 2, stderr);
+    assert.ok(stderr.includes('requires a category'), stderr);
   });
 
   await check('CLI: an unknown flag exits 2', async () => {

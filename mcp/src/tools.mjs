@@ -158,6 +158,35 @@ function trunc(s, n = 80) {
   return str.length <= n ? str : `${str.slice(0, n)}…`;
 }
 
+// null, "" and whitespace count as left out: some clients send one of them
+// for every optional argument they don't set.
+const unset = (v) => v == null || (typeof v === 'string' && v.trim() === '');
+
+// Case and surrounding spaces don't matter in names. Non-strings pass through
+// so the caller's type check still sees them.
+const norm = (v) => (typeof v === 'string' ? v.trim().toLowerCase() : v);
+
+// No slug or docs link comes close; the cap keeps the regexes below linear on
+// whatever a client sends to the hosted endpoint.
+const MAX_REF_LENGTH = 300;
+
+// A slug, category or component as typed, or as a docs link from a page body
+// (/email-playbook/structure/header/#background-image, with or without the
+// host), reduced to its path. Non-strings pass through like norm. The query
+// and anchor go first (linear at any length, and text-fragment links are
+// long); a path still longer than the cap becomes a value that matches nothing.
+const normRef = (v) => {
+  if (typeof v !== 'string') return v;
+  const path = v.replace(/[?#][\s\S]*$/, '');
+  if (path.length > MAX_REF_LENGTH) return '\u0000';
+  return norm(path)
+    .replace(/\s*\/\s*/g, '/')
+    .replace(/^[a-z][a-z0-9+.-]*:\/\/[^/]*/, '')
+    .replace(/^(?:[\s\S]*\/)?email-playbook\//, '')
+    .replace(/^\/+|\/+$/g, '')
+    .trim();
+};
+
 /**
  * Execute a tool. Returns a JSON-serializable result.
  * Throws on unknown tool or invalid arguments.
@@ -173,49 +202,49 @@ export async function runTool(name, args = {}) {
       }));
 
     case 'get_playbook_rules': {
-      // null and "" count as left out: some clients send one of them for every
-      // optional argument they don't set.
-      const unset = (v) => v == null || v === '';
-      const format = unset(args?.format) ? 'full' : args.format;
+      const format = unset(args?.format) ? 'full' : norm(args.format);
       if (format !== 'full' && format !== 'checklist') {
-        throw new Error(`Argument 'format' must be 'full' or 'checklist', got '${trunc(format)}'.`);
+        throw new Error(`Argument 'format' must be 'full' or 'checklist', got '${trunc(args.format)}'.`);
       }
+      const checklistOf = ({ slug, title, description, checklist }) => ({ slug, title, description, checklist });
       const category = unset(args?.category) ? undefined : args.category;
+      if (category !== undefined && typeof category !== 'string') {
+        throw new Error("Argument 'category' must be a string.");
+      }
       // Checklists for every page fit in one small call; full pages don't.
-      const allPages = category === undefined && format === 'checklist';
-      if (!allPages && (typeof category !== 'string' || category.length === 0)) {
-        throw new Error("Argument 'category' must be a non-empty string (it can be left out only with format 'checklist').");
+      if (category === undefined) {
+        if (format === 'full') {
+          throw new Error("Argument 'category' is required with format 'full'. Pass a category, or use format 'checklist' to get every page.");
+        }
+        return spec.rules.map(checklistOf);
       }
-      const rules = allPages ? spec.rules : spec.rules.filter(r => r.category === category);
-      if (rules.length === 0 && String(category).trim().toLowerCase() === 'components') {
-        throw new Error("Components aren't rule pages. Call list_components, then get_component with a name.");
-      }
+      const wanted = normRef(category);
+      const rules = spec.rules.filter(r => r.category === wanted);
       if (rules.length === 0) {
+        if (wanted === 'components' || wanted.startsWith('components/')) {
+          throw new Error("Components aren't rule pages. Call list_components, then get_component with a name.");
+        }
+        // Body links point at pages, so a model may pass one here.
+        const page = spec.rules.find(r => r.slug.toLowerCase() === wanted);
+        if (page) {
+          throw new Error(`'${trunc(category)}' is a page, not a category. Call get_rule with slug '${page.slug}', or get_playbook_rules with category '${page.category}'.`);
+        }
         throw new Error(
           `No rules found for category '${trunc(category)}'. Available: ${Array.from(new Set(spec.rules.map(r => r.category))).join(', ')}.`,
         );
       }
-      if (format === 'checklist') {
-        return rules.map(({ slug, title, description, checklist }) => ({ slug, title, description, checklist }));
-      }
-      return rules;
+      return format === 'checklist' ? rules.map(checklistOf) : rules;
     }
 
     case 'get_rule': {
       const slug = args?.slug;
-      if (typeof slug !== 'string' || slug.length === 0) {
+      if (typeof slug !== 'string' || unset(slug)) {
         throw new Error("Argument 'slug' must be a non-empty string.");
       }
-      if (args.include_examples != null && typeof args.include_examples !== 'boolean') {
+      if (!unset(args.include_examples) && typeof args.include_examples !== 'boolean') {
         throw new Error("Argument 'include_examples' must be a boolean.");
       }
-      // The page bodies link each other by docs URL path
-      // (/email-playbook/structure/header/#background-image), so take those too.
-      const wanted = slug.trim().toLowerCase()
-        .replace(/[?#].*$/, '')
-        .replace(/^[a-z][a-z0-9+.-]*:\/\/[^/]*/, '')
-        .replace(/^\/+|\/+$/g, '')
-        .replace(/^email-playbook\//, '');
+      const wanted = normRef(slug);
       // A bare page name is fine when it names exactly one page.
       const exact = spec.rules.find(r => r.slug.toLowerCase() === wanted);
       const byName = exact ? [] : spec.rules.filter(r => r.slug.split('/').pop().toLowerCase() === wanted);
@@ -251,10 +280,12 @@ export async function runTool(name, args = {}) {
 
     case 'get_component': {
       const compName = args?.name;
-      if (typeof compName !== 'string' || compName.length === 0) {
+      if (typeof compName !== 'string' || unset(compName)) {
         throw new Error("Argument 'name' must be a non-empty string.");
       }
-      const comp = spec.components.find(c => c.name === compName);
+      // Also takes the component links the page bodies use (/email-playbook/components/buttons/).
+      const want = normRef(compName).replace(/^components\//, '');
+      const comp = spec.components.find(c => c.name.toLowerCase() === want);
       if (!comp) {
         throw new Error(
           `Unknown component '${trunc(compName)}'. Available: ${spec.components.map(c => c.name).join(', ')}.`,
