@@ -10,14 +10,24 @@ export const prerender = false;
 // layout and content close to the design, answering in 40-70s on the free tier.
 // 3.8 Flash matched it on quality but kept returning 503 "high demand" or
 // running past 220s, so it is one env change away, not the default.
-// Fallback: much faster Flash-Lite, used when the primary is overloaded, out
-// of quota, timed out, truncated, or gone. Both overridable from Vercel env
-// with no code change (Vercel applies env changes on the next deploy only).
+// Fallback: much faster Flash-Lite, used when the primary is overloaded, timed
+// out, truncated, or gone, or out of quota when the quota fallback below fails
+// or can't run. All overridable from Vercel env with no code change (Vercel
+// applies env changes on the next deploy only).
 const PRIMARY_MODEL = modelFromEnv('GENERATE_MODEL_PRIMARY', 'gemini-3.6-flash');
 const FALLBACK_MODEL = modelFromEnv('GENERATE_MODEL_FALLBACK', 'gemini-3.5-flash-lite');
+// Only when the primary is out of quota (429): free-tier limits are per model
+// (5 a minute, 20 a day for each Flash), so 3.8 Flash still has its own and
+// matches 3.6 on quality. Not for 503s or timeouts: that is load, and 3.8 was
+// the more overloaded of the two.
+const QUOTA_FALLBACK_MODEL = modelFromEnv('GENERATE_MODEL_QUOTA_FALLBACK', 'gemini-3.8-flash');
 // Last resort when the fallback fails too, if time is left. 2.5 Flash answers
 // and cites where Gemini 3.x blocks the whole answer as RECITATION (2026-10-16).
 const LAST_RESORT_MODEL = modelFromEnv('GENERATE_MODEL_LAST_RESORT', 'gemini-2.5-flash');
+// The quota stage is skipped when its model is one the chain already calls
+// (e.g. 3.8 made the primary). Setting GENERATE_MODEL_QUOTA_FALLBACK to the
+// fallback's id is the way to turn it off.
+const QUOTA_STAGE_ON = ![PRIMARY_MODEL, FALLBACK_MODEL, LAST_RESORT_MODEL].includes(QUOTA_FALLBACK_MODEL);
 const GEMINI_API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
 const MAX_IMAGE_BYTES = 4 * 1024 * 1024;
 const ALLOWED_MIME = new Set(['image/png', 'image/jpeg', 'image/webp', 'image/gif']);
@@ -31,6 +41,9 @@ const REQUEST_DEADLINE_MS = 280_000;
 // user gets the fallback at ~3 minutes instead of ~4.
 const PRIMARY_TIMEOUT_MS = 150_000;
 const FALLBACK_RESERVE_MS = 60_000;
+// 3.8 Flash answered in 22-90s when it answered at all (2026-10-15/17); past
+// that it was stuck. Caps the quota stage so a busy day still ends in ~2 min.
+const QUOTA_TIMEOUT_MS = 100_000;
 // Flash-Lite answers in ~15-20s, so 90s is generous and leaves room for the
 // last resort, which only runs with at least 45s (~30s per 2.5 call) left.
 // When the deadline can't leave that room anyway (after a timed-out primary:
@@ -47,6 +60,10 @@ const PRIMARY_MAX_ATTEMPTS = 2;
 const DAILY_LIMIT_PER_IP = numberFromEnv('GENERATE_DAILY_LIMIT_PER_IP', 10);
 const DAILY_LIMIT_GLOBAL = numberFromEnv('GENERATE_DAILY_LIMIT_GLOBAL', 200);
 const QUOTA_TTL_SECONDS = 60 * 60 * 26;
+// Same 90 days as feedback records, so a rating can still find its model.
+const STATS_TTL_SECONDS = 60 * 60 * 24 * 90;
+// Longest the success response waits on those stats writes.
+const STATS_WAIT_MS = 2000;
 
 // A blank env value means "use the default", and a pasted `models/` prefix
 // (how the models.list API names them) is dropped so the URL doesn't double it.
@@ -122,6 +139,11 @@ function isIncomplete(outcome: ProviderOutcome): boolean {
 // blocked by the fallback too; a cut-short answer is a failure.
 function isFailure(outcome: ProviderOutcome): boolean {
   return outcome.kind === 'retryable' || outcome.kind === 'fatal' || isIncomplete(outcome);
+}
+
+// 429: that model's quota, per minute or per day, is spent.
+function isQuotaOut(outcome: ProviderOutcome | null): boolean {
+  return outcome?.kind === 'retryable' && outcome.status === 429;
 }
 
 function isTimeout(err: unknown): boolean {
@@ -290,6 +312,61 @@ function wrapInShell(markup: string): string {
   return `${before}${content}${EMAIL_SHELL.after}`;
 }
 
+// placehold.co serves SVG unless the path ends in a format, and SVG doesn't
+// render in Gmail's apps or older desktop Outlook. A lone colour doesn't work either: placehold.co reads the
+// next segment as the text colour, so /600x300/E0E0E0/png is still SVG, and so
+// is a bare 600x300@2x (all checked with curl, 2026-10-17). The prompt asks for
+// /WxH/bg/fg/png; this puts any placeholder that wouldn't serve PNG, JPEG or
+// GIF into that shape, in src, background and VML alike. The path stops at
+// quotes, brackets and `&` so a url(&quot;...&quot;) stays intact.
+const PLACEHOLDER_URL = /(?:https?:)?\/\/placehold\.co\/([^\s"'()<>?#&;]*)(\?[^\s"'()<>#]*)?/gi;
+const IMAGE_FORMAT = /^(?:png|jpe?g|gif|webp|svg|avif)$/i;
+const OUTLOOK_FORMAT = /^(?:png|jpe?g|gif)$/i;
+
+// The path after the host, in a shape that serves an image Outlook can show.
+// Anything that isn't a size first (600x300, 32, 600x300@2x, 600x300.png) is
+// left alone: it isn't a placeholder this code understands. The format can
+// also sit on the text colour (/E0E0E0/E0E0E0.png serves a solid PNG); read
+// as a colour, it would come out as visible "600 × 300" text.
+function outlookSafePath(path: string): string {
+  const segments = path.split('/').filter(Boolean);
+  const size = segments.shift()?.match(/^(\d+(?:x\d+)?(?:@[23]x)?)(?:\.(\w+))?$/i);
+  if (!size) return path;
+  const [, dims, sizeExt] = size;
+  if (sizeExt && segments.length) return path;
+  let format: string | undefined = sizeExt;
+  const last = segments[segments.length - 1] ?? '';
+  const colourExt = last.match(/^([^.]+)\.(\w+)$/);
+  if (IMAGE_FORMAT.test(last)) {
+    format = segments.pop();
+  } else if (colourExt && IMAGE_FORMAT.test(colourExt[2])) {
+    segments[segments.length - 1] = colourExt[1];
+    format = colourExt[2];
+  }
+  const colours = segments;
+  if (colours.length > 2) return path;
+  // Already PNG, JPEG or GIF: kept as written, minus empty segments (a `//`
+  // 404s). Never with one colour: placehold.co reads the format as text colour.
+  if (format && OUTLOOK_FORMAT.test(format) && colours.length !== 1) {
+    return path.split('/').filter(Boolean).join('/');
+  }
+  if (colours.length === 1) colours.push(colours[0]);
+  return [dims, ...colours, 'png'].join('/');
+}
+
+// Scheme-less and http placeholders become https too: a mail client has no
+// page to resolve `//placehold.co` against, and many block plain-http images.
+// Returns how many URLs changed, for the stats counter.
+function pngPlaceholders(html: string): { html: string; fixes: number } {
+  let fixes = 0;
+  const fixed = html.replace(PLACEHOLDER_URL, (url: string, path: string, query = '') => {
+    const safe = `https://placehold.co/${outlookSafePath(path)}${query}`;
+    if (safe !== url) fixes++;
+    return safe;
+  });
+  return { html: fixed, fixes };
+}
+
 // Runs on the wrapped document, where the shell always supplies the doctype
 // and </html>, so the table checks are what test the model's own markup: it
 // built a table and closed one (not a refusal that mentions "<table>").
@@ -351,6 +428,11 @@ export const POST: APIRoute = async ({ request }) => {
   const ipHash = clientIpHash(request);
   const ipKey = `quota:ip:${ipHash}:${date}`;
   const globalKey = `quota:global:${date}`;
+  // Which counters hold this request, each set right after its INCR, so a
+  // refund below undoes exactly the charges that happened (KV can fail open
+  // between the two).
+  let ipCharged = false;
+  let globalCharged = false;
 
   if (redis) {
     try {
@@ -359,6 +441,7 @@ export const POST: APIRoute = async ({ request }) => {
       // global cap rejects after, refund the IP since the system cap isn't
       // the caller's fault.
       const ipNewCount = await redis.incr(ipKey);
+      ipCharged = true;
       await redis.expire(ipKey, QUOTA_TTL_SECONDS).catch(() => {});
 
       if (ipNewCount > DAILY_LIMIT_PER_IP) {
@@ -373,6 +456,7 @@ export const POST: APIRoute = async ({ request }) => {
       }
 
       const globalNewCount = await redis.incr(globalKey);
+      globalCharged = true;
       await redis.expire(globalKey, QUOTA_TTL_SECONDS).catch(() => {});
 
       if (globalNewCount > DAILY_LIMIT_GLOBAL) {
@@ -414,19 +498,28 @@ export const POST: APIRoute = async ({ request }) => {
     },
   };
 
-  // Serialized once: it carries the base64 image and is sent up to 4 times.
+  // Serialized once: it carries the base64 image and is sent up to 5 times
+  // (primary twice, quota fallback, fallback, last resort).
   const providerBody = JSON.stringify(payload);
+
+  // A primary-quality call's window: never past PRIMARY_TIMEOUT_MS, never into
+  // the slice reserved for the fallback.
+  const primaryWindowMs = () => Math.min(PRIMARY_TIMEOUT_MS, remainingMs() - FALLBACK_RESERVE_MS);
 
   let outcome: ProviderOutcome | null = null;
   let attempts = 0;
   // The model behind `outcome`, for the success log.
   let model = PRIMARY_MODEL;
+  // Every call so far came back 429: no model did any work, so a request that
+  // ends that way can be refunded.
+  let onlyQuotaErrors = true;
   for (let i = 0; i < PRIMARY_MAX_ATTEMPTS; i++) {
-    const windowMs = Math.min(PRIMARY_TIMEOUT_MS, remainingMs() - FALLBACK_RESERVE_MS);
+    const windowMs = primaryWindowMs();
     if (windowMs < MIN_PRIMARY_WINDOW_MS) break;
     attempts++;
     const callStartedAt = Date.now();
     outcome = await callProvider(PRIMARY_MODEL, providerBody, apiKey, windowMs, request.signal);
+    onlyQuotaErrors &&= isQuotaOut(outcome);
     const quickFailure = Date.now() - callStartedAt < QUICK_FAILURE_MS;
     if (request.signal.aborted) break;
     // 429 is quota: the same model won't recover within this request. An empty
@@ -443,13 +536,14 @@ export const POST: APIRoute = async ({ request }) => {
     return jsonResponse({ error: 'Client disconnected.', attempts }, 499);
   }
 
-  // One later stage (fallback, last resort). The client only gets a generic
-  // message, so the log line here is the one record of why that model failed
-  // too (e.g. a retired model id returning 404).
+  // One later stage (quota fallback, fallback, last resort). The client only
+  // gets a generic message, so the log line here is the one record of why that
+  // model failed too (e.g. a retired model id returning 404).
   const callLaterStage = async (stageModel: string, windowMs: number): Promise<ProviderOutcome> => {
     attempts++;
     model = stageModel;
     const result = await callProvider(stageModel, providerBody, apiKey, windowMs, request.signal);
+    onlyQuotaErrors &&= isQuotaOut(result);
     // A disconnect aborts the call too; don't log it as a timeout.
     if (!request.signal.aborted && isFailure(result)) {
       console.warn(`[generate-email] ${stageModel} failed too (${describeOutcome(result)})`);
@@ -457,8 +551,24 @@ export const POST: APIRoute = async ({ request }) => {
     return result;
   };
 
+  // The primary's quota is spent: a model with its own quota and the same
+  // quality goes before Flash-Lite. Its own shorter cap: when 3.8 is congested
+  // it hangs instead of answering, and Flash-Lite should still come in time.
+  const quotaSpent = isQuotaOut(outcome);
+  const quotaWindowMs = Math.min(QUOTA_TIMEOUT_MS, primaryWindowMs());
+  if (quotaSpent && QUOTA_STAGE_ON && quotaWindowMs >= MIN_PRIMARY_WINDOW_MS) {
+    console.warn(`[generate-email] ${PRIMARY_MODEL} out of quota, using ${QUOTA_FALLBACK_MODEL}`);
+    outcome = await callLaterStage(QUOTA_FALLBACK_MODEL, quotaWindowMs);
+    if (request.signal.aborted) {
+      return jsonResponse({ error: 'Client disconnected.', attempts }, 499);
+    }
+  }
+
   if (!outcome || isFailure(outcome)) {
-    console.warn(`[generate-email] ${PRIMARY_MODEL} failed (${describeOutcome(outcome)}), using ${FALLBACK_MODEL}`);
+    // A failed quota fallback has logged its own reason in callLaterStage.
+    console.warn(model === PRIMARY_MODEL
+      ? `[generate-email] ${PRIMARY_MODEL} failed (${describeOutcome(outcome)}), using ${FALLBACK_MODEL}`
+      : `[generate-email] using ${FALLBACK_MODEL}`);
     const left = remainingMs();
     outcome = await callLaterStage(FALLBACK_MODEL, left - FALLBACK_TIMEOUT_MS >= LAST_RESORT_MIN_MS ? FALLBACK_TIMEOUT_MS : left);
     if (request.signal.aborted) {
@@ -488,6 +598,26 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   if (outcome.kind === 'retryable') {
+    // The last model was out of quota too. A 429 can be the per-minute limit
+    // as well as the daily one, so the message covers both. When every call
+    // was a 429, no provider work was done and the slot goes back, the global
+    // one too: otherwise one client retrying through an outage fills the
+    // global cap alone and keeps it full after Gemini's quota resets.
+    if (outcome.status === 429) {
+      if (redis && onlyQuotaErrors) {
+        await Promise.all([
+          ipCharged ? redis.decr(ipKey) : null,
+          globalCharged ? redis.decr(globalKey) : null,
+        ]).catch(() => {});
+      }
+      return jsonResponse(
+        {
+          error: "Free generation capacity is used up right now. Try again in a minute; if it keeps happening, today's limit is spent and resets at midnight Pacific time.",
+          attempts,
+        },
+        429,
+      );
+    }
     return jsonResponse(
       { error: `Generation failed after ${attempts} attempts. Try again in a moment.`, attempts },
       outcome.status >= 400 && outcome.status < 600 ? outcome.status : 502,
@@ -516,7 +646,7 @@ export const POST: APIRoute = async ({ request }) => {
     }
   }
 
-  const html = wrapInShell(cleaned);
+  const { html, fixes } = pngPlaceholders(wrapInShell(cleaned));
   if (!looksLikeEmailHtml(html)) {
     return jsonResponse(
       {
@@ -530,16 +660,32 @@ export const POST: APIRoute = async ({ request }) => {
   const generationId = `gen-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
 
   // Quota counters were already charged before the provider call. Bump only
-  // the success-stats counter here so the stats dashboard reflects actually
-  // successful generations, not raw attempts.
+  // the success-stats counters here so the stats dashboard reflects actually
+  // successful generations, not raw attempts. Which model answered is kept per
+  // day and per generation (feedback.ts reads it), since the four models differ
+  // a lot in quality and Vercel logs are not always at hand. Best-effort, and
+  // capped: the answer is ready, and a slow or unreachable KV (the client
+  // retries with backoff and has no timeout) must not hold it back.
   if (redis) {
-    redis.incr(todayKey()).catch(() => { /* best-effort */ });
+    const modelsToday = `generate:models:${todayDate()}`;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    await Promise.race([
+      Promise.allSettled([
+        redis.incr(todayKey()),
+        redis.hincrby(modelsToday, model, 1).then(() => redis.expire(modelsToday, STATS_TTL_SECONDS)),
+        redis.hincrby('generate:models:total', model, 1),
+        redis.set(`generation:${generationId}`, model, { ex: STATS_TTL_SECONDS }),
+        fixes ? redis.incrby('generate:placeholder-fixes:total', fixes) : null,
+      ]),
+      new Promise<void>((resolve) => { timer = setTimeout(resolve, STATS_WAIT_MS); }),
+    ]);
+    clearTimeout(timer);
   }
 
   // Which model answered: the record of how often the fallback chain is needed.
-  console.info(`[generate-email] answered by ${model} after ${attempts} attempt(s)`);
+  console.info(`[generate-email] answered by ${model} after ${attempts} attempt(s)${fixes ? `, ${fixes} placeholder URL(s) fixed` : ''}`);
 
-  return jsonResponse({ html, attempts, generation_id: generationId }, 200);
+  return jsonResponse({ html, attempts, generation_id: generationId, model }, 200);
 };
 
 export const GET: APIRoute = () =>

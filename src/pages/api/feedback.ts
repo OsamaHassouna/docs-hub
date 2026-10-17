@@ -54,17 +54,28 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   const date = new Date().toISOString().slice(0, 10);
+  // The model that answered (generate-email stores it per generation), so
+  // ratings can be split by model. Best-effort: older or expired ids have none.
+  const model = await redis.get<string>(`generation:${generation_id}`).catch(() => null);
   const record = {
     generation_id,
     rating,
+    model: model ?? null,
     notes: notes?.slice(0, MAX_NOTES_LEN) ?? null,
     ts: new Date().toISOString(),
   };
 
   try {
+    // The per-model split is for comparing models, so it counts a generation
+    // once (its first rating) and only one this server actually produced: a
+    // re-post or a made-up id would otherwise skew it.
+    // Best-effort like the model lookup: a failed check skips the counter, it
+    // never loses the rating itself.
+    const firstRating = model ? (await redis.exists(`feedback:${generation_id}`).catch(() => 1)) === 0 : false;
     await Promise.all([
       redis.set(`feedback:${generation_id}`, JSON.stringify(record), { ex: TTL_SECONDS }),
       redis.incr(`feedback:daily:${date}:${rating}`),
+      model && firstRating ? redis.hincrby(`feedback:models:${rating}`, model, 1) : null,
     ]);
   } catch (err) {
     return jsonResponse(

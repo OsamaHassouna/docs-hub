@@ -78,5 +78,26 @@ export const GET: APIRoute = async ({ url }) => {
     mcp = { error: 'mcp counters unavailable' };
   }
 
-  return jsonResponse({ days, total, daily, mcp }, 200);
+  // Which playground model answered, and how ratings split by model. Same
+  // best-effort rule as the MCP counters.
+  let models: Record<string, unknown>;
+  try {
+    const [answered, answeredToday, good, bad, placeholderFixes] = await Promise.all([
+      redis.hgetall<Record<string, number>>('generate:models:total'),
+      redis.hgetall<Record<string, number>>(`generate:models:${today}`),
+      redis.hgetall<Record<string, number>>('feedback:models:good'),
+      redis.hgetall<Record<string, number>>('feedback:models:bad'),
+      redis.get<number>('generate:placeholder-fixes:total'),
+    ]);
+    models = {
+      answered_total: answered ?? {},
+      answered_today: answeredToday ?? {},
+      feedback: { good: good ?? {}, bad: bad ?? {} },
+      placeholder_fixes_total: Number(placeholderFixes ?? 0),
+    };
+  } catch {
+    models = { error: 'model counters unavailable' };
+  }
+
+  return jsonResponse({ days, total, daily, mcp, models }, 200);
 };
