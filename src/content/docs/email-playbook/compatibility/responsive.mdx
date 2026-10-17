@@ -94,49 +94,96 @@ Then mark each element you want to behave responsively with a class:
 
 ### Strategy 2 — Hybrid (works in Outlook desktop too)
 
-The hybrid approach builds a fluid layout using `max-width` + ghost tables. Even without media queries, the email collapses cleanly when the viewport is narrow:
+The hybrid approach builds a fluid layout using `max-width` + ghost tables. Even without media queries, the email collapses cleanly when the viewport is narrow. This is the pattern for every side-by-side layout: two cards, image + text, a row of three features.
 
 ```html title="hybrid-responsive-row.html"
-<!--[if mso]>
-<table role="presentation" width="600" align="center" border="0" cellspacing="0" cellpadding="0">
-<tr>
-<td width="300" valign="top">
-<![endif]-->
+<!-- In the head: full-width columns once they stack -->
+<style>
+  @media only screen and (max-width: 600px) {
+    .column { display:block !important; max-width:100% !important; }
+    .column-cell { padding:0 0 16px 0 !important; }
+  }
+</style>
 
-<div style="display:inline-block; width:100%; max-width:300px; vertical-align:top;">
-  <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0">
-    <tr>
-      <td>Column 1 content</td>
-    </tr>
+<!-- Two cards inside the usual 40px side padding: 600 - 80 = 520, so each
+     column is 260 and the ghost table is 520. This cell holds only the row. -->
+<td align="center" valign="top" style="padding:0 40px;">
+  <!--[if !mso]><!--><div style="font-size:0; text-align:center;"><!--<![endif]-->
+  <!--[if mso]>
+  <table role="presentation" width="520" align="center" border="0" cellspacing="0" cellpadding="0">
+  <tr>
+  <td width="260" valign="top">
+  <![endif]-->
+
+  <div class="column" style="display:inline-block; width:100%; max-width:260px; vertical-align:top; text-align:left;">
+    <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0">
+      <tr>
+        <!-- Half of the 16px gutter, inside the column -->
+        <td class="column-cell" valign="top" style="padding:0 8px 0 0;">
+          <!-- The card is its own table, so the gutter stays outside it -->
+          <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color:#F3F4F6;">
+            <tr>
+              <td style="padding:20px; text-align:left;
+                         font-family:Arial, sans-serif; font-size:15px; line-height:22px; color:#1A1A1A;">
+                Card 1 content
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+  <!--[if mso]>
+  </td>
+  <td width="260" valign="top">
+  <![endif]-->
+
+  <div class="column" style="display:inline-block; width:100%; max-width:260px; vertical-align:top; text-align:left;">
+    <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0">
+      <tr>
+        <!-- The other half of the gutter -->
+        <td class="column-cell" valign="top" style="padding:0 0 0 8px;">
+          <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color:#F3F4F6;">
+            <tr>
+              <td style="padding:20px; text-align:left;
+                         font-family:Arial, sans-serif; font-size:15px; line-height:22px; color:#1A1A1A;">
+                Card 2 content
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+  <!--[if mso]>
+  </td>
+  </tr>
   </table>
-</div>
-
-<!--[if mso]>
+  <![endif]-->
+  <!--[if !mso]><!--></div><!--<![endif]-->
 </td>
-<td width="300" valign="top">
-<![endif]-->
-
-<div style="display:inline-block; width:100%; max-width:300px; vertical-align:top;">
-  <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0">
-    <tr>
-      <td>Column 2 content</td>
-    </tr>
-  </table>
-</div>
-
-<!--[if mso]>
-</td>
-</tr>
-</table>
-<![endif]-->
 ```
 
 This produces:
 
-- **Outlook desktop**: sees the MSO ghost table → renders two 300px columns side-by-side.
-- **Every other client**: sees the inline-block `<div>`s → they sit side-by-side when the viewport is ≥600px, stack vertically when narrower (because `max-width:300px` lets them shrink to 100% wrapping).
+- **Outlook desktop**: sees the MSO ghost table → renders two 260px columns side-by-side, with the 16px gutter from the padding inside them.
+- **Every other client**: sees the inline-block `<div>`s → they sit side-by-side when there's room for both, stack vertically when narrower (because `max-width:260px` lets them shrink to 100% wrapping). The media query then makes the stacked columns full width; without it they stack at 260px, centered.
 
-The hybrid approach works without ANY media query.
+The row works without ANY media query; the query only polishes the stacked view.
+
+Rules that keep the columns side by side:
+
+- **`font-size:0` on the wrapper `<div>`.** Inline-block columns sit on a line of text, so the line break between one column's `</div>` and the next `<div>` renders as a space, about 4px. 260 + 4 + 260 doesn't fit in 520, and the second column drops below the first on every screen. `font-size:0` makes that space zero-width. The wrapper is inside `[if !mso]` because Outlook lays out the ghost table instead, and Word has no zero font size.
+- **Every text cell sets its own `font-size`.** Text inherits the wrapper's `font-size:0` and disappears otherwise. Each column `<div>` also sets `text-align` to the reading start (`left`, or `right` in an RTL email; see [RTL](/email-playbook/compatibility/rtl/)), so its content doesn't inherit the wrapper's `center` (the wrapper still centres the columns themselves).
+- **The widths add up exactly.** Work out the width of the area the row sits in first: the container width minus the side padding around the row. Each column's `max-width` is that width divided by the number of columns, and the ghost table and its cells use the same numbers. Full-width row: 600 → `300` + `300`. Inside 40px side padding: 600 − 80 = 520 → `260` + `260`, ghost table `width="520"`. Inside 32px: 536 → `268` + `268`. Don't subtract the gutter: it is padding inside the columns (next rule), so a 16px gutter in a 520 row still gives `260` + `260`, not `252` + `252`. Even 1px over and the row wraps; under, and the columns stop short of the edges.
+- **The gutter goes inside the columns.** No spacer `<div>` between them, and no spacer cell in the ghost table either: its cells are exactly the column widths. Split the gutter as padding on the inner cells: half on the first column's right, half on the second column's left (8px + 8px = a 16px gutter). Outlook and every other client then get the same gap. When the columns stack, `.column-cell` swaps it for a gap below each one.
+- **Padding goes on the `<td>`, never on the column `<div>`.** Outlook on Windows ignores padding on a `<div>`. A card with its own background and padding is a nested table inside the inner cell, as in the example, so the gutter stays outside the card.
+
+Hybrid columns don't share a height: a card's background ends where its content ends, so cards with different amounts of text come out uneven. If equal heights matter more than stacking in clients without media-query support, build that row with the Strategy 1 table cells instead (cells in one row always share its height).
+
+For three columns, use three `max-width:200px` columns (or thirds of your content width) and three ghost cells to match. When the width doesn't divide evenly, round down and give the remainder to the last column: 520 → `173` + `173` + `174`, and the same in the ghost cells. Rounding up wraps the row. Split a 12px gutter as 8px on the first column's right, 4px on both sides of the middle one, and 8px on the last column's left, so every column keeps the same content width.
 
 ## The 600px breakpoint
 
@@ -171,7 +218,7 @@ The most common responsive change: two side-by-side columns become two stacked r
 
 ### Via hybrid pattern (Outlook-safe)
 
-Use the inline-block `<div>` approach from above. The columns naturally stack when they can no longer sit side-by-side without overflowing.
+Use the inline-block `<div>` approach from above, with its rules (`font-size:0` wrapper, exact widths, gutter inside the columns). The columns naturally stack when they can no longer sit side-by-side without overflowing.
 
 ## Mobile-specific styles
 
@@ -243,7 +290,7 @@ The mobile-hidden / mobile-only pattern breaks in Outlook desktop (no media quer
 Images on responsive emails need `max-width:100%` in their inline style:
 
 ```html
-<img src="https://placehold.co/600x300/E0E0E0/E0E0E0"
+<img src="https://placehold.co/600x300/E0E0E0/E0E0E0/png"
      width="600" height="auto" alt="..."
      style="height:auto; display:block; max-width:100%;">
 ```
@@ -278,7 +325,7 @@ Two fixes. Pick the right one based on whether you can rely on `box-sizing`:
 
 ### Fix 1 — Padding on an inner wrapper (recommended)
 
-Move the padding off the cell. Put it on a `<div>` inside the cell:
+Move the padding off the cell. Put it on a cell of a nested table inside it:
 
 ```html title="stack-fix-inner-wrapper.html"
 <style>
@@ -289,17 +336,21 @@ Move the padding off the cell. Put it on a `<div>` inside the cell:
 
 <table width="600" style="max-width:600px;width:100%;">
   <tr>
-    <td class="stack" width="50%">
-      <div style="padding:20px 40px;">Column 1</div>
+    <td class="stack" width="50%" valign="top">
+      <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0">
+        <tr><td style="padding:20px 40px;">Column 1</td></tr>
+      </table>
     </td>
-    <td class="stack" width="50%">
-      <div style="padding:20px 40px;">Column 2</div>
+    <td class="stack" width="50%" valign="top">
+      <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0">
+        <tr><td style="padding:20px 40px;">Column 2</td></tr>
+      </table>
     </td>
   </tr>
 </table>
 ```
 
-Works in every client. The cell is fluid; the inner `<div>` carries the padding without inflating the cell's box. This is the canonical fix.
+Works in every client. The outer cell is fluid; the nested cell carries the padding without inflating the outer cell's box. Not a `<div>`: Outlook on Windows ignores padding on a `<div>`, so the content would sit flush against the edges there. This is the canonical fix.
 
 ### Fix 2 — `calc()` to subtract padding from width
 
