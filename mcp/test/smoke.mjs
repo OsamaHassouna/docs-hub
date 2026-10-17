@@ -141,6 +141,8 @@ async function main() {
 
   await check('long or multi-line arguments stay fast and are handled', async () => {
     // Without the length cap each of these takes over a second (quadratic regexes).
+    // With it they take ~1 ms; the 750 ms budget leaves room for a slow CI runner
+    // (this check gates every PR) while still catching a lost cap.
     const huge = [
       ['get_rule', { slug: 'a' + '/'.repeat(100000) + 'a' }, 'Unknown rule'],
       ['get_component', { name: 'a' + ' '.repeat(100000) + 'a' }, 'Unknown component'],
@@ -150,7 +152,7 @@ async function main() {
       const started = Date.now();
       const res = await client.callTool({ name, arguments: args });
       const took = Date.now() - started;
-      assert.ok(took < 250, `${name} took ${took}ms`);
+      assert.ok(took < 750, `${name} took ${took}ms`);
       assert.ok(res.isError && res.content[0].text.includes(message), `${name}: ${res.content[0].text.slice(0, 80)}`);
     }
     // A long query or text fragment on a real link is fine: only the path counts.
