@@ -6,12 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+- MCP: `get_rule` tool returns a single rule page by slug (`compatibility/responsive`, just `responsive`, or a page link from a body) instead of the whole category. A component name or link points to `get_component`.
+- MCP: `get_playbook_rules` takes `format: "checklist"` for a compact list of the rules on each page; leave out `category` to get every page in one call (about 16 KB). Every rule page now carries an authored checklist.
+- MCP: `list_categories` lists the slug and title of every page, so clients can find what to pass to `get_rule`.
+- MCP: the server sends `instructions` on initialize (stdio and hosted) describing the checklist-first order, and every tool carries read-only `annotations`.
+- CLI: the MCP tool names work as command names (`list_categories`, `get_playbook_rules`, `get_rule`, `list_components`, `get_component`), plus `get-rule <slug>`, `get-rules [category] --checklist`, `--md` for readable markdown output, and `help` / `version` commands.
+
 ### Changed
+- Spec: `playbook-spec.json` version 1.1.0, with a `checklist` array on every rule page.
 - Docs site: Playground image-to-email runs on a newer model that keeps layout and content much closer to the uploaded design. When it's out of quota, a second model of the same quality takes over; when it's busy, a faster fallback model answers. Generation now takes about 1-2 minutes.
 - Playbook: placeholder images are for assets you don't have. When a request supplies real image URLs (Figma exports, CDN links), generators use them as given.
 
 ### Fixed
-- Playbook: placeholder images now use `placehold.co` PNG URLs (`/png`). The default SVG doesn't render in Gmail's mobile apps or older desktop Outlook, so generated emails could show broken images there. The Playground also corrects any placeholder URL that comes back without it.
+- Playbook: placeholder images now use `placehold.co` PNG URLs (`/png`). The default SVG doesn't render in most email clients (Gmail, older desktop Outlook), so generated emails could show broken images there. The Playground also corrects any placeholder URL that comes back without it.
 - Playbook: the hybrid two-column pattern keeps its columns side by side. The space between the inline-block columns pushed the second one onto a new line; the pattern now wraps them in a `font-size:0` div, makes the widths add up exactly, and puts padding on table cells, which Outlook respects, instead of `<div>`s.
 - Hosted `/api/mcp` endpoint now follows the Streamable HTTP transport for the cases strict MCP clients check: notifications are answered with `202` and an empty body (was `200` with a JSON-RPC result), and a `GET` that asks for `text/event-stream` gets `405` (was `200` with the discovery JSON). A plain `GET` still returns the discovery document.
 - CORS preflight on `/api/mcp` now allows the `Mcp-Protocol-Version`, `Mcp-Session-Id`, `Last-Event-ID` and `Accept` request headers, so browser-based MCP clients can connect.
