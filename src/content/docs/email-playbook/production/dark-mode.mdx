@@ -1,6 +1,13 @@
 ---
 title: Dark Mode
 description: How email clients handle dark mode, the three behaviors you need to design for, and the techniques to control or override each.
+checklist:
+  - "Design for three behaviours: no transformation, partial invert (Outlook desktop) and full invert (Gmail mobile, Outlook mobile)."
+  - "Declare `color-scheme` and `supported-color-schemes`, and add a `prefers-color-scheme` block for clients that honour it."
+  - "Ship light and dark logo variants and toggle them in the dark-mode query."
+  - "Prefer near-white backgrounds (e.g. `#F8F8F5`) to pure white, and set `bgcolor` as well as `background-color`."
+  - "Do not fight forced invert by hard-coding light backgrounds, do not use transparent spacer images, and do not change layout in dark mode."
+  - "Test in Apple Mail, Outlook 365 and Gmail Android/iOS with dark mode on."
 ---
 
 import { Aside } from '@astrojs/starlight/components';

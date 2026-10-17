@@ -1,6 +1,13 @@
 ---
 title: Bulletproof Buttons
 description: CTA buttons that render correctly in every client, including Outlook on Windows. VML for Outlook, HTML/CSS for everyone else.
+checklist:
+  - "Build every CTA as two blocks: a VML `<v:roundrect>` in `<!--[if mso]>` and an inline-styled `<a>` in `<!--[if !mso]><!-- -->`."
+  - "Match the VML width and height to the `<a>` width and `line-height` exactly."
+  - "Center the text vertically with `line-height` equal to the button height, not padding."
+  - "Put `font-family` and `-webkit-text-size-adjust:none` inline on the `<a>`."
+  - "Include `<w:anchorlock/>` so the whole VML shape is clickable."
+  - "Never use `<button>` or a background image for a button; solid colours only."
 ---
 
 import { Aside } from '@astrojs/starlight/components';

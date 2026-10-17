@@ -1,6 +1,14 @@
 ---
 title: Outlook & MSO
 description: A working reference for Microsoft Outlook's quirks — the MSO conditional comments, VML, the Word rendering engine, and the patterns that survive Outlook 2007 through Outlook 365.
+checklist:
+  - "\"Outlook\" means the Windows desktop client on the Word engine; design for it."
+  - "Outlook-only markup goes in `<!--[if mso]>`; markup for everyone else in `<!--[if !mso]><!-->` ... `<!--<![endif]-->`."
+  - "Wrap the fluid container in an MSO ghost table (`<!--[if mso | IE]>`, `width=\"600\"`): Outlook ignores `max-width`."
+  - "Use VML: `<v:rect>` for background images, `<v:roundrect>` for rounded buttons."
+  - "Don't rely on what Outlook ignores: border-radius, gradients, float/flex/grid, position, web fonts, CSS background-image."
+  - "Use six-digit hex colours, and always set the `width=\"\"` attribute on images: Outlook ignores CSS `max-width` (keep it for other clients)."
+  - "Test in a real Outlook 2019 or 365 desktop before sending."
 ---
 
 import { Aside } from '@astrojs/starlight/components';

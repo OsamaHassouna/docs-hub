@@ -1,6 +1,13 @@
 ---
 title: Email Header
 description: The header row — a presentation table inside a row, with height, background, and a three-column content layout for logo + nav + actions.
+checklist:
+  - "The header is its own table inside a `colspan=\"99\"` row."
+  - "Fix the height with the `height=\"\"` attribute, not CSS."
+  - "Set `bgcolor` on the structure cell with six-digit hex, never `#fff`."
+  - "For a background image use `background=\"\"` plus a VML `<v:rect>` whose height matches the table height."
+  - "Use spacer rows at the top and bottom, and change `height` and `line-height` together."
+  - "Keep all three content cells (left, center, right) even when two are empty."
 ---
 
 import { Aside } from '@astrojs/starlight/components';

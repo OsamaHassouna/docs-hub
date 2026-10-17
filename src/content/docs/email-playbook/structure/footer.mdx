@@ -1,6 +1,12 @@
 ---
 title: Email Footer
 description: The footer row — structurally a mirror of the header, with an optional top border and slots for unsubscribe links, legal text, and social icons.
+checklist:
+  - "Mirror the header: its own table, a fixed `height`, `bgcolor` on the structure cell, spacer rows top and bottom."
+  - "Use the optional 5px top-border row to separate the footer from the body."
+  - "A background image needs the same VML `<v:rect>` pattern as the header."
+  - "Marketing mail needs a physical address, a working one-click unsubscribe and clear sender identification."
+  - "In an email generated from a design, include only the footer parts the source shows (see Content Fidelity)."
 ---
 
 import { Aside } from '@astrojs/starlight/components';

@@ -1,6 +1,15 @@
 ---
 title: Responsive
 description: Mobile-first email patterns — the @media query, the hybrid approach for Outlook (which ignores media queries), and the ghost-table column collapse.
+checklist:
+  - "Use the 3-table-level wrapper: outer `width=\"100%\"`, container `max-width:600px` with a ghost table, inner tables `width=\"100%\"`, never 600."
+  - "Media queries are enhancement only: Outlook desktop ignores them, so the layout must work without them."
+  - "Side-by-side columns use the hybrid row: a non-MSO `font-size:0` wrapper `<div>`, inline-block columns with `max-width`, a matching ghost table."
+  - "Column widths and ghost cells add up exactly to the row width (container minus side padding); round down, remainder on the last column."
+  - "The gutter is `<td>` padding inside the columns; no spacer `<div>` or ghost spacer cell between them."
+  - "Text cells in a column set their own `font-size`, and each column `<div>` sets `text-align` to the reading start."
+  - "Padding goes on `<td>`, never on a `<div>`; a card with a background is a nested table."
+  - "Images get `width=\"\"` plus `max-width:100%; height:auto;`."
 ---
 
 import { Aside } from '@astrojs/starlight/components';

@@ -1,6 +1,13 @@
 ---
 title: Image Placeholders
 description: How to emit images when generating email HTML from a source design. Use real asset URLs when you're given them; otherwise placehold.co PNG blocks at the source dimensions — no invented hosts, no text labels at icon sizes.
+checklist:
+  - "Use a real image URL only when the request supplies it; never guess one."
+  - "Otherwise use `https://placehold.co/{W}x{H}/E0E0E0/E0E0E0/png` at the source dimensions."
+  - "Keep the `/png`: without it placehold.co serves SVG, which most email clients do not render."
+  - "No `?text=` labels."
+  - "Always set `width`, `height` and a descriptive `alt`."
+  - "Read the dimensions from the source; do not round or guess."
 ---
 
 import { Aside } from '@astrojs/starlight/components';
@@ -23,7 +30,7 @@ https://placehold.co/{W}x{H}/E0E0E0/E0E0E0/png
 
 - `{W}` and `{H}` — pixel width and height as they appear in the source design.
 - `/E0E0E0/E0E0E0` — background color and text color set to the same value, so no text label renders inside the block.
-- `/png` — required. Without it `placehold.co` serves SVG, which Gmail's mobile apps and older desktop Outlook don't render, so every image shows as broken there. PNG works everywhere.
+- `/png` — required. Without it `placehold.co` serves SVG, which most email clients (Gmail, older desktop Outlook) don't render, so every image shows as broken there. PNG works everywhere.
 
 Always include the matching `width`, `height`, and `alt` attributes on the `<img>` tag.
 

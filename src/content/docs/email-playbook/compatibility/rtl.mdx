@@ -1,6 +1,13 @@
 ---
 title: RTL Support
 description: Building emails for Arabic, Hebrew, Farsi, and Urdu — the dir attribute, mirrored layout, image flipping, and font stacks.
+checklist:
+  - "Set `dir=\"rtl\"` and `direction:rtl` at every level: wrapper `<div>`, main table, content cells, paragraphs."
+  - "Mirror hard-coded alignment and padding (left and right swap); the three-cell header and footer flip by themselves."
+  - "Use mirrored versions of direction-aware images (arrows, handed icons)."
+  - "Check numbers, prices and dates inside RTL text in a real render."
+  - "Use an Arabic-safe font stack that ends in `Arial, sans-serif`."
+  - "In bilingual emails, give each language block its own `dir` and `text-align`."
 ---
 
 import { Aside } from '@astrojs/starlight/components';

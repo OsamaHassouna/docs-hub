@@ -1,6 +1,13 @@
 ---
 title: Head Structure
 description: The HTML doctype, namespaces, meta tags, and conditional comments that make the rest of an email template work.
+checklist:
+  - "Start with the XHTML 1.0 Transitional doctype and an `<html>` tag carrying `xmlns:v` and `xmlns:o`."
+  - "Set `lang` on `<html>` to the audience language (Arabic: `lang=\"ar\"` plus `dir=\"rtl\"` on the body container)."
+  - "Keep the MSO OfficeDocumentSettings block (`AllowPNG`, `PixelsPerInch` 96) so Outlook does not inflate images."
+  - "Include the meta tags: utf-8 charset, viewport, X-UA-Compatible, format-detection, x-apple-disable-message-reformatting."
+  - "Load web fonts only inside `<!--[if !mso]><!-->` ... `<!--<![endif]-->`, with an inline fallback stack."
+  - "Head `<style>` holds only the body reset, default fonts and media queries; anything visual-critical is also inline."
 ---
 
 import { Aside } from '@astrojs/starlight/components';

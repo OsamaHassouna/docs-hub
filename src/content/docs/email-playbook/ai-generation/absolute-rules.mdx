@@ -1,6 +1,14 @@
 ---
 title: Absolute Rules
 description: Hard constraints any AI agent or generator should follow when emitting playbook-compliant HTML. Use only documented patterns; never fall back to general training-data instincts.
+checklist:
+  - "Use only patterns documented in the playbook; when nothing fits, fall back to the simplest presentation table."
+  - "No flex, grid or float; tables only."
+  - "Reproduce only what is in the source: no invented footers, content or URLs; keep every container and section, in order."
+  - "Text you can read stays live HTML text; only pictures become images."
+  - "Use placehold.co PNG placeholders (`.../png`) unless the request supplies real image URLs."
+  - "Start with the 3-table-level wrapper and an MSO ghost table; inner tables are `width=\"100%\"`."
+  - "Return one complete HTML document, or the JSON error object when the input is not an email design."
 ---
 
 import { Aside } from '@astrojs/starlight/components';
@@ -36,7 +44,7 @@ Every `<img>` in the generated output gets a `placehold.co` placeholder, unless 
 https://placehold.co/{W}x{H}/E0E0E0/E0E0E0/png
 ```
 
-Match `{W}` and `{H}` to the pixel dimensions visible in the source. Keep the `/png` at the end: the default SVG doesn't show in Gmail's mobile apps or older desktop Outlook. Always include `width`, `height`, and descriptive `alt` text. See [Image Placeholders](/email-playbook/ai-generation/image-placeholders/) for the full pattern.
+Match `{W}` and `{H}` to the pixel dimensions visible in the source. Keep the `/png` at the end: the default SVG doesn't show in most email clients (Gmail, older desktop Outlook). Always include `width`, `height`, and descriptive `alt` text. See [Image Placeholders](/email-playbook/ai-generation/image-placeholders/) for the full pattern.
 
 ## Use the 3-table-level wrapper
 

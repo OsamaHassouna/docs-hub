@@ -1,6 +1,12 @@
 ---
 title: Email Body
 description: The body row — a flexible inner table where content blocks stack with explicit spacer rows between them. Padding and margin don't survive, so use rows.
+checklist:
+  - "Do not set a height on the body row; the content decides it."
+  - "Each content block is its own `<tr>` with one full-width `<td>` (`align` plus `colspan=\"99\"`)."
+  - "Space blocks vertically with spacer rows between them, not padding or margin: `height`, `line-height` and `mso-line-height-rule:exactly` all equal."
+  - "Nest a fresh table for any block with its own structure (columns, a card, image + text)."
+  - "Skip `colspan` only on side-by-side cells."
 ---
 
 import { Aside } from '@astrojs/starlight/components';

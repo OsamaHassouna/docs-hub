@@ -1,6 +1,12 @@
 ---
 title: Link Tokens
 description: The placeholder convention for href targets and dynamic text fields in generated email HTML. Loud {{token}} syntax that fails fast if not swapped, instead of deceptively real example.com URLs.
+checklist:
+  - "Every href that needs a real target is a `{{token}}`, never example.com or an invented URL."
+  - "Use the standard names: `{{cta_url}}`, `{{secondary_cta_url}}`, `{{unsubscribe_url}}`, `{{preferences_url}}`, `{{view_in_browser_url}}`, `{{logo_url}}`."
+  - "Personalization uses `{{employee_name}}`, `{{recipient_name}}` and similar names."
+  - "Custom tokens are fine when the field is specific to the template, still in `{{snake_case}}`."
+  - "Images use placehold.co, not tokens."
 ---
 
 import { Aside } from '@astrojs/starlight/components';

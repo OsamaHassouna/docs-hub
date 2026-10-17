@@ -1,6 +1,13 @@
 ---
 title: Content Fidelity
 description: When generating email HTML from a source design, reproduce exactly what's visible — no invented footers, no boilerplate, no rearrangement. The most common generator failure mode.
+checklist:
+  - "Reproduce only what the source shows; if it ends at a paragraph, the email ends there."
+  - "Never add footers, addresses, unsubscribe lines, copyright or \"sent to you because\" text the source does not show."
+  - "Recreate every visual container (panels, cards, callouts, bars) with its colour."
+  - "Keep the sections in the source order, top to bottom."
+  - "Do not invent brand names, taglines or \"view in browser\" links."
+  - "Only personalization fields are transformed, into `{{tokens}}`."
 ---
 
 import { Aside } from '@astrojs/starlight/components';

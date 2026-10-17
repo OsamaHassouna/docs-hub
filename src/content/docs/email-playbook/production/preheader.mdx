@@ -1,6 +1,13 @@
 ---
 title: Preheader Text
 description: The hidden line of text that shows up next to the subject line in inbox previews. Tiny effort, large impact on open rates.
+checklist:
+  - "The hidden preheader is the first element after `<body>`."
+  - "Apply every hide style: `display:none`, `max-height:0`, `overflow:hidden`, `mso-hide:all`, `visibility:hidden`, `opacity:0`, transparent colour, zero height and width, 1px font size and line height."
+  - "Front-load the key information in the first 40 characters; 140 characters at most."
+  - "Continue the subject line; never repeat it."
+  - "Skip the trailing `&nbsp;` padding hack."
+  - "For an RTL preheader, set `dir=\"rtl\"` on its wrapper."
 ---
 
 import { Aside } from '@astrojs/starlight/components';

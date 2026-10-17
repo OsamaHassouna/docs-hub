@@ -1,6 +1,15 @@
 ---
 title: Handoff Checklist
 description: Pre-send checklist for the human after an AI-generated email. Replace placeholders, swap assets, confirm dimensions, test clients, verify size. Run through every time.
+checklist:
+  - "Replace every `{{token}}`: grep for `{{` until nothing matches."
+  - "Swap every placehold.co image for a hosted asset at the same width and height."
+  - "Every `<img>` has `width` and `height` attributes matching the asset (served at 2x for Retina)."
+  - "Open every link: it loads, opens in the right context and carries the right tracking."
+  - "Add or confirm the preheader."
+  - "Keep the total HTML under Gmail's 102KB clip (aim for 90KB to leave room for the ESP)."
+  - "Test in a real Outlook desktop, on mobile (no horizontal scroll, 44pt tap targets, columns stack) and in dark mode."
+  - "Marketing mail: physical address, working unsubscribe, clear sender."
 ---
 
 import { Aside } from '@astrojs/starlight/components';

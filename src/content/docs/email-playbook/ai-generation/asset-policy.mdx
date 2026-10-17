@@ -1,6 +1,12 @@
 ---
 title: Asset Policy
 description: One-page reference for every placeholder strategy in generated email HTML — images, links, text fields, dynamic personalization. Why we use these conventions and how the human swaps them at handoff.
+checklist:
+  - "Images: placehold.co solid PNG blocks at the source size, unless the request supplies real URLs."
+  - "Links: `{{token}}` placeholders from the standard vocabulary, never example.com or guessed URLs."
+  - "Personalization fields in the source (`[Name]`, `{first_name}`) become `{{tokens}}`."
+  - "Source text is reproduced verbatim: no translation or rewriting."
+  - "Every placeholder must look obviously unfinished so it gets replaced before send."
 ---
 
 import { Aside } from '@astrojs/starlight/components';
@@ -27,7 +33,7 @@ Every `<img>` in the generated output uses the `placehold.co` solid-color URL pa
 - **No invented CDN URLs.** Models will happily emit `https://cdn.healthholding.sa/logo.png` from a design image. The URL doesn't exist. The image is broken at send.
 - **Visible placeholder.** A grey block at the right dimensions is impossible to confuse with the real asset. Reviewers and tools both catch it.
 - **No `?text=...` overlay.** Text labels look acceptable at hero sizes but break visually at icon sizes. The convention is solid color blocks across the board.
-- **PNG, not SVG.** The URL ends in `/png`. `placehold.co` serves SVG by default, and Gmail's mobile apps and older desktop Outlook can't render SVG.
+- **PNG, not SVG.** The URL ends in `/png`. `placehold.co` serves SVG by default, and most email clients (Gmail, older desktop Outlook) can't render SVG.
 
 Full pattern: see [Image Placeholders](/email-playbook/ai-generation/image-placeholders/).
 

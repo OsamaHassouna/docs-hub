@@ -1,6 +1,12 @@
 ---
 title: Gmail 102KB Clipping
 description: The Gmail message size limit that silently truncates emails past 102KB, and how to design templates that stay under it.
+checklist:
+  - "Gmail clips HTML over 102KB; keep the raw template under 90KB to leave room for the ESP and tracking."
+  - "Comments, whitespace and inline CSS all count: strip development comments (keep the MSO conditional comments) and minify, then re-test in Outlook."
+  - "Never inline base64 images; always use hosted URLs."
+  - "Keep personalization tokens and long class names in check; they add bytes at send time."
+  - "Measure the delivered size through your actual ESP, not just the template."
 ---
 
 import { Aside } from '@astrojs/starlight/components';
@@ -69,6 +75,8 @@ html-minifier email.html --collapse-whitespace --remove-comments \
 
 <Aside type="caution" title="Don't over-minify">
 Aggressive whitespace removal can break Outlook rendering (especially around VML). Test the minified output in Outlook desktop before sending.
+
+Strip only development comments. The MSO conditional comments (`<!--[if mso]>`, `<!--[if !mso]><!-->`) are code: without them Outlook loses its ghost tables, VML buttons and backgrounds. Check that the minified file still contains them.
 </Aside>
 
 ### 2. Limit personalization tokens

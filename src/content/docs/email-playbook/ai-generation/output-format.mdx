@@ -1,6 +1,12 @@
 ---
 title: Output Format
 description: The exact response shape a generator emits — a single raw HTML document on success, a JSON error object when the input isn't an email design.
+checklist:
+  - "Success: one complete HTML document from `<!DOCTYPE` to `</html>`, nothing before or after."
+  - "No markdown fences, no commentary, no conversational comments, no JSON wrapping."
+  - "Keep the MSO conditional comments; they are required."
+  - "Not an email design: return only `{\"error\": \"...\"}` as plain JSON."
+  - "When the input is ambiguous, prefer the error to guessing."
 ---
 
 import { Aside } from '@astrojs/starlight/components';
