@@ -52,9 +52,9 @@ Restart Claude Desktop. The playbook tools appear in the model's tool list. Ask 
 For an image-to-email or "build me a welcome email" prompt, the model typically calls:
 
 ```
-1. list_categories                                    ← orient
-2. get_playbook_rules({ category: "ai-generation" })  ← absolute rules first
-3. get_playbook_rules({ category: "compatibility" })  ← responsive + Outlook
+1. list_categories                                    ← orient, page slugs
+2. get_playbook_rules({ format: "checklist" })        ← every page's rules, ~16 KB
+3. get_rule({ slug: "compatibility/responsive" })     ← just the pages it needs
 4. list_components → get_component({ name: "buttons" }) ← components it needs
 5. compose final HTML using those exact patterns
 ```
@@ -90,7 +90,7 @@ $ email-playbook get-component buttons | jq '{name, slots, requires_vml}'
 }
 ```
 
-Other commands: `list-categories`, `list-components`, `get-rules <category>`. Help text is generated from the bundled spec at runtime, never stale. Run `email-playbook --help`.
+Other commands: `list-categories`, `list-components`, `get-rules [category] [--checklist]`, `get-rule <slug> [--examples]`; add `--md` to `get-rules` / `get-rule` for readable markdown instead of JSON. The MCP tool names work as command names too (`get_playbook_rules`, `get_rule`, ...). Help text is generated from the bundled spec at runtime, never stale. Run `email-playbook --help`.
 
 Run without installing globally:
 
@@ -102,8 +102,9 @@ npx -y -p email-playbook-mcp email-playbook list-categories
 
 | Tool | Returns |
 |------|---------|
-| `list_categories` | The 4 rule categories with page counts |
-| `get_playbook_rules({ category })` | All rules in one category (text + code) |
+| `list_categories` | The 4 rule categories with page counts and page slugs |
+| `get_playbook_rules({ category?, format? })` | Rule pages: `full` (text + code, default, one category) or `checklist` (the rules to follow; leave out `category` for every page, about 16 KB) |
+| `get_rule({ slug, include_examples? })` | One rule page with its code (`compatibility/responsive` or `responsive`); `include_examples: true` adds the code as a separate array |
 | `list_components` | All 6 components with metadata |
 | `get_component({ name })` | One component: HTML pattern, slots, VML/responsive flags |
 

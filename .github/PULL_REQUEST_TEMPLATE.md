@@ -13,6 +13,7 @@ A short summary of the change and why.
 ## Checklist
 
 - [ ] I edited the MDX, not the generated `playbook-spec.json` / `gemini-prompt.ts`
+- [ ] If a rule page's guidance changed, its frontmatter `checklist:` still matches the page
 - [ ] `npm run build` passes locally
 - [ ] `node mcp/test/probe.mjs` passes (if MCP/spec changed)
 - [ ] Verified rendered output for any visual/CSS change

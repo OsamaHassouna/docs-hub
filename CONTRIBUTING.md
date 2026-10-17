@@ -32,7 +32,7 @@ Node 18+ is required (the MCP package declares `engines.node >= 18`).
 
 ## Making a content change
 
-1. Edit the relevant `.mdx` under `src/content/docs/email-playbook/`.
+1. Edit the relevant `.mdx` under `src/content/docs/email-playbook/`. Rule pages (structure, compatibility, production, ai-generation) carry a `checklist:` list in their frontmatter: the short rules MCP clients get from `get_playbook_rules` with `format: "checklist"`. When you change what a page tells people to do, update its checklist to match. The build fails if a rule page has none.
 2. Run `npm run build:spec` to regenerate the spec, or just `npm run dev` (it regenerates on start).
 3. Smoke-test the MCP surface: `node mcp/test/probe.mjs` from the repo root — it spawns the server, lists tools, calls each one, and checks the error path.
 4. For visual or CSS changes, verify the rendered output locally (curl the built HTML and/or a headless screenshot) before opening a PR. A clean build is not proof a page renders correctly.
