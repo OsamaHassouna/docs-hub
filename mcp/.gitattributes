@@ -1,0 +1,4 @@
+# The npm package ships these files as checked out. Keep LF so the bin
+# shebangs (#!/usr/bin/env node) work on macOS/Linux even when publishing
+# from a Windows checkout with core.autocrlf=true.
+* text=auto eol=lf
