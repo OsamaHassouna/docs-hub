@@ -312,10 +312,11 @@ function wrapInShell(markup: string): string {
   return `${before}${content}${EMAIL_SHELL.after}`;
 }
 
-// placehold.co serves SVG unless the path ends in a format, and SVG doesn't
-// render in Gmail's apps or older desktop Outlook. A lone colour doesn't work either: placehold.co reads the
-// next segment as the text colour, so /600x300/E0E0E0/png is still SVG, and so
-// is a bare 600x300@2x (all checked with curl, 2026-10-17). The prompt asks for
+// placehold.co serves SVG unless the path ends in a format, and most email
+// clients (Gmail, older desktop Outlook) don't render SVG. A lone colour doesn't
+// work either: placehold.co reads the next segment as the text colour, so
+// /600x300/E0E0E0/png is still SVG, and so is a bare 600x300@2x (all checked
+// with curl, 2026-10-17). The prompt asks for
 // /WxH/bg/fg/png; this puts any placeholder that wouldn't serve PNG, JPEG or
 // GIF into that shape, in src, background and VML alike. The path stops at
 // quotes, brackets and `&` so a url(&quot;...&quot;) stays intact.
