@@ -139,7 +139,9 @@ function build() {
   out.push('# FINAL REMINDERS');
   out.push('');
   out.push('- Reproduce ONLY what is visible in the source image. No invented footers, no boilerplate, no rearrangement.');
-  out.push('- All images are placehold.co solid color blocks at the source dimensions (https://placehold.co/{W}x{H}/E0E0E0/E0E0E0). NEVER use example.com, NEVER invent CDN URLs.');
+  out.push('- All images are placehold.co solid color blocks at the source dimensions (https://placehold.co/{W}x{H}/E0E0E0/E0E0E0/png). Keep the /png: the default SVG does not show in Gmail apps or older Outlook. NEVER use example.com, NEVER invent CDN URLs.');
+  out.push('- Text you can read in the design stays live HTML text, even on a coloured banner or header: a coloured block with a headline, or a wordmark in a plain font, is a bgcolor cell with that text, never a placeholder image. Of the elements with text in them, only logos with artwork or custom lettering are images. Photos, illustrations and icons stay placeholders.');
+  out.push('- Side-by-side columns (cards, image + text): copy the hybrid row from compatibility/responsive exactly. font-size:0 wrapper div, so every text cell inside sets its own font-size and each column div sets text-align to the reading start (left, or right for dir="rtl"); each column max-width = row width / number of columns, rounded down with the remainder on the last column, and nothing subtracted for the gutter; the gutter is padding inside the columns; no spacer div or ghost-table spacer cell between columns.');
   out.push('- All link href targets use {{token}} placeholders, NEVER https://example.com/... and NEVER invented real URLs. Standard tokens: {{cta_url}}, {{unsubscribe_url}}, {{preferences_url}}, {{view_in_browser_url}}, {{logo_url}}. Use the vocabulary from ai-generation/link-tokens.');
   out.push('- Personalization fields visible in the source (e.g. [Name], {first_name}) are reproduced as {{employee_name}} / {{recipient_name}} / equivalent token, not as literal text.');
   out.push('- Use the 3-table-level wrapper from compatibility/responsive. Inner tables are ALWAYS width="100%" — never width="600".');
