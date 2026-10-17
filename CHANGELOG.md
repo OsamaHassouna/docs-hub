@@ -7,7 +7,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ## [Unreleased]
 
 ### Changed
-- Docs site: Playground image-to-email runs on a newer model that keeps layout and content much closer to the uploaded design, with a faster fallback model when the first is busy or out of quota. Generation now takes about 1-2 minutes.
+- Docs site: Playground image-to-email runs on a newer model that keeps layout and content much closer to the uploaded design. When it's out of quota, a second model of the same quality takes over; when it's busy, a faster fallback model answers. Generation now takes about 1-2 minutes.
+- Playbook: placeholder images are for assets you don't have. When a request supplies real image URLs (Figma exports, CDN links), generators use them as given.
+
+### Fixed
+- Playbook: placeholder images now use `placehold.co` PNG URLs (`/png`). The default SVG doesn't render in Gmail's mobile apps or older desktop Outlook, so generated emails could show broken images there. The Playground also corrects any placeholder URL that comes back without it.
+- Playbook: the hybrid two-column pattern keeps its columns side by side. The space between the inline-block columns pushed the second one onto a new line; the pattern now wraps them in a `font-size:0` div, makes the widths add up exactly, and puts padding on table cells, which Outlook respects, instead of `<div>`s.
 
 ## [0.6.3] — 2026-06-02
 
