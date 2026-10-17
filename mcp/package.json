@@ -59,7 +59,7 @@
     "url": "https://github.com/OsamaHassouna/docs-hub/issues"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.0.4"
+    "@modelcontextprotocol/sdk": "^1.2.0"
   },
   "engines": {
     "node": ">=18"

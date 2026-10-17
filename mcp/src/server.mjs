@@ -18,14 +18,14 @@ import {
   ListToolsRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
 
-import { getTools, runTool } from './tools.mjs';
+import { getTools, runTool, SERVER_INSTRUCTIONS } from './tools.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PKG = JSON.parse(readFileSync(join(__dirname, '..', 'package.json'), 'utf8'));
 
 const server = new Server(
   { name: 'email-playbook', version: PKG.version },
-  { capabilities: { tools: {} } },
+  { capabilities: { tools: {} }, instructions: SERVER_INSTRUCTIONS },
 );
 
 server.setRequestHandler(ListToolsRequestSchema, async () => ({

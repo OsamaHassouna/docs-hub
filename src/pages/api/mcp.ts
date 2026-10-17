@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 // @ts-expect-error  JS module sibling of the published mcp package
-import { getTools, runTool, setSpec } from '../../../mcp/src/tools.mjs';
+import { getTools, runTool, setSpec, SERVER_INSTRUCTIONS } from '../../../mcp/src/tools.mjs';
 import MCP_PKG from '../../../mcp/package.json';
 import PLAYBOOK_SPEC from '../../../mcp/data/playbook-spec.json';
 // @ts-expect-error  JS config module at repo root, no type declarations
@@ -152,6 +152,7 @@ export const POST: APIRoute = async ({ request }) => {
         protocolVersion: PROTOCOL_VERSION,
         capabilities: { tools: {} },
         serverInfo: { ...SERVER_INFO, spec_version: SPEC_VERSION },
+        instructions: SERVER_INSTRUCTIONS,
       });
 
     case 'tools/list':
