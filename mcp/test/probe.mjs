@@ -77,6 +77,14 @@ async function main() {
   console.log(`returned ${rulesParsed.length} rules in structure`);
   for (const r of rulesParsed) console.log(`   - ${r.slug}: ${r.title} (${r.examples.length} examples)`);
 
+  console.log('\n=== tools/call: get_rule slug=responsive ===');
+  const one = await client.callTool({
+    name: 'get_rule',
+    arguments: { slug: 'responsive' },
+  });
+  const oneParsed = JSON.parse(one.content[0].text);
+  console.log(`  ${oneParsed.slug}: ${oneParsed.title} (${oneParsed.checklist.length} checklist items, body ${oneParsed.body_md.length} chars)`);
+
   console.log('\n=== error path: get_component name=nonexistent ===');
   const bad = await client.callTool({
     name: 'get_component',
