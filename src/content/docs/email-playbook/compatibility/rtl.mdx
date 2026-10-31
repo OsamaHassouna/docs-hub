@@ -8,6 +8,7 @@ checklist:
   - "Check numbers, prices and dates inside RTL text in a real render."
   - "Use an Arabic-safe font stack that ends in `Arial, sans-serif`."
   - "In bilingual emails, give each language block its own `dir` and `text-align`."
+  - "For side-by-side English and Arabic headers, put both names in one row and both titles in the next, with a gap cell between, top-aligned, so the titles line up when a name wraps."
 ---
 
 import { Aside } from '@astrojs/starlight/components';
@@ -124,6 +125,7 @@ For an email with both Arabic and English content (common in MENA region campaig
 - Wrap each language block in its own `dir=""` cell.
 - Use the appropriate alignment for each block (`text-align:right` for Arabic, `text-align:left` for English).
 - The overall page direction can be either; pick the one matching the primary audience.
+- For English and Arabic side by side (a name and title in each language), use one row for both names and one for both titles, with a gap cell between and both columns top-aligned. The [bilingual header](/email-playbook/production/signatures/#bilingual-header) has the pattern.
 
 ```html
 <!-- Arabic block -->

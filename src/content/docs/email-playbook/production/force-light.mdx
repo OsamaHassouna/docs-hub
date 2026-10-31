@@ -1,0 +1,133 @@
+---
+title: Force Light (Keep a Block White)
+description: The opt-in recipe for a block that must stay white with black text in dark mode, such as a signature or a brand panel. Three layers, the clients each one covers, and where it fails.
+checklist:
+  - "Adapting to dark mode is the default. Force a block light only when the brief requires it (signatures, brand panels), and tell the stakeholder which clients it can't cover."
+  - "White surface: a full-size hosted white PNG (at least as large as the block) on the cell as `background` and CSS `background-image`, plus `bgcolor=\"#ffffff\"` and a VML `v:rect` with `v:fill type=\"tile\"` for Outlook desktop. Not a small tile, not a CID attachment."
+  - "Black text: wrap every text run in `<span class=\"keep-black\" style=\"color:#ffffff; mix-blend-mode:difference;\">` as the innermost element (inside the `<a>` for links), and keep `color:#000000` on the parent `<p>`."
+  - "Classic Outlook 2016+: `<!--[if gte mso 16]><style>.keep-black{mso-style-textfill-type:gradient;mso-style-textfill-fill-gradientfill-stoplist:\"0 \\#000000 1 100000\\,99000 \\#000000 1 100000\";color:#ffffff !important;}</style><![endif]-->`."
+  - "In a full document, declare `<meta name=\"color-scheme\" content=\"light\">` and `supported-color-schemes` light. In a fragment added to someone else's message, leave the metas out: they would apply to the whole email."
+  - "The text colour is white underneath: clients without `mix-blend-mode` (Yahoo, AOL, Windows Mail, Gmail mobile webmail, Gmail apps on non-Google accounts, Fastmail, GMX/WEB.DE webmail, Orange) and Outlook 2013 or older show white on white. Test the clients your readers use."
+  - "Send it as-is. The classic Outlook composer breaks all three layers (VML becomes an image, gradient stops turn white, blend and classes are dropped), with or without VML."
+  - "Host the white image yourself before shipping; replace every test URL."
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+[Dark Mode](/email-playbook/production/dark-mode/) covers the default strategy: design so that the client's dark mode lands somewhere readable. Sometimes the brief says the opposite. A company signature or a brand panel has to stay **white with black text**, whatever the reader's theme. A white `bgcolor` alone doesn't do that: Gmail's apps and Outlook recolour it.
+
+This page is a recipe that held up in real inboxes. It is opt-in, it has gaps, and you should only use it when someone asks for that look and accepts the gaps below. The [case study](/email-playbook/case-studies/bilingual-signature-dark-mode/) tells the full story of how it was found.
+
+## How it works
+
+Each layer handles a different kind of client:
+
+| Layer | What it does | Who it's for |
+|---|---|---|
+| **Full-size white image** behind the block | Dark mode recolours colours, not (large) images, so the surface stays white. | Gmail apps, Outlook web, new Outlook |
+| **White text + `mix-blend-mode:difference`** | Dark mode leaves light text alone. White "difference" white paints black, so the text shows black. | Clients that support blend modes |
+| **Gradient text fill in `[if gte mso 16]`** | Classic Outlook ignores blend modes. A black gradient fill paints the glyphs black, and dark mode only changes the fallback colour. | Classic Outlook 2016 and later |
+
+## The pattern
+
+As a full HTML document (how the tested messages were sent):
+
+```html title="force-light-block.html"
+<!-- In <head> -->
+<meta name="color-scheme" content="light">
+<meta name="supported-color-schemes" content="light">
+<!--[if gte mso 16]><style>.keep-black{mso-style-textfill-type:gradient;mso-style-textfill-fill-gradientfill-stoplist:"0 \#000000 1 100000\,99000 \#000000 1 100000";color:#ffffff !important;}</style><![endif]-->
+
+<!-- In <body> -->
+<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="320" style="width:320px;">
+  <tr>
+    <td bgcolor="#ffffff" background="https://placehold.co/320x120/ffffff/ffffff/png" valign="top"
+        style="background-color:#ffffff; background-image:url('https://placehold.co/320x120/ffffff/ffffff/png');">
+      <!--[if gte mso 9]><v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false" style="width:320px;"><v:fill type="tile" src="https://placehold.co/320x120/ffffff/ffffff/png" color="#ffffff"/><v:textbox inset="0,0,0,0" style="mso-fit-shape-to-text:true;"><![endif]-->
+      <div>
+        <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="320" style="width:320px;">
+          <tr>
+            <td style="padding:16px;">
+              <p style="margin:0; font-family:Arial, sans-serif; font-size:14px; line-height:20px; color:#000000;">
+                <span class="keep-black" style="color:#ffffff; mix-blend-mode:difference;">This line stays black on white.</span>
+              </p>
+              <p style="margin:8px 0 0; font-family:Arial, sans-serif; font-size:14px; line-height:20px; color:#000000;">
+                <a href="mailto:{{email}}" style="color:#000000; text-decoration:none;"><span class="keep-black" style="color:#ffffff; mix-blend-mode:difference; text-decoration:none;">{{email}}</span></a>
+              </p>
+            </td>
+          </tr>
+        </table>
+      </div>
+      <!--[if gte mso 9]></v:textbox></v:rect><![endif]-->
+    </td>
+  </tr>
+</table>
+```
+
+The `<html>` tag needs `xmlns:v="urn:schemas-microsoft-com:vml"` and `xmlns:o="urn:schemas-microsoft-com:office:office"`, as in [Head](/email-playbook/structure/head/).
+
+### As a fragment
+
+A stamped signature or a block added to another message has no `<head>` of its own:
+
+- **Leave out the `color-scheme` metas.** In the host message they would switch the whole email to light-only.
+- **Put the `[if gte mso 16]` `<style>` directly before the block's table.** Not tested: the passes below were whole-document sends, so check that classic Outlook still paints the text black when the style sits in the body.
+- Everything else (image, `bgcolor`, VML, spans) is inline and moves with the block.
+
+### Rules for each layer
+
+**The white surface**
+- Use an image **at least as large as the block** (here 320x120). On a real Gmail Android device a signature went dark with an 8x8 white tile and stayed white once the only change was a full-size image.
+- If the block can grow (a long name wraps), the CSS background and `v:fill type="tile"` repeat the image over the extra height. Not tested in dark mode: size the image for the tallest block you expect, so it doesn't need to repeat.
+- **Host it.** `placehold.co/320x120/ffffff/ffffff/png` serves a pure white PNG and is fine for tests. In production, host your own copy: a third-party host sees every open, and if it's down the white layer is gone.
+- **Don't attach it as a CID image.** An image referenced only inside the `[if mso]` VML is invisible to Gmail, which then lists it as an attachment.
+- Keep `bgcolor="#ffffff"`. It carries the block when images are blocked.
+- `mso-fit-shape-to-text:true` lets the VML box grow with the content. Expect a few extra pixels at the bottom in classic Outlook.
+
+**The text**
+- The span is the innermost element around the text. In links, put it **inside** the `<a>`, so the link colour can't win over it.
+- Leave `color:#000000` on the `<p>`. It's what remains if a sending path strips the span's styles.
+- Don't use `-webkit-text-fill-color` or CSS gradients for this. Outlook web stripped both in testing and kept only the blend mode.
+
+**Other colours in the block**
+- Only the white surface and the text are protected. A coloured cell inside the block (a divider, a brand strip) can still be recoloured: a light grey divider turned near-black in forced dark. If a colour must not change, draw it as an image.
+
+**Classic Outlook**
+- The `.keep-black` rule needs `color:#ffffff !important` next to the gradient. In dark mode Outlook changes that fallback colour, but the gradient fill keeps painting the glyphs, in near-black (`#262626`).
+- `gte mso 16` means Outlook 2016 and later. Outlook 2013 and older get white text from the inline style.
+
+## What passed
+
+Whole-document HTML sent as-is (not through an Outlook composer), checked in the delivered message:
+
+| Client | Light | Dark |
+|---|---|---|
+| Gmail Android app | White, black text | **White, black text (real device)** |
+| Gmail iOS app | White, black text | White, black text (one real-device screenshot) |
+| Gmail web | White, black text | White, black text (Chromium forced-dark simulation) |
+| Outlook web | White, black text | White, black text |
+| New Outlook for Windows | White, black text | White, black text (tested with the 8x8-tile version of the same text layers) |
+| Classic Outlook (reading pane) | White, black text | White, text `#262626` |
+
+Not tested: Apple Mail, Outlook for Mac and mobile, Samsung Email, and every client in the warning below.
+
+## Where it fails
+
+<Aside type="danger" title="White text is the fallback">
+The text's real colour is white. Any client that drops `mix-blend-mode` shows **white on white**. Can I email lists no support in Yahoo Mail, AOL, Windows Mail, Gmail's mobile webmail, Fastmail webmail, GMX and WEB.DE webmail and Orange, and only partial support in Gmail's apps: none for non-Google accounts, such as an Outlook.com account read in the Gmail app. Its test data for this feature is several years old. Classic Outlook 2013 and older miss the gradient fill too. Source: [caniemail.com/features/css-mix-blend-mode](https://www.caniemail.com/features/css-mix-blend-mode/). If your readers use those clients, use the default dark-mode strategy instead.
+</Aside>
+
+- **The classic Outlook composer breaks all three layers.** If the HTML is opened in classic Outlook's compose window and then sent (a client-side signature, for example), Word turns the VML-wrapped block into **one image**. It also rewrites the gradient stops to white, removes `!important` and classes, and drops the blend declarations, so removing the VML doesn't save it: the text would arrive white. Replies and forwards from classic Outlook are expected to do the same (not tested). See [Email Signatures](/email-playbook/production/signatures/) for the insertion paths.
+- **Head-style overrides don't help with Outlook web.** Outlook web marks recoloured elements with `data-ogsc` / `data-ogsb` and writes its replacement colours inline with `!important`, so `[data-ogsc] .my-class { ... }` rules in the head lose. The blend mode is what survives.
+- **Blocked images.** The `bgcolor` keeps the block white in light mode. In dark mode the result then depends on the client.
+
+## Testing
+
+1. Send the HTML through the path it will really take (an ESP, a server rule, the mail API). Label every test by its path.
+2. Open the delivered message, not a local preview, in each client above with dark mode on. Include one client without blend modes (Yahoo or AOL) so you see the failure for yourself.
+3. For a quick check in a browser, Chromium's `--enable-features=WebContentsForceDark` darkens a plain `bgcolor` block, and the recipe should stay white. It doesn't reproduce everything: an 8x8 tile stayed white there although it went dark in the Gmail Android app. Confirm on a phone.
+4. Check that the delivered MIME has no extra image attachment, and that the text is still selectable text.
+
+## What's next
+
+[Email Signatures](/email-playbook/production/signatures/) covers the rest of a signature: how it gets inserted, what the Outlook composer rewrites, and the bilingual layout.

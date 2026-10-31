@@ -102,6 +102,10 @@ Inside a paragraph, you can use `<strong>`, `<em>`, `<u>`, `<a>` — all of them
 Outlook for Windows sometimes renders bold text in the wrong color if the parent `<p>` color isn't inherited. Set `color` explicitly on `<strong>`, `<em>`, and `<u>` inside paragraphs.
 </Aside>
 
+<Aside type="caution" title="Link styles after the classic Outlook composer">
+When a mail is written in classic Outlook's compose window (a client-side signature, a reply), Word moves the link's inline style onto an inner span and applies its own Hyperlink style. Outlook shows the link unstyled, but Gmail and Outlook web then draw it blue and underlined. No HTML or CSS treatment survives this ([OfficeDev/office-js#5704](https://github.com/OfficeDev/office-js/issues/5704)); only HTML inserted after Outlook (server-side) keeps the styles. See [Email Signatures](/email-playbook/production/signatures/).
+</Aside>
+
 ## Line lengths and readability
 
 Email reads best at 50-60 characters per line. With `font-size:16px` and `line-height:24px`, that's roughly:

@@ -116,7 +116,7 @@ Components live in a separate dimension — use `list_components` / `get_compone
 |---------|-------|--------|
 | `structure` (rules) | 5 | Doctype, head, body container, header, body, footer |
 | `compatibility` (rules) | 3 | Outlook MSO, RTL languages, responsive |
-| `production` (rules) | 4 | Gmail 102KB clip, dark mode, preheader, bulletproof buttons |
+| `production` (rules) | 6 | Gmail 102KB clip, dark mode, force light, email signatures, preheader, bulletproof buttons |
 | `ai-generation` (rules) | 7 | Absolute rules, asset policy, content fidelity, image placeholders, link tokens, output format, handoff checklist |
 | Components | 6 | Buttons, spacing, images, inline icons, background images, text |
 

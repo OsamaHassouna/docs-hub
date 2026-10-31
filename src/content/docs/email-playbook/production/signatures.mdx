@@ -1,0 +1,127 @@
+---
+title: Email Signatures
+description: Signatures follow different rules from campaign emails. Find out how the signature gets inserted first, then build a fixed-width, scoped, data-driven block and test it through that exact path.
+checklist:
+  - "Ask first: how is the signature inserted? Server-side stamping, sent by an app or API, an Outlook client signature, pasted by hand, Gmail's signature setting, or the Outlook web / new Outlook signature editor. The answer decides what survives."
+  - "Anything that passes through the classic Outlook composer gets rebuilt by Word: head styles and classes dropped, spans merged, px turned into pt, link styles moved, MSO gradient stops turned white, blend modes dropped, VML blocks turned into one image. Build and test for that path if it's the real one."
+  - "Use a fixed-width table no wider than about 320px so it fits phone mail apps, left-aligned, with no global head selectors (`p`, `td`, `body`): a signature's styles leak into the whole message."
+  - "Make side insets with spacer cells, not padding on a sized cell; Word and browsers size padded cells differently."
+  - "Ship a template with named tokens, HTML-escape every value, and remove an empty field together with its icon; drop the row when both fields in it are empty."
+  - "Build `tel:` links in E.164: country code, then the number without its trunk `0` (`+44 20 7946 0018` becomes `tel:+442079460018`)."
+  - "Host the images on HTTPS; CID images repeat in every reply, and an image referenced only inside `[if mso]` shows up as a Gmail attachment."
+  - "Send UTF-8 and check the delivered charset: classic Outlook saved Arabic as Windows-1256 and Gmail clipped a 9 KB message. One character outside the legacy code page (a hidden U+2060 in `<span style=\"display:none; mso-hide:all;\">&#8288;</span>`) made Outlook choose UTF-8."
+  - "Minify. The signature repeats in every reply of a thread, and the whole thread counts toward Gmail's 102KB clip."
+  - "Test the delivered message, through the real insertion path, in each client, with long names, missing fields and dark mode."
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+A signature looks like a small email, but three things make it harder. It sits **inside someone else's message**, so its styles mustn't leak. Its content is **data** (names, titles, numbers) that changes per person. And it often reaches the reader **through software you don't control**, which can rewrite it before it is sent.
+
+## Step 1: find out how it gets inserted
+
+Ask this before you write any HTML. Each answer changes what you can rely on:
+
+| Insertion path | What happens to your HTML | How to test it |
+|---|---|---|
+| **Server-side stamping** (mail-flow rule, signature service that appends after sending) | Usually appended as-is after the user sends. Your head styles, classes and VML can survive. | Send through the real server, then read the delivered message. |
+| **Sent by an app or API** (the mail is built in code) | Sent as-is. | Send through that code. |
+| **Outlook client signature** (signatures folder, roaming signatures, a tool that installs into Outlook) | Inserted into the classic Outlook composer, which rebuilds it with Word before sending (below). | Insert it as a real signature in classic Outlook and send. |
+| **Pasted into the compose window** | Same as above, plus whatever the clipboard keeps. | Paste and send. |
+| **Gmail's signature setting** | Gmail stores its own copy of the HTML. Not tested here: expect head styles, classes, conditional comments and VML to be removed. | Save it as the signature, send, read the delivered message. |
+| **Outlook web / new Outlook signature editor** | The editor stores its own copy of the HTML. Not tested here: expect the same losses. | Same. |
+
+If nobody knows yet, build for the composer path (it's the strictest) or wait for the answer. Expect a reply or a forward from classic Outlook to send the quoted signature through the composer again, whatever the original path was.
+
+## What the classic Outlook composer does
+
+Classic Outlook for Windows edits mail with Word. When a signature goes through its compose window, Word parses the HTML and writes its own on send. Seen in delivered messages:
+
+- **Only the `[if mso]` branch survives.** Content inside `<!--[if !mso]>` is dropped, so every client gets the Outlook version (for example a 1x GIF meant only for Outlook).
+- **Head styles and classes are dropped**, nested `<span>`s are merged into one, `px` becomes `pt` (`12px` becomes `9pt`), and `!important` disappears.
+- **Links lose their inline style.** Word moves it to an inner span and applies its Hyperlink style, so Gmail and Outlook web show blue, underlined links. No HTML or CSS treatment survived in testing; this is a known Outlook issue ([OfficeDev/office-js#5704](https://github.com/OfficeDev/office-js/issues/5704)). Only an insertion path that runs after Word (server-side) keeps your link styles.
+- **A VML-wrapped block becomes one image.** Other clients receive a picture with the text in its alt attribute. This affects any [background image](/email-playbook/components/background-images/) block.
+- **MSO text tricks are rewritten.** Gradient text-fill stops came out white, and `mix-blend-mode` declarations were dropped, so the [Force Light](/email-playbook/production/force-light/) recipe fails on this path with or without VML.
+- **The charset can change.** With Arabic content, Outlook saved the message as Windows-1256 instead of UTF-8, and Gmail showed "[Message clipped]" on a 9 KB message. Forcing UTF-8 fixed it (see [Gmail clipping](/email-playbook/production/gmail-clipping/)).
+
+<Aside type="caution" title="Testing tip">
+Setting a mail's `HTMLBody` through Outlook's API and sending it skips Word, so it is not a test of the composer path. Insert the HTML into the compose window (as a real signature, or through the editor) before you send.
+</Aside>
+
+## Layout rules
+
+- **Fixed width, small enough for phones.** A signature isn't a campaign layout: one table with `width="320"` and `style="width:320px"`, left-aligned, no centring wrapper and no fluid 600px shell. Phone mail apps give a message about 320-360px; a fixed-width table with fixed-width columns can't shrink, so a wider signature gets clipped or scrolls sideways. `max-width:100%` on the outer table doesn't help while the columns inside have fixed widths. If you need it wider on desktop, build and test a fluid version.
+- **Scope your head styles.** The [Head](/email-playbook/structure/head/) boilerplate's global selectors (`p { margin:0 }`, `table, td { ... }`) restyle the sender's whole message. In a signature, keep only what you need (the MSO settings, scoped classes) and put everything else inline.
+- **Insets as spacer cells.** A cell with both a width and padding is sized differently in Word and in browsers. Put a 12-16px empty cell (`font-size:1px; line-height:1px`) at each side instead.
+- **Equal widths everywhere.** The `width` attribute and the CSS width of each table and image must agree, and child widths must add up to the parent. A 296px image in a 292px column makes classic Outlook widen the whole signature.
+- **Let text wrap.** Names, titles and email addresses vary per person. Avoid `white-space:nowrap` and `&nbsp;` between words, and check the longest real values.
+
+### Bilingual header
+
+For English on the left and Arabic on the right, put both names in one row and both titles in the next, with a gap cell between the columns. Each title row then starts below the taller name, so the titles line up even when one name wraps.
+
+```html title="bilingual-header.html"
+<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="292" style="width:292px; table-layout:fixed;">
+  <tr>
+    <td width="140" valign="top" align="left" dir="ltr" style="width:140px; vertical-align:top;">
+      <p dir="ltr" style="margin:0; font-family:Arial, Tahoma, sans-serif; font-size:15px; line-height:20px; font-weight:bold; color:#000000; direction:ltr; text-align:left;">{{name_en}}</p>
+    </td>
+    <td width="12" style="width:12px; font-size:1px; line-height:1px;">&nbsp;</td>
+    <td width="140" valign="top" align="right" dir="rtl" style="width:140px; vertical-align:top;">
+      <p dir="rtl" lang="ar" style="margin:0; font-family:Tahoma, Arial, sans-serif; font-size:15px; line-height:20px; font-weight:bold; color:#000000; direction:rtl; text-align:right;">{{name_ar}}</p>
+    </td>
+  </tr>
+  <tr>
+    <td width="140" valign="top" align="left" dir="ltr" style="width:140px; vertical-align:top; padding:2px 0 0;">
+      <p dir="ltr" style="margin:0; font-family:Arial, Tahoma, sans-serif; font-size:12px; line-height:16px; color:#000000; direction:ltr; text-align:left;">{{title_en}}</p>
+    </td>
+    <td width="12" style="width:12px; font-size:1px; line-height:1px;">&nbsp;</td>
+    <td width="140" valign="top" align="right" dir="rtl" style="width:140px; vertical-align:top; padding:2px 0 0;">
+      <p dir="rtl" lang="ar" style="margin:0; font-family:Tahoma, Arial, sans-serif; font-size:12px; line-height:16px; color:#000000; direction:rtl; text-align:right;">{{title_ar}}</p>
+    </td>
+  </tr>
+</table>
+```
+
+- **Top-align** both columns (`valign="top"` and `vertical-align:top`). Centred, a one-line name floats to the middle of a two-line one.
+- Align a contact icon with the **first line** of its value in the same way.
+- See [RTL Support](/email-playbook/compatibility/rtl/) for `dir` on every level.
+
+## Dynamic data
+
+Treat the signature as a template that a developer fills in, not a finished file:
+
+- **Named tokens** (`{{name_en}}`, `{{title_ar}}`, `{{email}}`, `{{phone_display}}`, `{{phone_e164}}`). A token left unfilled is easy to spot; a sample name copied by mistake isn't.
+- **Escape every value** for HTML, and for URLs inside `href`.
+- **Missing fields.** Remove the value and its icon together. Remove a contact row when both of its fields are empty, and a title row when both titles are empty. Keep the column widths, so the remaining fields don't move.
+- **Phone numbers.** Show the local format, link the E.164 format: `+44 20 7946 0018` links to `tel:+442079460018`. Stripping spaces from `+44 020 7946 0018` gives `tel:+440207946...`, which doesn't dial.
+- **Email addresses.** Don't insert zero-width spaces to help wrapping: anyone who copies the address gets the hidden character too. Give the column enough width, or let it wrap.
+- Ship a fixture page with the full record, each field missing, and the longest real names, so the developer can check their output against yours.
+
+## Images
+
+- **Host them on HTTPS** and reference absolute URLs. CID (embedded) images are attached again to every reply, and Gmail lists an image as an attachment when it's referenced only inside `[if mso]`.
+- Export at **2x** (or a whole multiple) of the display size and set both `width`/`height` attributes and CSS. Non-whole scales blur.
+- For animated GIFs, classic Outlook shrinks a 2x GIF by dropping rows, which can erase thin lines. Give it a 1x copy inside `[if mso]` (and remember the composer path keeps only that branch).
+- Replace every placeholder or test host before handoff.
+
+## Size
+
+The signature repeats in every reply of a thread, and Gmail clips the whole message at 102KB. Remove indentation and comments (keep conditional comments), keep the HTML under a few KB, and check the delivered size, not the file. See [Gmail clipping](/email-playbook/production/gmail-clipping/).
+
+## Dark mode
+
+A white signature that must stay white needs the [Force Light](/email-playbook/production/force-light/) recipe and its client limits. Otherwise follow [Dark Mode](/email-playbook/production/dark-mode/): keep the brand assets readable on dark backgrounds and let the text adapt.
+
+## Test matrix
+
+| Check | How |
+|---|---|
+| Real insertion path | Send it the way production will. Label every test mail by path. |
+| Delivered HTML | Download the received message and compare it to your source: charset, attachments, surviving styles. |
+| Clients | Gmail web and apps, Outlook web, new Outlook, classic Outlook, Apple Mail; plus whatever your readers use. |
+| Dark mode | Each client above with dark mode on. |
+| Data | Longest real names and titles, each field missing, text enlarged on a phone. |
+| Replies and forwards | Reply from classic Outlook and Gmail, then check the quoted signature. |
+
+The [case study](/email-playbook/case-studies/bilingual-signature-dark-mode/) walks through one signature project and the bugs these checks found.

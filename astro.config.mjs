@@ -167,6 +167,8 @@ export default defineConfig({
 							items: [
 								{ label: 'Gmail 102KB Clipping', slug: 'email-playbook/production/gmail-clipping' },
 								{ label: 'Dark Mode', slug: 'email-playbook/production/dark-mode' },
+								{ label: 'Force Light', slug: 'email-playbook/production/force-light' },
+								{ label: 'Email Signatures', slug: 'email-playbook/production/signatures' },
 								{ label: 'Preheader Text', slug: 'email-playbook/production/preheader' },
 								{ label: 'Bulletproof Buttons', slug: 'email-playbook/production/bulletproof-buttons' },
 							],
@@ -181,6 +183,12 @@ export default defineConfig({
 								{ label: 'Link Tokens', slug: 'email-playbook/ai-generation/link-tokens' },
 								{ label: 'Output Format', slug: 'email-playbook/ai-generation/output-format' },
 								{ label: 'Handoff Checklist', slug: 'email-playbook/ai-generation/handoff-checklist' },
+							],
+						},
+						{
+							label: 'Case Studies',
+							items: [
+								{ label: 'White Signature in Dark Mode', slug: 'email-playbook/case-studies/bilingual-signature-dark-mode' },
 							],
 						},
 						{ label: 'Templates', slug: 'email-playbook/templates' },

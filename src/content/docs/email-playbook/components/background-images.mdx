@@ -42,6 +42,14 @@ Background images on `<td>` cells render in most email clients via the `backgrou
 - **`<v:fill type="tile" src="..." />`** — Tells Outlook how to render the image. `type="tile"` tiles it; switch to `type="frame"` for a single fitted image.
 - **`<v:textbox inset="0,0,0,0">`** — The content area inside the `<v:rect>`. `inset="0,0,0,0"` removes padding so the content sits flush against the rect edges.
 
+<Aside type="caution" title="Host the image; don't embed it for Outlook only">
+If you attach the image as a CID (embedded) image and reference it only inside the `[if gte mso 9]` VML, Gmail can't see the reference and lists the image as an attachment. Use the same hosted HTTPS URL in `background`, the CSS and `v:fill`.
+</Aside>
+
+<Aside type="note" title="Background images in dark mode">
+Dark modes recolour colours more readily than images. Use an image as large as the block: a signature with a tiled 8x8 white image went dark in the Gmail Android app, and stayed white with a full-size one. (Keeping a block white on purpose is the opt-in [Force Light](/email-playbook/production/force-light/) page, never a default.)
+</Aside>
+
 ## Fixed height vs. content-driven height
 
 Background images need height information. There are two ways to provide it:

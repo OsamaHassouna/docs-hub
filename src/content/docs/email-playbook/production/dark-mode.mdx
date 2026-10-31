@@ -6,7 +6,9 @@ checklist:
   - "Declare `color-scheme` and `supported-color-schemes`, and add a `prefers-color-scheme` block for clients that honour it."
   - "Ship light and dark logo variants and toggle them in the dark-mode query."
   - "Prefer near-white backgrounds (e.g. `#F8F8F5`) to pure white, and set `bgcolor` as well as `background-color`."
-  - "Do not fight forced invert by hard-coding light backgrounds, do not use transparent spacer images, and do not change layout in dark mode."
+  - "Adapting is the default: a light `bgcolor` alone gets inverted anyway. When a block must stay white (a signature, a brand panel), use the Force Light recipe and accept its client gaps."
+  - "Outlook web marks recoloured elements with `data-ogsc` / `data-ogsb` on the element itself and writes its colours inline with `!important`; head rules can't override them."
+  - "Do not use transparent spacer images, and do not change layout in dark mode."
   - "Test in Apple Mail, Outlook 365 and Gmail Android/iOS with dark mode on."
 ---
 
@@ -22,7 +24,14 @@ Dark mode in email is not one feature. It's three different behaviors depending 
 | **Partial color invert** | Outlook 2019 / 365 / Outlook.com (desktop dark mode) | Inverts text and backgrounds with light values but keeps colored backgrounds alone. |
 | **Full color invert** | Gmail (Android, iOS), Outlook Mobile | Inverts everything aggressively. Logos turn negative, light backgrounds turn dark, brand colors get mutated. |
 
-You design for behavior 1 (your intended look). You override behavior 2 with hints. You defend against behavior 3 with techniques that prevent or guide the invert.
+You design for behavior 1 (your intended look). You guide behavior 2 with colour choices that survive it (Outlook writes its replacement colours inline, so CSS hints can't override them). You defend against behavior 3 with techniques that prevent or guide the invert.
+
+## Two strategies
+
+| Strategy | When | How |
+|---|---|---|
+| **Adapt** (default) | Campaigns, newsletters, transactional mail | The layers below: declare your schemes, swap logos, pick colours that invert gracefully. |
+| **Force light** (opt-in, never by default) | Only when a brief requires a block that always stays white, such as a company signature | A separate page with its own client gaps: [Force Light](/email-playbook/production/force-light/). |
 
 ## Layer 1: respect `prefers-color-scheme`
 
@@ -104,14 +113,18 @@ Before shipping, verify in:
 | Outlook 365 desktop + dark mode | Background colors stay (Outlook doesn't fully invert). |
 | Gmail Android + dark theme | Logos still readable, brand colors not mutated. |
 | Gmail iOS + dark theme | Same. |
-| Outlook.com + dark mode | Acceptable. Usually fine. |
+| Outlook.com + dark mode | Text and backgrounds get recoloured inline; check that every text/background pair keeps its contrast. |
 
 [Litmus](https://litmus.com/) and [Email on Acid](https://www.emailonacid.com/) both include dark mode previews across all major clients on paid tiers.
 
 ## What NOT to do
 
-<Aside type="caution" title="Don't fight Gmail mobile's invert by hard-coding light backgrounds">
-You will lose. Gmail will invert it anyway and the result will be worse than letting it transform a more accommodating palette. Design for the invert to land somewhere acceptable rather than trying to prevent it.
+<Aside type="caution" title="Don't fight Gmail mobile's invert with a background colour">
+A white `bgcolor` or `background-color` gets inverted anyway, and the result is worse than letting Gmail transform a more accommodating palette. Design for the invert to land somewhere acceptable. If a client's brief requires a block that always stays white (a signature, for example), there is a separate opt-in page, [Force Light](/email-playbook/production/force-light/), with its own client gaps. Never apply it by default.
+</Aside>
+
+<Aside type="caution" title="Don't try to override Outlook web from the head">
+Outlook web (and new Outlook) marks each element it recolours with `data-ogsc` (text) or `data-ogsb` (background) on that element itself, so `[data-ogsc] .my-class` (attribute on a parent) matches nothing. Its replacement colours are written inline with `!important`, which beats head rules either way.
 </Aside>
 
 <Aside type="caution" title="Don't ship invisible images for spacing">

@@ -7,6 +7,7 @@ checklist:
   - "Never inline base64 images; always use hosted URLs."
   - "Keep personalization tokens and long class names in check; they add bytes at send time."
   - "Measure the delivered size through your actual ESP, not just the template."
+  - "A clip notice on a small message points to the charset: check the delivered message is UTF-8 (classic Outlook can save Arabic as Windows-1256)."
 ---
 
 import { Aside } from '@astrojs/starlight/components';
@@ -106,6 +107,14 @@ When you preview in Litmus or Email on Acid, look for:
 - A red size warning in their content analysis tools.
 
 In a real Gmail inbox, hover over the bottom of the email after opening it. The "[Message clipped] View entire message" link appears as a separate line under the email body.
+
+## When a small message clips: the charset
+
+A "[Message clipped]" notice on a message far under 102KB usually isn't about size. A signature with Arabic text, sent from classic Outlook, arrived as **Windows-1256** instead of UTF-8, and Gmail clipped it at about 9KB. Removing every image didn't help; forcing UTF-8 did.
+
+- Declare `<meta http-equiv="Content-Type" content="text/html; charset=utf-8">` (see [Head](/email-playbook/structure/head/)), and make sure the sending system sends `Content-Type: text/html; charset=utf-8` too.
+- Classic Outlook picks the outgoing encoding itself (**File > Options > Advanced > International options**, "Automatically select encoding for outgoing messages"), and can pick a legacy code page when every character fits one. In testing, one character outside that code page made it choose UTF-8: a hidden word joiner (U+2060) in `<span style="display:none; mso-hide:all;">&#8288;</span>`. A user can also set the preferred encoding there to Unicode (UTF-8).
+- Check the delivered message ("Show original" in Gmail): the `charset=` in its headers is what counts.
 
 ## The 102KB budget breakdown
 

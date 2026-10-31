@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+- Playbook: **Force Light** page (`production/force-light`), the opt-in recipe for a block that stays white with black text in dark mode: a full-size hosted white image, white text with `mix-blend-mode:difference`, and a gradient text fill for classic Outlook. Lists the clients it covers and the ones where the text turns white on white.
+- Playbook: **Email Signatures** page (`production/signatures`): find out the insertion path first, what the classic Outlook composer rewrites, fixed-width scoped layout, a bilingual header pattern, template tokens, missing fields, E.164 `tel:` links, hosted images, size and a test matrix.
+- Docs: **Case Studies** section, starting with a bilingual signature that stays white in dark mode (invented brand, real findings). Docs only; the MCP does not serve case studies.
+
+### Changed
+- Playbook: Dark Mode names two strategies (adapt by default, force light as an opt-in) and documents Outlook web's `data-ogsc` / `data-ogsb` behaviour. Gmail Clipping covers clipping caused by the charset. Background Images warns about Outlook-only CID images showing as Gmail attachments. Text covers link styles after the classic Outlook composer. RTL points to the bilingual header.
+- Playground: the generator prompt leaves out the Force Light and Email Signatures pages; they are opt-in patterns, not defaults for a design-to-email conversion.
+
 ## [0.7.0] — 2026-10-17
 
 ### Added

@@ -26,8 +26,13 @@ You have been given the complete Osama Hassouna HTML Email Playbook below. It is
 
 Read the ABSOLUTE RULES section first. It overrides instinct.`;
 
+// Pages the MCP serves but the playground generator must not see: they are
+// opt-in recipes (force-light text is white underneath) or signature rules,
+// not defaults for an email built from a design image.
+const GENERATOR_SKIP = new Set(['production/force-light', 'production/signatures']);
+
 function rulesByCategory(spec, category) {
-  return spec.rules.filter(r => r.category === category);
+  return spec.rules.filter(r => r.category === category && !GENERATOR_SKIP.has(r.slug));
 }
 
 function sectionForRule(rule) {
@@ -176,11 +181,20 @@ export const EMAIL_SHELL = ${JSON.stringify(shell, null, 2)};
 export const PROMPT_META = {
   generated_at: ${JSON.stringify(new Date().toISOString())},
   spec_version: ${JSON.stringify(spec.version)},
-  rule_count: ${spec.rules.length},
+  rule_count: ${spec.rules.filter(r => !GENERATOR_SKIP.has(r.slug)).length},
   component_count: ${spec.components.length},
   approx_chars: ${prompt.length},
 };
 `;
+
+  // Guard the opt-in pages: a renamed slug must fail the build, not quietly
+  // put the force-light recipe back into the generator prompt.
+  for (const slug of GENERATOR_SKIP) {
+    if (!spec.rules.some(r => r.slug === slug)) throw new Error(`[gen-prompt] GENERATOR_SKIP lists '${slug}', which is not a rule page`);
+  }
+  for (const marker of ['mix-blend-mode', 'keep-black', 'mso-style-textfill']) {
+    if (prompt.includes(marker)) throw new Error(`[gen-prompt] the generator prompt contains '${marker}' (force-light recipe); keep it on production/force-light`);
+  }
 
   mkdirSync(OUT_DIR, { recursive: true });
   writeFileSync(OUT_PATH, tsModule, 'utf8');
