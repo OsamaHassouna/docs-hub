@@ -1,0 +1,200 @@
+---
+title: "Case Study: A Bilingual Signature That Stays White in Dark Mode"
+description: A real signature project, rebuilt with an invented brand. Six attempts at keeping a signature white in dark mode, the recipe that passed on real devices, and the other bugs the testing found.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+<Aside type="note" title="About this case study">
+This comes from a real client project. The brand, the people, the numbers and the exact layout below are invented, so the code is a simplified stand-in, not the client's template. The problems, the failed attempts and the fix are real, and the stand-in was rendered again for this page.
+</Aside>
+
+## The brief
+
+A company signature in English and Arabic, generated per employee from directory data and sent from Outlook and Gmail. A first version was already in use. The new requirements:
+
+- Smaller on phones, sharper icons and logo, no outer border.
+- **A white background with black text in dark mode**, the same in every client.
+- A clean layout when an employee has no title, extension or phone.
+- The text stays real HTML text, because every employee's data is different.
+
+## Six attempts at dark mode
+
+### 1. A white background colour: failed
+
+`bgcolor="#ffffff"`, `background-color:#ffffff` and `<meta name="color-scheme" content="light">`. Outlook web's dark mode turned the panel dark grey (`#292929`) and the text white. A forced-dark render in Chromium (a rough stand-in for Gmail's apps that doesn't reproduce every case) shows the same:
+
+![The signature with only a white background colour, under Chromium's forced dark mode: dark panel, white text](/email-playbook/case-studies/forced-dark-bgcolor-only.png)
+
+### 2. The whole signature as one image: rejected
+
+An image would stay white everywhere. But the text would no longer be selectable, links would shrink to one per image, and every employee would need a rendered picture. The requirement was live text, so this was dropped before it was built.
+
+### 3. A white background image with black text: failed
+
+A hosted white image behind the block, with the text set to plain `color:#000000`. In Outlook web's dark mode the image stayed white, but Outlook recoloured the text to white, so it disappeared into the white image. The surface was solved; the text needed another layer.
+
+### 4. Dark-mode rules in the head: failed
+
+Rules like `[data-ogsc] .sig { color:#000000 !important; }`. They matched nothing. Outlook web puts `data-ogsc` on the element it recolours (not on a parent), and it writes its replacement colours **inline** with `!important`, which beats any head rule. When the same HTML went through the classic Outlook composer, the head rules and the class were removed altogether.
+
+
+### 5. A small white tile, blended text and an Outlook gradient: partly
+
+- An 8x8 white PNG tiled behind the block, embedded as a CID attachment for Outlook's VML.
+- Text set to `color:#ffffff` with `mix-blend-mode:difference`, which paints black on a white surface.
+- For classic Outlook, a black gradient text fill in an `[if gte mso 16]` style.
+
+Outlook web, the new Outlook app and classic Outlook's reading pane all showed white with black text. Gmail didn't: the Android app still went dark, and Gmail listed the tile as an attachment, because the CID image was referenced only inside the Outlook-only VML.
+
+### 6. A full-size hosted image: passed
+
+The only change from attempt 5: the tile became a **full-size white PNG** (as large as the signature), hosted on HTTPS and used by both the CSS background and the VML fill. On a real Gmail Android phone in dark mode, the whole signature stayed white with black English and Arabic text, and the attachment was gone.
+
+![The same signature with the Force Light recipe, under Chromium's forced dark mode: white panel, black text](/email-playbook/case-studies/forced-dark-force-light.png)
+
+The recipe is written up as [Force Light](/email-playbook/production/force-light/), with its rules and its limits.
+
+## The other bugs testing found
+
+Most of these showed up only in a real client or a delivered message, not in a browser preview:
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| Gmail showed "[Message clipped]" on a 9 KB message | Classic Outlook saved the Arabic message as Windows-1256, not UTF-8 | Force UTF-8; check the delivered charset ([Gmail clipping](/email-playbook/production/gmail-clipping/)) |
+| English and Arabic names overlapped on an iPhone | `white-space:nowrap`, `&nbsp;` between words, no gap between the columns | Let names wrap, add a gap cell, share one row for names and one for titles ([bilingual header](/email-playbook/production/signatures/#bilingual-header)) |
+| A one-line name sat centred next to a two-line name | Cells were middle-aligned | `valign="top"` on both columns, icons on the first line |
+| Text touched the edges in classic Outlook | Insets made with padding on a sized cell | Empty spacer cells at both sides |
+| The signature came out wider in classic Outlook | The table said `width="312"` and CSS said 320px; a 296px divider sat in a 292px column | Make every attribute, CSS width and child sum agree |
+| Email and phone links turned blue and underlined in Gmail | The classic Outlook composer moved the link styles to an inner span | No HTML fix works; insert the signature after Outlook (server-side) |
+| The click-to-call link had an extra `0` (caught in code review) | `tel:` was built by stripping spaces from a display number that kept its trunk `0` | Link the E.164 number |
+
+## The final stand-in
+
+A 320px signature for the invented brand Acme: a brand strip, the bilingual header, a divider and two contacts, with the Force Light layers. In a real template the name, titles, email and phone are tokens (see [dynamic data](/email-playbook/production/signatures/#dynamic-data)); the stand-in fills them in so it renders. Replace the `placehold.co` white image with your own hosted copy before using it.
+
+```html title="acme-signature.html"
+<!DOCTYPE html>
+<html lang="en" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<meta name="supported-color-schemes" content="light">
+<title>Acme signature</title>
+<!--[if mso]><xml><o:OfficeDocumentSettings><o:AllowPNG/><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml><![endif]-->
+<!--[if gte mso 16]><style>.keep-black{mso-style-textfill-type:gradient;mso-style-textfill-fill-gradientfill-stoplist:"0 \#000000 1 100000\,99000 \#000000 1 100000";color:#ffffff !important;}</style><![endif]-->
+</head>
+<body style="margin:0;padding:0;">
+<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="320" style="width:320px;border-collapse:collapse;">
+  <tr>
+    <td bgcolor="#ffffff" background="https://placehold.co/320x120/ffffff/ffffff/png" valign="top"
+        style="background-color:#ffffff;background-image:url('https://placehold.co/320x120/ffffff/ffffff/png');">
+      <!--[if gte mso 9]><v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false" style="width:320px;"><v:fill type="tile" src="https://placehold.co/320x120/ffffff/ffffff/png" color="#ffffff"/><v:textbox inset="0,0,0,0" style="mso-fit-shape-to-text:true;"><![endif]-->
+      <div>
+        <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="320" style="width:320px;table-layout:fixed;border-collapse:collapse;">
+          <!-- Brand strip: a coloured cell, not a coloured table around the text -->
+          <tr><td height="4" bgcolor="#0E6E6E" style="height:4px;background-color:#0E6E6E;font-size:1px;line-height:1px;">&nbsp;</td></tr>
+          <tr>
+            <td style="padding:12px 0 0;">
+              <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="320" style="width:320px;table-layout:fixed;border-collapse:collapse;">
+                <tr>
+                  <td width="14" style="width:14px;font-size:1px;line-height:1px;">&nbsp;</td>
+                  <td width="292" style="width:292px;">
+                    <!-- Bilingual header: names share a row, titles share the next row -->
+                    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="292" style="width:292px;table-layout:fixed;border-collapse:collapse;">
+                      <tr>
+                        <td width="140" valign="top" align="left" dir="ltr" style="width:140px;vertical-align:top;">
+                          <p dir="ltr" style="margin:0;font-family:Arial,Tahoma,sans-serif;font-size:15px;line-height:20px;font-weight:bold;color:#000000;direction:ltr;text-align:left;mso-line-height-rule:at-least;"><span class="keep-black" style="color:#ffffff;mix-blend-mode:difference;">Layla Mansour</span></p>
+                        </td>
+                        <td width="12" style="width:12px;font-size:1px;line-height:1px;">&nbsp;</td>
+                        <td width="140" valign="top" align="right" dir="rtl" style="width:140px;vertical-align:top;">
+                          <p dir="rtl" lang="ar" style="margin:0;font-family:Tahoma,Arial,sans-serif;font-size:15px;line-height:20px;font-weight:bold;color:#000000;direction:rtl;text-align:right;mso-line-height-rule:at-least;"><span class="keep-black" style="color:#ffffff;mix-blend-mode:difference;">ليلى منصور</span></p>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td width="140" valign="top" align="left" dir="ltr" style="width:140px;vertical-align:top;padding:2px 0 0;">
+                          <p dir="ltr" style="margin:0;font-family:Arial,Tahoma,sans-serif;font-size:12px;line-height:16px;color:#000000;direction:ltr;text-align:left;mso-line-height-rule:at-least;"><span class="keep-black" style="color:#ffffff;mix-blend-mode:difference;">Product Design Lead</span></p>
+                        </td>
+                        <td width="12" style="width:12px;font-size:1px;line-height:1px;">&nbsp;</td>
+                        <td width="140" valign="top" align="right" dir="rtl" style="width:140px;vertical-align:top;padding:2px 0 0;">
+                          <p dir="rtl" lang="ar" style="margin:0;font-family:Tahoma,Arial,sans-serif;font-size:12px;line-height:16px;color:#000000;direction:rtl;text-align:right;mso-line-height-rule:at-least;"><span class="keep-black" style="color:#ffffff;mix-blend-mode:difference;">قائدة تصميم المنتجات</span></p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                  <td width="14" style="width:14px;font-size:1px;line-height:1px;">&nbsp;</td>
+                </tr>
+                <!-- Divider: a 1px coloured strip cell between the insets -->
+                <tr>
+                  <td width="14" style="width:14px;font-size:1px;line-height:1px;">&nbsp;</td>
+                  <td width="292" style="width:292px;padding:10px 0;">
+                    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="292" style="width:292px;border-collapse:collapse;">
+                      <tr><td height="1" bgcolor="#C9D3D6" style="height:1px;background-color:#C9D3D6;font-size:1px;line-height:1px;">&nbsp;</td></tr>
+                    </table>
+                  </td>
+                  <td width="14" style="width:14px;font-size:1px;line-height:1px;">&nbsp;</td>
+                </tr>
+                <!-- Contacts: two columns; omit a column's value when the field is empty -->
+                <tr>
+                  <td width="14" style="width:14px;font-size:1px;line-height:1px;">&nbsp;</td>
+                  <td width="292" style="width:292px;padding:0 0 12px;">
+                    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="292" style="width:292px;table-layout:fixed;border-collapse:collapse;">
+                      <tr>
+                        <td width="176" valign="top" style="width:176px;vertical-align:top;">
+                          <p style="margin:0;font-family:Arial,Tahoma,sans-serif;font-size:12px;line-height:16px;color:#000000;mso-line-height-rule:at-least;"><a href="mailto:layla.mansour@example.com" style="color:#000000;text-decoration:none;"><span class="keep-black" style="color:#ffffff;mix-blend-mode:difference;text-decoration:none;">layla.mansour@example.com</span></a></p>
+                        </td>
+                        <td width="116" valign="top" align="right" style="width:116px;vertical-align:top;">
+                          <p style="margin:0;font-family:Arial,Tahoma,sans-serif;font-size:12px;line-height:16px;color:#000000;text-align:right;mso-line-height-rule:at-least;"><a href="tel:+442079460018" style="color:#000000;text-decoration:none;"><span class="keep-black" style="color:#ffffff;mix-blend-mode:difference;text-decoration:none;">+44 20 7946 0018</span></a></p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                  <td width="14" style="width:14px;font-size:1px;line-height:1px;">&nbsp;</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </div>
+      <!--[if gte mso 9]></v:textbox></v:rect><![endif]-->
+    </td>
+  </tr>
+</table>
+</body>
+</html>
+```
+
+Rendered for this page in Chromium (light, forced dark, and a 330px phone-width view) and in classic Outlook for Windows (Microsoft 365, compose view, light theme):
+
+![The stand-in in classic Outlook: white panel, black text, aligned bilingual header](/email-playbook/case-studies/classic-outlook.png)
+
+In the forced-dark render the grey divider turns near-black: only the white surface and the text are protected.
+
+## Results
+
+The real signature, sent as-is and checked in the delivered message:
+
+| Client | Dark mode result |
+|---|---|
+| Gmail Android app | White, black text (real device) |
+| Gmail iOS app | White, black text (one real-device screenshot) |
+| Gmail web | White, black text (forced-dark simulation) |
+| Outlook web | White, black text |
+| New Outlook for Windows | White, black text (tested with the 8x8-tile version) |
+| Classic Outlook, reading pane | White, text `#262626` |
+| Sent through the classic Outlook composer | **Failed:** Word turned the signature into one image (and rewrites the gradient to white, drops the blend) |
+
+## What stayed open
+
+- **The insertion path.** At handoff nobody knew yet whether the signature would be stamped by a server or installed into Outlook. Through the Outlook composer, the recipe becomes an image. [Find this out first](/email-playbook/production/signatures/#step-1-find-out-how-it-gets-inserted).
+- **Clients without blend modes.** Yahoo, AOL, Windows Mail, Gmail's mobile webmail, Gmail's apps on non-Google accounts and several European webmails don't support `mix-blend-mode`, so they show the white text on white. The recipe trades those readers for a white signature everywhere else.
+- **A signature added to someone else's message.** Every pass was a whole-document send. As a fragment, the head style for classic Outlook has to move into the body, which wasn't tested.
+
+## Lessons
+
+1. **Ask how a signature is inserted before building it.** It decides which half of your HTML survives.
+2. **"Stay white in dark mode" is possible, but only as an opt-in with known gaps.** Tell the stakeholder which clients it leaves out.
+3. **A tiny background tile isn't the same as a full-size image** to Gmail's dark mode.
+4. **Never embed an image that only Outlook uses.** Host it.
+5. **Test the delivered message, through the real path, on a real phone.** Most of the bugs above never showed in a browser preview.
