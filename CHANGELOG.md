@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.8.0] — 2026-10-31
+
 ### Added
 - Playbook: **Force Light** page (`production/force-light`), the opt-in recipe for a block that stays white with black text in dark mode: a full-size hosted white image, white text with `mix-blend-mode:difference`, and a gradient text fill for classic Outlook. Lists the clients it covers and the ones where the text turns white on white.
 - Playbook: **Email Signatures** page (`production/signatures`): find out the insertion path first, what the classic Outlook composer rewrites, fixed-width scoped layout, a bilingual header pattern, template tokens, missing fields, E.164 `tel:` links, hosted images, size and a test matrix.
@@ -117,7 +119,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Added
 - Initial release: MCP server exposing four read-only tools (`list_categories`, `get_playbook_rules`, `list_components`, `get_component`) generated from the playbook MDX via a canonical `playbook-spec.json`.
 
-[Unreleased]: https://github.com/OsamaHassouna/docs-hub/compare/v0.7.0...HEAD
+[Unreleased]: https://github.com/OsamaHassouna/docs-hub/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/OsamaHassouna/docs-hub/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/OsamaHassouna/docs-hub/compare/v0.6.3...v0.7.0
 [0.6.3]: https://github.com/OsamaHassouna/docs-hub/compare/v0.6.2...v0.6.3
 [0.6.2]: https://github.com/OsamaHassouna/docs-hub/compare/v0.6.1...v0.6.2
