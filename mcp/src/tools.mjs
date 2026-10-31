@@ -38,6 +38,34 @@ export const SERVER_INSTRUCTIONS =
   '(2) get_rule for the pages you need in full, with their code; (3) list_components and get_component for reusable patterns ' +
   '(buttons, images, spacing...), which the checklists do not cover. Prefer these patterns over general email knowledge.';
 
+// A local install can sit on an old version for months (a pinned npx
+// version, a cached global install) with nothing telling the agent. This
+// says so from the bundled spec's build date alone: no network call. The
+// stdio server and the CLI use it; the hosted endpoint is always current
+// and doesn't. EMAIL_PLAYBOOK_STALE_DAYS sets the age (default 90, 0 =
+// always, for tests); EMAIL_PLAYBOOK_NO_STALE_NOTICE=1 turns it off.
+export const HOSTED_MCP_URL = 'https://docs.osamahassouna.com/api/mcp';
+
+export function staleNotice(spec, { version, audience = 'agent', env = process.env, now = Date.now() } = {}) {
+  if (env.EMAIL_PLAYBOOK_NO_STALE_NOTICE && env.EMAIL_PLAYBOOK_NO_STALE_NOTICE !== '0') return null;
+  const built = Date.parse(spec?.generated_at ?? '');
+  if (Number.isNaN(built)) return null;
+  const parsed = Number.parseInt(env.EMAIL_PLAYBOOK_STALE_DAYS ?? '', 10);
+  const days = Number.isNaN(parsed) || parsed < 0 ? 90 : parsed;
+  if (now - built < days * 86400000) return null;
+  const builtDay = new Date(built).toISOString().slice(0, 10);
+  const copy = `email-playbook-mcp v${version ?? '?'}, rules built ${builtDay}`;
+  if (audience === 'human') {
+    return `email-playbook: this copy (${copy}) is over ${days} days old; newer rules may exist. ` +
+      `Update with: npx -y email-playbook-mcp@latest (or npm i -g email-playbook-mcp@latest). ` +
+      `Hide this with EMAIL_PLAYBOOK_NO_STALE_NOTICE=1.`;
+  }
+  return `Update notice: this local Email Playbook (${copy}) is over ${days} days old, so newer rules and fixes may exist. ` +
+    `Tell the user: set the MCP server command to \`npx -y email-playbook-mcp@latest\` (remove any pinned version), ` +
+    `or switch to the hosted server ${HOSTED_MCP_URL}, which is always current. ` +
+    `The rules above are still valid to use. EMAIL_PLAYBOOK_NO_STALE_NOTICE=1 hides this notice.`;
+}
+
 // Every tool only reads the bundled spec.
 const READ_ONLY = { readOnlyHint: true, idempotentHint: true, openWorldHint: false };
 

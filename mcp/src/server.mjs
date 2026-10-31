@@ -18,14 +18,19 @@ import {
   ListToolsRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
 
-import { getTools, runTool, SERVER_INSTRUCTIONS } from './tools.mjs';
+import { getTools, loadSpec, runTool, SERVER_INSTRUCTIONS, staleNotice } from './tools.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PKG = JSON.parse(readFileSync(join(__dirname, '..', 'package.json'), 'utf8'));
 
+// Shown in the instructions and once, on the first tool result, because
+// many clients never show server instructions to the model.
+const STALE_NOTICE = staleNotice(loadSpec(), { version: PKG.version });
+let staleNoticePending = Boolean(STALE_NOTICE);
+
 const server = new Server(
   { name: 'email-playbook', version: PKG.version },
-  { capabilities: { tools: {} }, instructions: SERVER_INSTRUCTIONS },
+  { capabilities: { tools: {} }, instructions: STALE_NOTICE ? `${SERVER_INSTRUCTIONS}\n\n${STALE_NOTICE}` : SERVER_INSTRUCTIONS },
 );
 
 server.setRequestHandler(ListToolsRequestSchema, async () => ({
@@ -36,11 +41,12 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const { name, arguments: args } = request.params;
   try {
     const result = await runTool(name, args ?? {});
-    return {
-      content: [
-        { type: 'text', text: JSON.stringify(result, null, 2) },
-      ],
-    };
+    const content = [{ type: 'text', text: JSON.stringify(result, null, 2) }];
+    if (staleNoticePending) {
+      staleNoticePending = false;
+      content.push({ type: 'text', text: STALE_NOTICE });
+    }
+    return { content };
   } catch (err) {
     return {
       content: [

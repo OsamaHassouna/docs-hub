@@ -31,6 +31,20 @@ npx -y email-playbook-mcp@latest
 - **No postinstall scripts** — installing runs no arbitrary code.
 - **Read-only, no inbox** — the tools only return playbook content. It never reads, sends, or touches email, never opens your inbox, and makes no network calls of its own.
 
+## Keeping it current
+
+The playbook grows with new pages and fixes, so install `email-playbook-mcp@latest` and never pin a version in your client config. The hosted endpoint is always current.
+
+A local copy can still fall behind (a pinned version, a cached global install). When the bundled rules are more than 90 days old, the local server says so, without any network call:
+
+- **MCP server:** one short update note in the server instructions and on the first tool result of a session, addressed to the AI client, so it can tell you how to update.
+- **CLI:** one line on stderr; stdout stays clean JSON.
+
+| Variable | Effect |
+|---|---|
+| `EMAIL_PLAYBOOK_NO_STALE_NOTICE=1` | Turns the note off. |
+| `EMAIL_PLAYBOOK_STALE_DAYS=180` | Changes the age that triggers it (default 90). |
+
 ## Use it in Claude Desktop
 
 Edit `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows):

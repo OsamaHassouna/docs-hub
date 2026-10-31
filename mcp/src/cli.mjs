@@ -19,7 +19,7 @@ import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { loadSpec, runTool } from './tools.mjs';
+import { loadSpec, runTool, staleNotice } from './tools.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PKG = JSON.parse(readFileSync(join(__dirname, '..', 'package.json'), 'utf8'));
@@ -137,6 +137,12 @@ async function main() {
     const bad = flags.find(f => !allowed.includes(f));
     if (bad) fail(`'${command}' doesn't take '${bad}'.`);
   };
+
+  // stderr, so piped JSON on stdout stays clean.
+  try {
+    const notice = staleNotice(loadSpec(), { version: PKG.version, audience: 'human' });
+    if (notice) process.stderr.write(notice + '\n');
+  } catch { /* a missing spec fails in the command itself */ }
 
   try {
     switch (command) {

@@ -15,8 +15,8 @@ import { spawn } from 'node:child_process';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
-import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
-import { loadSpec, runTool, setSpec } from '../src/tools.mjs';
+import { StdioClientTransport, getDefaultEnvironment } from '@modelcontextprotocol/sdk/client/stdio.js';
+import { loadSpec, runTool, setSpec, staleNotice } from '../src/tools.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SERVER_PATH = join(__dirname, '..', 'src', 'server.mjs');
@@ -35,9 +35,13 @@ function check(name, fn) {
     .catch((err) => { console.error(`FAIL  ${name}\n      ${err.message}`); process.exitCode = 1; });
 }
 
-function runCli(args) {
+// The update notice depends on the spec's age; keep it off unless a check
+// asks for it, so the other checks don't change once the spec is 90 days old.
+const QUIET_ENV = { EMAIL_PLAYBOOK_NO_STALE_NOTICE: '1' };
+
+function runCli(args, env = QUIET_ENV) {
   return new Promise((resolve) => {
-    const child = spawn(process.execPath, [CLI_PATH, ...args], { stdio: ['ignore', 'pipe', 'pipe'] });
+    const child = spawn(process.execPath, [CLI_PATH, ...args], { stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env, ...env } });
     let stdout = '';
     let stderr = '';
     child.stdout.on('data', (d) => { stdout += d; });
@@ -49,7 +53,7 @@ function runCli(args) {
 async function main() {
   console.log('email-playbook-mcp smoke test\n');
 
-  const transport = new StdioClientTransport({ command: process.execPath, args: [SERVER_PATH] });
+  const transport = new StdioClientTransport({ command: process.execPath, args: [SERVER_PATH], env: { ...getDefaultEnvironment(), ...QUIET_ENV } });
   const client = new Client({ name: 'smoke-test', version: '0.0.1' }, { capabilities: {} });
   await client.connect(transport);
 
@@ -394,6 +398,58 @@ async function main() {
       assert.equal(code, 0, flag);
       assert.ok(stdout.includes('Usage:'), flag);
     }
+  });
+
+  // --- Update notice (age-based, no network) ---
+  await check('staleNotice: fresh spec, old spec, opt-out, bad input', async () => {
+    const now = Date.parse('2026-06-01T00:00:00Z');
+    const fresh = { generated_at: '2026-05-01T00:00:00Z' };
+    const old = { generated_at: '2026-01-01T00:00:00Z' };
+    assert.equal(staleNotice(fresh, { version: '1.0.0', env: {}, now }), null);
+    const n = staleNotice(old, { version: '1.0.0', env: {}, now });
+    assert.ok(n.includes('email-playbook-mcp@latest') && n.includes('v1.0.0') && n.includes('2026-01-01'), n);
+    assert.equal(staleNotice(old, { env: { EMAIL_PLAYBOOK_NO_STALE_NOTICE: '1' }, now }), null);
+    assert.ok(staleNotice(old, { env: { EMAIL_PLAYBOOK_NO_STALE_NOTICE: '0' }, now }), 'NO_STALE_NOTICE=0 keeps it on');
+    assert.equal(staleNotice(old, { env: { EMAIL_PLAYBOOK_STALE_DAYS: '365' }, now }), null);
+    assert.ok(staleNotice(fresh, { env: { EMAIL_PLAYBOOK_STALE_DAYS: '0' }, now }));
+    assert.ok(staleNotice(old, { env: { EMAIL_PLAYBOOK_STALE_DAYS: 'x' }, now }), 'bad value falls back to 90');
+    assert.equal(staleNotice({}, { env: {}, now }), null, 'no build date, no notice');
+    assert.ok(staleNotice(old, { audience: 'human', env: {}, now }).startsWith('email-playbook:'));
+  });
+
+  await check('MCP: stale copy adds the notice to the instructions and the first tool result only', async () => {
+    const t = new StdioClientTransport({ command: process.execPath, args: [SERVER_PATH], env: { ...getDefaultEnvironment(), EMAIL_PLAYBOOK_STALE_DAYS: '0' } });
+    const c = new Client({ name: 'smoke-stale', version: '0.0.1' }, { capabilities: {} });
+    await c.connect(t);
+    try {
+      assert.ok(c.getInstructions().includes('Update notice'), 'instructions carry it');
+      const first = await c.callTool({ name: 'list_categories', arguments: {} });
+      assert.equal(first.content.length, 2);
+      assert.ok(first.content[1].text.startsWith('Update notice'));
+      JSON.parse(first.content[0].text);
+      const second = await c.callTool({ name: 'list_categories', arguments: {} });
+      assert.equal(second.content.length, 1, 'only once per session');
+    } finally { await c.close(); }
+  });
+
+  await check('MCP: opted-out copy has no notice', async () => {
+    const t = new StdioClientTransport({ command: process.execPath, args: [SERVER_PATH], env: { ...getDefaultEnvironment(), EMAIL_PLAYBOOK_STALE_DAYS: '0', ...QUIET_ENV } });
+    const c = new Client({ name: 'smoke-quiet', version: '0.0.1' }, { capabilities: {} });
+    await c.connect(t);
+    try {
+      const res = await c.callTool({ name: 'list_categories', arguments: {} });
+      assert.equal(res.content.length, 1);
+      assert.ok(!(c.getInstructions() ?? '').includes('Update notice'));
+    } finally { await c.close(); }
+  });
+
+  await check('CLI: stale copy prints one stderr line and leaves stdout JSON clean', async () => {
+    const { code, stdout, stderr } = await runCli(['list-categories'], { EMAIL_PLAYBOOK_STALE_DAYS: '0' });
+    assert.equal(code, 0);
+    JSON.parse(stdout);
+    assert.ok(stderr.startsWith('email-playbook: this copy'), stderr);
+    const quiet = await runCli(['list-categories']);
+    assert.equal(quiet.stderr, '');
   });
 
   console.log(`\n${passed} checks passed${process.exitCode ? ' (with failures above)' : ''}`);

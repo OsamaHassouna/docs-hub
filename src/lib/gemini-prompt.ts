@@ -12,7 +12,7 @@ export const EMAIL_SHELL = {
 };
 
 export const PROMPT_META = {
-  generated_at: "2026-10-31T05:29:22.117Z",
+  generated_at: "2026-10-31T05:31:55.227Z",
   spec_version: "1.1.0",
   rule_count: 19,
   component_count: 6,
